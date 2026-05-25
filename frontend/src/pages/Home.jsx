@@ -19,6 +19,14 @@ const Home = () => {
     '/hero5.jpg'
   ];
 
+  // Preload Hero Images
+  useEffect(() => {
+    heroImages.forEach((src) => {
+      const img = new Image();
+      img.src = src;
+    });
+  }, []);
+
   // Fetch data
   useEffect(() => {
     const fetchHomeData = async () => {
@@ -75,13 +83,20 @@ const Home = () => {
       
       {/* 1. CINEMATIC HERO SLIDER */}
       <section className="m-hero">
-        {heroImages.map((src, index) => (
-          <div 
-            key={index} 
-            className={`m-hero__slide ${index === currentHero ? 'active' : ''}`}
-            style={{ backgroundImage: `url(${src})` }}
-          />
-        ))}
+        {heroImages.map((src, index) => {
+          const isPrev = index === (currentHero === 0 ? heroImages.length - 1 : currentHero - 1);
+          let className = "m-hero__slide";
+          if (index === currentHero) className += " active";
+          if (isPrev) className += " prev";
+
+          return (
+            <div 
+              key={index} 
+              className={className}
+              style={{ backgroundImage: `url(${src})` }}
+            />
+          );
+        })}
         
         <div className="m-hero__overlay" />
 
