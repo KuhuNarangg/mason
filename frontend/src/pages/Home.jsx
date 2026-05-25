@@ -1,0 +1,232 @@
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
+import api from '../utils/api';
+import ProductCard from '../components/ProductCard';
+import './Home.css';
+
+const Home = () => {
+  const [featured, setFeatured] = useState([]);
+  const [trending, setTrending] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentHero, setCurrentHero] = useState(0);
+
+  const heroImages = [
+    '/hero1.jpg',
+    '/hero2.jpg',
+    '/hero3.jpg',
+    '/hero4.jpg',
+    '/hero5.jpg'
+  ];
+
+  // Fetch data
+  useEffect(() => {
+    const fetchHomeData = async () => {
+      try {
+        const [featRes, trendRes] = await Promise.all([
+          api.get('/products?featured=true&limit=4'),
+          api.get('/products?trending=true&limit=8')
+        ]);
+        setFeatured(featRes.data.products);
+        setTrending(trendRes.data.products);
+      } catch (err) {
+        console.error('Failed to fetch home data', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchHomeData();
+  }, []);
+
+  // Hero Slider Interval
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentHero((prev) => (prev + 1) % heroImages.length);
+    }, 6000); // 6 second slow fade
+    return () => clearInterval(timer);
+  }, [heroImages.length]);
+
+  // Intersection observer for scroll reveals
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('in-view');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
+    );
+    
+    document.querySelectorAll('.reveal-up').forEach(el => observer.observe(el));
+    return () => observer.disconnect();
+  }, [loading]);
+
+  const reviews = [
+    { name: 'Priya S.', text: 'The silhouette, the fabric, the elegance—everything is completely unmatched. Mason has elevated my entire wardrobe.', label: 'Verified Buyer' },
+    { name: 'Ananya M.', text: 'I felt like an absolute goddess wearing their evening gown. The craftsmanship is true luxury without the absurd price tag.', label: 'Verified Buyer' },
+    { name: 'Rhea K.', text: 'Every piece tells a story of heritage and modern femininity. A breathtaking collection.', label: 'Verified Buyer' }
+  ];
+
+  return (
+    <div className="m-home">
+      
+      {/* 1. CINEMATIC HERO SLIDER */}
+      <section className="m-hero">
+        {heroImages.map((src, index) => (
+          <div 
+            key={index} 
+            className={`m-hero__slide ${index === currentHero ? 'active' : ''}`}
+            style={{ backgroundImage: `url(${src})` }}
+          />
+        ))}
+        
+        <div className="m-hero__overlay" />
+
+        <div className="container h-100 d-flex flex-col justify-center align-center">
+          <div className="m-hero__content">
+            <h1 className="m-hero__title">
+              <span className="m-hero__line">The Art of</span>
+              <span className="m-hero__line m-hero__line--italic"><em>Femininity</em></span>
+            </h1>
+            <div className="m-hero__tagline">
+              <span>• WOMEN WEAR •</span>
+              <span>ETHNIC • PARTY • COMFORT</span>
+            </div>
+            <div className="m-hero__info">
+              <Link to="/category/women" className="m-hero__cta">
+                Shop The Collection
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        <div className="m-hero__indicators">
+          {heroImages.map((_, index) => (
+            <button 
+              key={index} 
+              className={`m-hero__dot ${index === currentHero ? 'active' : ''}`}
+              onClick={() => setCurrentHero(index)}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* 2. CURATED COLLECTIONS (Editorial Asymmetry) */}
+      <section className="m-collections container">
+        <div className="m-collections__grid">
+          <div className="m-col-text reveal-up">
+            <h2 className="m-section-title">Curated <em>Elegance</em></h2>
+            <p className="m-col-text__desc">Discover our signature edits, designed to empower and inspire. From breathtaking evening wear to timeless heritage pieces, find the silhouette that speaks to your soul.</p>
+            <Link to="/category/all" className="btn-ghost">Explore All Collections</Link>
+          </div>
+
+          <Link to="/category/all?type=party-wear" className="m-col-card m-col-card--large reveal-up">
+            <img src="/home1.jpg" alt="Evening Glamour" className="m-col-card__img" />
+            <div className="m-col-card__overlay">
+              <span className="m-col-card__label">The Evening Edit</span>
+              <h3 className="m-col-card__title">Midnight <em>Glamour</em></h3>
+            </div>
+          </Link>
+
+          <Link to="/category/all?type=ethnic" className="m-col-card m-col-card--small reveal-up" style={{ transitionDelay: '0.2s' }}>
+            <img src="/home2.jpg" alt="Heritage Romance" className="m-col-card__img" />
+            <div className="m-col-card__overlay">
+              <span className="m-col-card__label">The Heritage Edit</span>
+              <h3 className="m-col-card__title">Modern <em>Romance</em></h3>
+            </div>
+          </Link>
+        </div>
+      </section>
+
+      {/* 3. EXPERIENCE LUXURY (Brand Story) */}
+      <section className="m-experience">
+        <div className="m-experience__grid">
+          <div className="m-experience__img-wrap reveal-up">
+            <img src="/home3.jpg" alt="Experience Luxury" className="m-experience__img" />
+          </div>
+          <div className="m-experience__content reveal-up" style={{ transitionDelay: '0.2s' }}>
+            <span className="m-label">The House of Mason</span>
+            <h2 className="m-section-title">Uncompromising <em>Quality</em></h2>
+            <p>We believe luxury is a feeling, not just a price tag. Every piece in our collection is meticulously crafted with premium fabrics, figure-flattering cuts, and an obsessive attention to detail.</p>
+            <p>Designed to make you feel like the most beautiful woman in the room.</p>
+            <Link to="/about" className="btn btn-outline" style={{ marginTop: '2rem' }}>Discover Our Story</Link>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. TRENDING NOW (Horizontal Scroll Slider) */}
+      <section className="m-trending">
+        <div className="container m-trending__header reveal-up">
+          <h2 className="m-section-title">Trending <em>Now</em></h2>
+          <div className="m-drag-hint">Swipe to explore</div>
+        </div>
+
+        <div className="m-trending__scroll">
+          <div className="m-trending__track">
+            {loading ? (
+              <div className="m-loading-state"><div className="spinner" /></div>
+            ) : (
+              trending.map((product, i) => (
+                <div key={product._id} className="m-trending__item reveal-up" style={{ transitionDelay: `${i * 0.05}s` }}>
+                  <ProductCard product={product} />
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* 5. EDITORIAL CAMPAIGN */}
+      <section className="m-campaign reveal-up">
+        <div className="m-campaign__bg" style={{ backgroundImage: `url('/home4.jpg')` }} />
+        <div className="m-campaign__overlay" />
+        <div className="m-campaign__content">
+          <h2 className="m-campaign__title"><em>Sensuality</em> in Every Stitch.</h2>
+          <Link to="/category/women" className="m-hero__cta">
+            Shop The Campaign
+          </Link>
+        </div>
+      </section>
+
+      {/* 6. TESTIMONIALS (Monochromatic Minimalist) */}
+      <section className="m-reviews">
+        <div className="container">
+          <h2 className="m-section-title text-center reveal-up mb-12">The Mason <em>Muse</em></h2>
+          <div className="m-reviews__grid">
+            {reviews.map((r, i) => (
+              <article key={i} className="m-review-card reveal-up" style={{ transitionDelay: `${i * 0.1}s` }}>
+                <div className="m-review-card__stars">★★★★★</div>
+                <p className="m-review-card__text">"{r.text}"</p>
+                <div className="m-review-card__author">
+                  <strong>{r.name}</strong>
+                  <span>{r.label}</span>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 7. NEWSLETTER (Ultra Premium) */}
+      <section className="m-newsletter">
+        <div className="container m-newsletter__inner reveal-up">
+          <h2 className="m-newsletter__title">Join The <em>Inner Circle</em></h2>
+          <p className="m-newsletter__desc">Sign up for early access to new collections, exclusive events, and styling inspiration.</p>
+          <form className="m-newsletter__form" onSubmit={e => e.preventDefault()}>
+            <input type="email" placeholder="Enter your email address" required className="m-newsletter__input" />
+            <button type="submit" className="m-newsletter__submit">
+              <ArrowRight size={20} strokeWidth={1} />
+            </button>
+          </form>
+        </div>
+      </section>
+
+    </div>
+  );
+};
+
+export default Home;

@@ -1,0 +1,605 @@
+/* Admin Pages Styling */
+
+.admin-page-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #2d2d2d;
+  margin-bottom: 1.5rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #a98478;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background: #926a62;
+  box-shadow: 0 2px 8px rgba(169, 132, 120, 0.2);
+}
+
+.form-container {
+  background: #ffffff;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e0d5ce;
+  margin-bottom: 2rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #2d2d2d;
+  margin-bottom: 0.5rem;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  padding: 0.75rem;
+  border: 1px solid #e0d5ce;
+  border-radius: 0.5rem;
+  font-size: 0.95rem;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.2s ease;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: #a98478;
+  box-shadow: 0 0 0 3px rgba(169, 132, 120, 0.1);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.btn-submit,
+.btn-cancel {
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  flex: 1;
+}
+
+.btn-submit {
+  background: #a98478;
+  color: white;
+}
+
+.btn-submit:hover {
+  background: #926a62;
+}
+
+.btn-cancel {
+  background: #e0d5ce;
+  color: #2d2d2d;
+}
+
+.btn-cancel:hover {
+  background: #d4c9c2;
+}
+
+.btn-small {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #a98478;
+  transition: all 0.2s ease;
+}
+
+.btn-small:hover {
+  color: #926a62;
+}
+
+.btn-danger {
+  color: #f44336;
+}
+
+.btn-danger:hover {
+  color: #da190b;
+}
+
+/* Table Styling */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border: 1px solid #e0d5ce;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.admin-table thead {
+  background: #f5f0ed;
+  border-bottom: 1px solid #e0d5ce;
+}
+
+.admin-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #2d2d2d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.admin-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #f0e6dd;
+  font-size: 0.95rem;
+  color: #2d2d2d;
+}
+
+.admin-table tbody tr:hover {
+  background: #f5f0ed;
+}
+
+.tag-badge {
+  display: inline-block;
+  background: #e8dcd8;
+  color: #a98478;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #a98478;
+}
+
+.modal-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #e0d5ce;
+  padding-bottom: 1rem;
+}
+
+.modal-tab-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #888;
+  transition: all 0.2s ease;
+  border-bottom: 2px solid transparent;
+}
+
+.modal-tab-btn.active {
+  color: #a98478;
+  border-bottom-color: #a98478;
+}
+
+.modal-tab-btn:hover {
+  color: #a98478;
+}
+
+.upload-area {
+  border: 2px dashed #e0d5ce;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  background: #f5f0ed;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.upload-area:hover {
+  border-color: #a98478;
+  background: #f8f3f0;
+}
+
+.image-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.image-preview {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  border-radius: 0.25rem;
+  border: 1px solid #e0d5ce;
+}
+
+.image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-remove-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 22px;
+  height: 22px;
+  background: #f44336;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: all 0.2s ease;
+}
+
+.image-remove-btn:hover {
+  background: #da190b;
+  transform: scale(1.1);
+}
+
+.checkbox-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.75rem;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.checkbox-item:hover {
+  background: #f5f0ed;
+}
+
+.checkbox-item input:checked + label {
+  color: #a98478;
+  font-weight: 600;
+}
+
+.checkbox-item label {
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.color-preview {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+  border: 1px solid #ccc;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
+.no-data {
+  text-align: center;
+  padding: 2rem;
+  color: #888;
+  font-size: 0.95rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: #f5f0ed;
+  border-radius: 0.5rem;
+  color: #888;
+}
+
+.empty-state-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .admin-table {
+    font-size: 0.85rem;
+  }
+  
+  .admin-table th,
+  .admin-table td {
+    padding: 0.75rem 0.5rem;
+  }
+}
+
+@media (max-width: 992px) {
+  .form-container {
+    padding: 1.5rem;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .admin-table {
+    font-size: 0.9rem;
+  }
+  
+  .admin-table th,
+  .admin-table td {
+    padding: 0.75rem;
+  }
+  
+  .checkbox-group {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-page-title {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .page-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  
+  .form-container {
+    padding: 1rem;
+  }
+  
+  .form-group label {
+    font-size: 0.85rem;
+  }
+  
+  .form-input,
+  .form-select,
+  .form-textarea {
+    padding: 0.65rem;
+    font-size: 0.9rem;
+  }
+  
+  .form-buttons {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .btn-submit,
+  .btn-cancel {
+    padding: 0.7rem 1.2rem;
+    font-size: 0.9rem;
+  }
+  
+  .admin-table {
+    font-size: 0.85rem;
+  }
+  
+  .admin-table th,
+  .admin-table td {
+    padding: 0.6rem;
+  }
+  
+  .admin-table th {
+    font-size: 0.8rem;
+  }
+  
+  .image-preview-grid {
+    grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
+    gap: 0.5rem;
+  }
+  
+  .image-preview {
+    width: 75px;
+    height: 75px;
+  }
+  
+  .checkbox-group {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+  
+  .checkbox-item {
+    padding: 0.4rem;
+  }
+  
+  .checkbox-item label {
+    font-size: 0.9rem;
+  }
+  
+  .modal-tab-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+  }
+  
+  .tag-badge {
+    padding: 0.2rem 0.6rem;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-page-title {
+    font-size: 1.2rem;
+  }
+  
+  .form-container {
+    padding: 0.75rem;
+  }
+  
+  .form-group {
+    margin-bottom: 0.75rem;
+  }
+  
+  .form-group label {
+    font-size: 0.8rem;
+    margin-bottom: 0.35rem;
+  }
+  
+  .form-input,
+  .form-select,
+  .form-textarea {
+    padding: 0.6rem;
+    font-size: 0.85rem;
+  }
+  
+  .form-textarea {
+    min-height: 80px;
+  }
+  
+  .form-buttons {
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-top: 1rem;
+  }
+  
+  .btn-submit,
+  .btn-cancel {
+    padding: 0.65rem 1rem;
+    font-size: 0.85rem;
+    min-height: 40px;
+  }
+  
+  .admin-table {
+    font-size: 0.8rem;
+    overflow-x: auto;
+    display: block;
+  }
+  
+  .admin-table thead {
+    display: none;
+  }
+  
+  .admin-table tbody {
+    display: block;
+  }
+  
+  .admin-table tbody tr {
+    display: block;
+    border: 1px solid #e0d5ce;
+    border-radius: 0.5rem;
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+  }
+  
+  .admin-table tbody tr:hover {
+    background: white;
+  }
+  
+  .admin-table td {
+    display: block;
+    padding: 0.5rem;
+    border-bottom: 1px solid #f0e6dd;
+    text-align: right;
+    position: relative;
+    padding-left: 45%;
+  }
+  
+  .admin-table td:last-child {
+    border-bottom: none;
+  }
+  
+  .admin-table td:before {
+    content: attr(data-label);
+    position: absolute;
+    left: 0.5rem;
+    font-weight: 600;
+    font-size: 0.75rem;
+    color: #888;
+    text-transform: uppercase;
+  }
+  
+  .image-preview-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.4rem;
+  }
+  
+  .image-preview {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .checkbox-group {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+  }
+  
+  .checkbox-item {
+    padding: 0.35rem;
+  }
+  
+  .checkbox-item label {
+    font-size: 0.85rem;
+  }
+  
+  .upload-area {
+    padding: 1rem;
+  }
+  
+  .modal-tab-btn {
+    padding: 0.35rem 0.6rem;
+    font-size: 0.8rem;
+  }
+  
+  .empty-state {
+    padding: 2rem 1rem;
+  }
+  
+  .empty-state-icon {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+  }
+}

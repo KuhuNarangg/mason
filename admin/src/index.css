@@ -1,0 +1,373 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --color-primary: #a98478;
+  --color-primary-hover: #926a62;
+  --color-primary-light: #e8dcd8;
+  --color-secondary: #2d2d2d;
+  --color-bg: #f5f0ed;
+  --color-surface: #ffffff;
+  --color-text: #2d2d2d;
+  --color-text-muted: #888;
+  --color-border: #e0d5ce;
+  --color-success: #4caf50;
+  --color-danger: #f44336;
+  
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 2px 8px rgba(0,0,0,0.12);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.5;
+}
+
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.admin-sidebar {
+  width: 220px;
+  background-color: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  height: 100vh;
+  z-index: 10;
+}
+
+.sidebar-header {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  padding: 0 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--color-secondary);
+  letter-spacing: 0.5px;
+}
+
+.sidebar-header span { 
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.sidebar-nav {
+  padding: 1rem 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 1.5rem;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+}
+
+.nav-item:hover {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+  border-left-color: var(--color-primary);
+}
+
+.nav-item.active {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+  border-left-color: var(--color-primary);
+  font-weight: 600;
+}
+
+.admin-main {
+  flex: 1;
+  margin-left: 220px;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-header {
+  height: 60px;
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.admin-content {
+  padding: 2rem;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Dashboard Cards */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.kpi-card {
+  background: var(--color-surface);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.2s ease;
+}
+
+.kpi-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-primary);
+}
+
+.kpi-icon {
+  width: 45px;
+  height: 45px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.kpi-info h3 {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.25rem;
+}
+
+.kpi-info p {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-secondary);
+}
+
+/* Login Form */
+.login-wrapper {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--color-bg) 0%, #f0e6dd 100%);
+}
+
+.login-card {
+  background: white;
+  padding: 2.5rem;
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-md);
+  width: 100%;
+  max-width: 380px;
+  border: 1px solid var(--color-border);
+}
+
+.form-group { margin-bottom: 1.25rem; }
+.form-group label { 
+  display: block; 
+  margin-bottom: 0.5rem; 
+  font-weight: 600; 
+  font-size: 0.9rem;
+  color: var(--color-text);
+}
+.form-input { 
+  width: 100%; 
+  padding: 0.75rem; 
+  border: 1px solid var(--color-border); 
+  border-radius: 0.5rem;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+.form-input:focus { 
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+.btn { 
+  padding: 0.8rem 1.5rem; 
+  background: var(--color-primary); 
+  color: white; 
+  border: none; 
+  border-radius: 0.5rem; 
+  cursor: pointer; 
+  width: 100%; 
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+.btn:hover {
+  background: var(--color-primary-hover);
+  box-shadow: var(--shadow-md);
+}
+.btn:active {
+  transform: scale(0.98);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .admin-sidebar {
+    width: 180px;
+  }
+  
+  .admin-main {
+    margin-left: 180px;
+  }
+  
+  .admin-content {
+    padding: 1.5rem;
+  }
+  
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .form-group { margin-bottom: 1rem; }
+  .form-input { padding: 0.65rem; font-size: 0.9rem; }
+}
+
+@media (max-width: 768px) {
+  .admin-sidebar {
+    width: 60px;
+    position: fixed;
+    left: 0;
+    height: 100vh;
+    z-index: 20;
+  }
+  
+  .sidebar-header {
+    padding: 0 0.75rem;
+    font-size: 0.8rem;
+    height: 50px;
+  }
+  
+  .sidebar-header span {
+    display: none;
+  }
+  
+  .nav-item {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.7rem;
+    justify-content: center;
+  }
+  
+  .nav-item svg {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .admin-main {
+    margin-left: 60px;
+  }
+  
+  .admin-header {
+    padding: 0 1rem;
+    height: 50px;
+  }
+  
+  .admin-content {
+    padding: 1rem;
+  }
+  
+  .kpi-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .kpi-card {
+    padding: 1rem;
+  }
+  
+  .kpi-info h3 {
+    font-size: 0.7rem;
+  }
+  
+  .kpi-info p {
+    font-size: 1.2rem;
+  }
+  
+  .login-card {
+    padding: 1.5rem;
+    max-width: 320px;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-sidebar {
+    width: 50px;
+  }
+  
+  .admin-main {
+    margin-left: 50px;
+  }
+  
+  .sidebar-header {
+    font-size: 0.7rem;
+    padding: 0 0.5rem;
+  }
+  
+  .nav-item {
+    padding: 0.5rem;
+  }
+  
+  .admin-header {
+    padding: 0 0.75rem;
+  }
+  
+  .admin-content {
+    padding: 0.75rem;
+  }
+  
+  .kpi-card {
+    padding: 0.75rem;
+    gap: 0.5rem;
+  }
+  
+  .kpi-icon {
+    width: 35px;
+    height: 35px;
+    font-size: 0.8rem;
+  }
+  
+  .kpi-info h3 {
+    font-size: 0.65rem;
+  }
+  
+  .kpi-info p {
+    font-size: 1rem;
+  }
+  
+  .login-card {
+    padding: 1.25rem;
+    max-width: 90vw;
+  }
+  
+  .form-group { margin-bottom: 0.75rem; }
+  .form-group label { font-size: 0.8rem; }
+  .form-input { padding: 0.6rem; font-size: 0.85rem; }
+  .btn { padding: 0.65rem; font-size: 0.9rem; }
+}

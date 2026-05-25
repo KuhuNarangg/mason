@@ -1,0 +1,19 @@
+/* ============================================================
+   MASON — Orders Page
+   ============================================================ */
+
+/* The Orders page is complex with many inline styles.
+   These global overrides ensure brand consistency. */
+
+.order-card,
+.order-detail-card {
+  background: white;
+  border: var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  transition: box-shadow var(--duration-fast);
+}
+
+.order-card:hover {
+  box-shadow: var(--shadow-sm);
+}

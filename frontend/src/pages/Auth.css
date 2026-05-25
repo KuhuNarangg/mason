@@ -1,0 +1,217 @@
+/* ============================================================
+   MASON — Luxury Auth Pages (Split Screen)
+   ============================================================ */
+
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  background: var(--ivory);
+  overflow: hidden; /* Prevent scrolling if possible */
+}
+
+/* 50% Left Side - Campaign Image */
+.auth-hero {
+  flex: 1;
+  display: none;
+  background-image: url('/hero1.jpg');
+  background-size: cover;
+  background-position: center 20%;
+  position: relative;
+}
+
+.auth-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(44,36,33,0.3) 0%, rgba(255,255,255,0) 40%);
+}
+
+.auth-hero-content {
+  position: absolute;
+  bottom: var(--space-12);
+  left: var(--space-12);
+  right: var(--space-12);
+  color: white;
+  z-index: 2;
+}
+
+.auth-hero-brand {
+  font-family: var(--font-heading);
+  font-size: var(--text-4xl);
+  font-weight: 400;
+  letter-spacing: 2px;
+  text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.auth-hero-tagline {
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  margin-top: var(--space-4);
+  opacity: 0.9;
+}
+
+/* 50% Right Side - Form Container */
+.auth-form-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--navbar-height) + var(--space-8)) var(--space-8) var(--space-8);
+  background: var(--ivory);
+  position: relative;
+}
+
+.auth-back-link {
+  position: absolute;
+  top: var(--space-8);
+  right: var(--space-12);
+  font-family: var(--font-body);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-tertiary);
+  text-decoration: none;
+  transition: color var(--duration-fast);
+}
+
+.auth-back-link:hover {
+  color: var(--ink);
+}
+
+.auth-container {
+  width: 100%;
+  max-width: 420px;
+  background: transparent;
+  animation: fadeIn var(--duration-normal) var(--ease-smooth);
+}
+
+.auth-title {
+  font-family: var(--font-heading);
+  font-size: var(--text-3xl);
+  font-weight: 400;
+  text-align: left;
+  color: var(--ink);
+  line-height: 1.2;
+}
+
+.auth-subtitle {
+  text-align: left;
+  color: var(--text-tertiary);
+  font-size: var(--font-size-sm);
+  margin-top: var(--space-3);
+  font-weight: 400;
+}
+
+.auth-form {
+  margin-top: var(--space-10);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+/* Minimalist Inputs */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.form-label {
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.auth-input {
+  width: 100%;
+  padding: var(--space-3) 0;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--champagne);
+  font-family: var(--font-body);
+  font-size: var(--font-size-base);
+  color: var(--ink);
+  outline: none;
+  transition: border-color var(--duration-fast);
+}
+
+.auth-input::placeholder {
+  color: var(--text-tertiary);
+  opacity: 0.5;
+}
+
+.auth-input:focus {
+  border-bottom-color: var(--rose-gold-dark);
+}
+
+/* Sharp Button */
+.auth-btn {
+  width: 100%;
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  background: var(--ink);
+  color: white;
+  border: none;
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background var(--duration-fast);
+}
+
+.auth-btn:hover:not(:disabled) {
+  background: var(--rose-gold-dark);
+}
+
+.auth-btn:disabled {
+  background: var(--champagne);
+  color: var(--text-tertiary);
+  cursor: not-allowed;
+}
+
+/* Footer */
+.auth-footer {
+  text-align: left;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin-top: var(--space-8);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--champagne);
+}
+
+.auth-footer a {
+  color: var(--ink);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: var(--champagne);
+  text-underline-offset: 4px;
+}
+
+.auth-footer a:hover {
+  color: var(--rose-gold-dark);
+  text-decoration-color: var(--rose-gold-dark);
+}
+
+/* Responsive */
+@media (min-width: 992px) {
+  .auth-hero {
+    display: block;
+  }
+}
+
+@media (max-width: 991px) {
+  .auth-page {
+    padding-top: var(--navbar-height); /* Clear navbar if accessed directly on mobile */
+  }
+  .auth-form-wrapper {
+    padding: var(--space-6) var(--space-4);
+  }
+  .auth-back-link {
+    display: none;
+  }
+}

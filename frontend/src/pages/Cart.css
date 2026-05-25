@@ -1,0 +1,300 @@
+/* ============================================================
+   MASON — Cart & Checkout Shared Styles
+   ============================================================ */
+
+/* Top Container Padding to clear fixed navbar */
+.cart-page-container {
+  padding-top: 160px !important;
+  padding-bottom: var(--space-12) !important;
+}
+
+/* Title */
+.cart-title {
+  font-family: var(--font-heading);
+  font-size: var(--font-size-3xl);
+  font-weight: 400;
+  letter-spacing: 1px;
+}
+
+/* Layout */
+.cart-layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: var(--space-10);
+  align-items: start;
+}
+
+/* Cart Items */
+.cart-items {
+  display: flex;
+  flex-direction: column;
+}
+
+.cart-item {
+  display: flex;
+  gap: var(--space-6);
+  padding: var(--space-6) 0;
+  background: transparent;
+  border-bottom: 1px solid var(--champagne);
+}
+
+.cart-item:last-child {
+  border-bottom: none;
+}
+
+.cart-item-img {
+  width: 140px;
+  height: 180px;
+  flex-shrink: 0;
+  display: block;
+}
+
+.cart-item-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cart-item-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.item-brand {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+  font-family: var(--font-body);
+}
+
+.item-name {
+  font-family: var(--font-heading);
+  font-size: var(--font-size-xl);
+  color: var(--text-primary);
+  text-decoration: none;
+  display: block;
+  margin-top: var(--space-2);
+  transition: color var(--duration-fast);
+}
+
+.item-name:hover {
+  color: var(--rose-gold);
+}
+
+.item-variants {
+  font-size: var(--font-size-sm);
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+}
+
+.item-price {
+  font-size: var(--font-size-lg);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+/* Quantity Control */
+.quantity-control {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border: 1px solid var(--champagne);
+  overflow: hidden;
+}
+
+.quantity-control button {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--duration-fast);
+}
+
+.quantity-control button:hover:not(:disabled) {
+  background: var(--champagne);
+}
+
+.quantity-control button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.quantity-control span {
+  padding: 0 var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  min-width: 36px;
+  text-align: center;
+}
+
+/* Action Buttons */
+.save-later-btn,
+.remove-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 500;
+  transition: color var(--duration-fast);
+}
+
+.save-later-btn {
+  color: var(--text-secondary);
+}
+
+.save-later-btn:hover {
+  color: var(--ink);
+}
+
+.remove-btn {
+  color: var(--text-tertiary);
+}
+
+.remove-btn:hover {
+  color: var(--error);
+}
+
+/* Summary Card */
+.cart-summary {
+  position: sticky;
+  top: calc(var(--navbar-height) + var(--space-8));
+  background: var(--ivory);
+  padding: var(--space-8);
+}
+
+.summary-title {
+  font-family: var(--font-heading);
+  font-size: var(--font-size-xl);
+  font-weight: 400;
+  letter-spacing: 1px;
+  border-bottom: 1px solid var(--ink);
+  padding-bottom: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-3) 0;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.total-row {
+  font-size: var(--font-size-base) !important;
+  font-weight: 600;
+  color: var(--text-primary) !important;
+  border-top: 1px solid var(--champagne);
+  padding-top: var(--space-4);
+  margin-top: var(--space-2);
+}
+
+.place-order-btn {
+  background: var(--ink);
+  color: white;
+  border: none;
+  padding: var(--space-4);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  transition: background var(--duration-fast);
+  margin-top: var(--space-8);
+  display: block;
+  text-decoration: none;
+  text-align: center;
+}
+
+.place-order-btn:hover {
+  background: var(--rose-gold-dark);
+}
+
+.place-order-btn a {
+  color: white;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.safe-checkout {
+  padding: var(--space-4);
+  background: transparent;
+  border-top: 1px solid var(--champagne);
+}
+
+/* Empty Cart */
+.cart-empty {
+  min-height: 50vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-cart-icon {
+  font-size: 4rem;
+  opacity: 0.2;
+}
+
+.cart-empty h2 {
+  font-family: var(--font-heading);
+  font-size: var(--font-size-2xl);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .cart-layout {
+    grid-template-columns: 1fr 320px;
+    gap: var(--space-6);
+  }
+}
+
+@media (max-width: 768px) {
+  .cart-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .cart-summary {
+    position: static;
+    margin-top: var(--space-8);
+  }
+
+  .cart-item {
+    padding: var(--space-4) 0;
+    gap: var(--space-3);
+  }
+
+  .cart-item-img {
+    width: 100px;
+    height: 130px;
+  }
+
+  .item-price {
+    font-size: var(--font-size-base);
+  }
+
+  .save-later-btn span,
+  .remove-btn span {
+    display: none;
+  }
+}

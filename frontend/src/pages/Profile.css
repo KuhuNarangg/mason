@@ -1,0 +1,197 @@
+/* ============================================================
+   MASON — Profile Page
+   ============================================================ */
+
+.profile-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-6);
+}
+
+.profile-header {
+  padding: var(--space-8) 0;
+}
+
+.profile-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--rose-gold), var(--rose-gold-light));
+  color: white;
+  font-family: var(--font-heading);
+  font-size: var(--font-size-2xl);
+  font-weight: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--space-4);
+  box-shadow: var(--shadow-rose);
+}
+
+.profile-header h2 {
+  font-family: var(--font-heading);
+  font-size: var(--font-size-2xl);
+  font-weight: 400;
+}
+
+/* Profile Grid */
+.profile-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.profile-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-5) var(--space-6);
+  background: white;
+  border: var(--border-subtle);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-smooth);
+  font-family: var(--font-body);
+  text-align: left;
+}
+
+.profile-card:hover {
+  box-shadow: var(--shadow-sm);
+  border-color: var(--rose-gold-light);
+}
+
+.profile-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-full);
+  background: var(--cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--rose-gold);
+  flex-shrink: 0;
+}
+
+.profile-card-info {
+  flex: 1;
+}
+
+.profile-card-info h3 {
+  font-family: var(--font-body);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.profile-card-info p {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+
+.profile-card-arrow {
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.logout-card:hover {
+  border-color: var(--error);
+}
+
+.logout-card .profile-card-icon {
+  background: var(--error-bg);
+  color: var(--error);
+}
+
+/* Sections */
+.profile-section {
+  animation: fadeIn var(--duration-normal);
+}
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  padding: var(--space-2) 0;
+  transition: color var(--duration-fast);
+}
+
+.btn-back:hover {
+  color: var(--rose-gold);
+}
+
+/* Address Form */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.form-grid .full-width {
+  grid-column: span 2;
+}
+
+/* Address Cards */
+.address-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.address-card h4 {
+  font-family: var(--font-body);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+}
+
+.btn-remove-address {
+  background: none;
+  border: none;
+  color: var(--error);
+  font-family: var(--font-body);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: var(--space-2) 0;
+  transition: opacity var(--duration-fast);
+}
+
+.btn-remove-address:hover {
+  opacity: 0.7;
+}
+
+/* Settings */
+.settings-cards .card {
+  border: var(--border-subtle);
+}
+
+.settings-cards h3 {
+  font-family: var(--font-heading);
+  font-size: var(--font-size-xl);
+  font-weight: 400;
+}
+
+@media (max-width: 768px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-grid .full-width {
+    grid-column: span 1;
+  }
+
+  .address-grid {
+    grid-template-columns: 1fr;
+  }
+}

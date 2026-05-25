@@ -1,0 +1,82 @@
+/* ============================================================
+   MASON — Policy Pages
+   ============================================================ */
+
+.policy-page {
+  padding: var(--space-12) 0 var(--space-20);
+}
+
+.policy-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.policy-title {
+  font-family: var(--font-heading);
+  font-size: var(--font-size-3xl);
+  font-weight: 400;
+  text-align: center;
+  margin-bottom: var(--space-10);
+  color: var(--text-primary);
+}
+
+.policy-content {
+  line-height: 1.9;
+  color: var(--text-secondary);
+  font-size: var(--font-size-base);
+}
+
+.policy-content h3 {
+  font-family: var(--font-heading);
+  font-size: var(--font-size-xl);
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-top: var(--space-8);
+  margin-bottom: var(--space-3);
+}
+
+.policy-content p {
+  margin-bottom: var(--space-4);
+}
+
+.policy-content ul,
+.policy-content ol {
+  padding-left: var(--space-6);
+  margin-bottom: var(--space-4);
+}
+
+.policy-content li {
+  margin-bottom: var(--space-2);
+}
+
+/* Contact Form */
+.policy-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.policy-form input,
+.policy-form textarea {
+  width: 100%;
+  padding: var(--space-4);
+  border: 1.5px solid var(--champagne);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: var(--font-size-base);
+  color: var(--text-primary);
+  background: white;
+  outline: none;
+  transition: border-color var(--duration-fast);
+}
+
+.policy-form input::placeholder,
+.policy-form textarea::placeholder {
+  color: var(--text-tertiary);
+}
+
+.policy-form input:focus,
+.policy-form textarea:focus {
+  border-color: var(--rose-gold);
+  box-shadow: 0 0 0 3px var(--rose-gold-glow);
+}

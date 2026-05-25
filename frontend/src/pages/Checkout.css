@@ -1,0 +1,177 @@
+/* ============================================================
+   MASON — Checkout
+   ============================================================ */
+
+.checkout-main {
+  flex: 1;
+}
+
+/* Steps */
+.checkout-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.step-number {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--champagne);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+  transition: all var(--duration-normal);
+}
+
+.step.active .step-number {
+  background: var(--rose-gold);
+  border-color: var(--rose-gold);
+  color: white;
+}
+
+.step-label {
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+  transition: color var(--duration-normal);
+}
+
+.step.active .step-label {
+  color: var(--rose-gold);
+}
+
+.step-connector {
+  width: 80px;
+  height: 2px;
+  background: var(--champagne);
+  margin: 0 var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+/* Checkout Card */
+.checkout-card {
+  background: white;
+  border: var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8);
+  animation: fadeInUp var(--duration-normal) var(--ease-smooth);
+}
+
+.checkout-card h2 {
+  font-family: var(--font-heading);
+  font-size: var(--font-size-xl);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-8);
+  color: var(--text-primary);
+}
+
+.checkout-card h2 svg {
+  color: var(--rose-gold);
+}
+
+/* Form Row */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-5);
+  margin-bottom: var(--space-5);
+}
+
+/* Payment Options */
+.payment-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.payment-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border: 1.5px solid var(--champagne);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--duration-fast);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.payment-option:hover {
+  border-color: var(--rose-gold-light);
+}
+
+.payment-option input[type="radio"] {
+  accent-color: var(--rose-gold);
+}
+
+.payment-option:has(input:checked) {
+  border-color: var(--rose-gold);
+  background: var(--rose-gold-glow);
+}
+
+/* Coupon */
+.coupon-section {
+  margin-top: var(--space-8);
+  padding-top: var(--space-6);
+  border-top: var(--border-subtle);
+}
+
+.coupon-input {
+  display: flex;
+  gap: var(--space-3);
+}
+
+/* Address Summary */
+.address-summary {
+  padding: var(--space-5);
+  background: var(--cream);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  line-height: 1.8;
+}
+
+/* Summary Items */
+.summary-items-list {
+  max-height: 200px;
+  overflow-y: auto;
+  padding-right: var(--space-2);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .checkout-steps {
+    gap: 0;
+  }
+
+  .step-connector {
+    width: 40px;
+  }
+
+  .checkout-card {
+    padding: var(--space-5);
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .step-label {
+    font-size: 9px;
+  }
+}

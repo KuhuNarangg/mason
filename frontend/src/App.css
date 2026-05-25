@@ -1,0 +1,18 @@
+/* ============================================================
+   MASON — App Shell Styles
+   ============================================================ */
+
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-container > main {
+  flex: 1;
+}
+
+/* Page transition */
+.page-enter {
+  animation: fadeInUp var(--duration-slow) var(--ease-smooth);
+}

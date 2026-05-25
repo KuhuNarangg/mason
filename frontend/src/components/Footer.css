@@ -1,0 +1,161 @@
+/* ============================================================
+   MASON — Ultra Premium Footer
+   ============================================================ */
+
+.m-footer {
+  background: var(--ivory);
+  padding: var(--space-20) 0 var(--space-8);
+  border-top: 1px solid var(--champagne);
+  color: var(--ink);
+}
+
+.m-footer__grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: var(--space-12);
+  margin-bottom: var(--space-20);
+}
+
+.m-footer__col--brand {
+  max-width: 320px;
+}
+
+.m-footer__logo {
+  display: block;
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  color: var(--ink);
+  margin-bottom: var(--space-4);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.m-footer__desc {
+  font-size: var(--text-xs);
+  line-height: 1.8;
+  color: var(--ink-muted);
+  margin-bottom: var(--space-8);
+}
+
+.m-footer__contact {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.m-footer__contact span {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
+}
+
+.m-footer__title {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  margin-bottom: var(--space-6);
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.m-footer__nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.m-footer__nav a {
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+  transition: color 0.4s var(--ease-expo), padding-left 0.4s var(--ease-expo);
+  display: inline-block;
+  width: fit-content;
+}
+
+.m-footer__nav a:hover {
+  color: var(--rose-gold-dark);
+  padding-left: 6px;
+}
+
+/* Bottom Footer */
+.m-footer__bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-6);
+  padding-top: var(--space-8);
+  border-top: 1px solid var(--champagne);
+}
+
+.m-footer__copyright {
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.m-footer__social {
+  display: flex;
+  gap: var(--space-6);
+}
+
+.m-footer__social a {
+  color: var(--ink);
+  transition: color 0.4s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.m-footer__social a:hover {
+  color: var(--rose-gold);
+}
+
+.m-footer__legal {
+  display: flex;
+  gap: var(--space-6);
+}
+
+.m-footer__legal a {
+  font-size: 0.7rem;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.m-footer__legal a:hover {
+  color: var(--ink);
+}
+
+/* Responsive */
+@media (min-width: 768px) {
+  .m-footer__bottom {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 1024px) {
+  .m-footer__grid {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-12) var(--space-8);
+  }
+}
+
+@media (max-width: 600px) {
+  .m-footer__grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .m-footer__col--brand {
+    max-width: 100%;
+  }
+
+  .m-footer__bottom {
+    flex-direction: column;
+    text-align: center;
+  }
+}
