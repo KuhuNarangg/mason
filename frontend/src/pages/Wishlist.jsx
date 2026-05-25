@@ -122,7 +122,7 @@ const Wishlist = () => {
                       onClick={() => {
                         const size = product._selectedSize || defaultSize;
                         const color = product.variants?.[0]?.color || 'Default';
-                        addToCart(product, 1, size, color);
+                        addToCart(product._id, size, color, 1);
                         handleRemove(product._id);
                       }}
                     >

@@ -39,8 +39,22 @@ const Cart = () => {
 
       <div className="cart-layout">
         <div className="cart-items">
-          {cart.items.map(item => (
-            <div key={item._id} className="cart-item card mb-3">
+          {cart.items.map(item => {
+            if (!item.product) {
+              return (
+                <div key={item._id} className="cart-item">
+                  <div className="cart-item-details">
+                    <p className="text-muted">This product is no longer available.</p>
+                    <button type="button" className="remove-btn mt-3" onClick={() => removeItem(item._id)}>
+                      <Trash2 size={16} />
+                      <span>REMOVE ITEM</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            }
+            return (
+            <div key={item._id} className="cart-item">
               <Link to={`/product/${item.product.slug}`} className="cart-item-img">
                 <img src={item.product.images?.[0] || item.product.thumbnail || 'https://via.placeholder.com/150?text=No+Image'} alt={item.product.name} />
               </Link>
@@ -74,11 +88,11 @@ const Cart = () => {
                   </div>
                   
                   <div className="d-flex align-center" style={{ gap: '1rem' }}>
-                    <button className="save-later-btn" onClick={() => handleSaveForLater(item)}>
+                    <button type="button" className="save-later-btn" onClick={() => handleSaveForLater(item)}>
                       <Heart size={16} />
                       <span>SAVE FOR LATER</span>
                     </button>
-                    <button className="remove-btn" onClick={() => removeItem(item._id)}>
+                    <button type="button" className="remove-btn" onClick={() => removeItem(item._id)}>
                       <Trash2 size={16} />
                       <span>REMOVE</span>
                     </button>
@@ -86,11 +100,11 @@ const Cart = () => {
                 </div>
               </div>
             </div>
-          ))}
+          )})}
         </div>
 
         <div className="cart-summary">
-          <div className="card summary-card">
+          <div className="summary-card">
             <h3 className="summary-title mb-3">Price Details ({totalItems} items)</h3>
             
             <div className="summary-row">
@@ -112,11 +126,9 @@ const Cart = () => {
               <span>{formatPrice(finalAmount)}</span>
             </div>
 
-            <button className="btn btn-primary w-100 mt-4 place-order-btn">
-              <Link to="/checkout" className="d-link">
-                PLACE ORDER <ArrowRight size={18} />
-              </Link>
-            </button>
+            <Link to="/checkout" className="place-order-btn">
+              PLACE ORDER <ArrowRight size={16} />
+            </Link>
           </div>
 
           <div className="safe-checkout mt-4 d-flex align-center gap-2 text-muted justify-center">
