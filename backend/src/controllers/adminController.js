@@ -54,4 +54,43 @@ const getDashboardStats = asyncHandler(async (req, res) => {
   res.json({ success: true, totalUsers, totalProducts, totalOrders, totalRevenue, returnRequestsCount, recentOrders, lowStockProducts, last30Days, topProducts });
 });
 
-module.exports = { getAllUsers, deleteUser, getDashboardStats };
+// @GET /api/v1/admin/users/:id
+const getUserDetail = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id).select('-password');
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+
+  const orders = await Order.find({ user: req.params.id }).sort({ createdAt: -1 });
+
+  let totalOrders = orders.length;
+  let totalSpent = 0;
+  let returnRequests = 0;
+
+  orders.forEach(order => {
+    if (order.paymentStatus === 'paid' || order.status === 'delivered') {
+      totalSpent += order.totalAmount;
+    }
+    if (order.status === 'return_requested') {
+      returnRequests++;
+    } else {
+      // Also count item-level return requests
+      const itemRequests = order.items.filter(item => item.returnStatus === 'requested').length;
+      if (itemRequests > 0) returnRequests++;
+    }
+  });
+
+  res.json({
+    success: true,
+    user,
+    stats: {
+      totalOrders,
+      totalSpent,
+      returnRequests,
+    },
+    orders,
+  });
+});
+
+module.exports = { getAllUsers, getUserDetail, deleteUser, getDashboardStats };

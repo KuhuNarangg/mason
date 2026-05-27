@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import api from '../utils/api';
+import api from '../../utils/api';
 import toast from 'react-hot-toast';
 
 const UsersManagement = () => {
@@ -77,7 +77,7 @@ const UsersManagement = () => {
                 <td>
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
                     <button
-                      onClick={() => navigate(`/users/${user._id}`)}
+                      onClick={() => navigate(`/admin/users/${user._id}`)}
                       style={{
                         background: 'none',
                         border: 'none',

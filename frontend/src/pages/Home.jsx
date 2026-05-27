@@ -140,7 +140,7 @@ const Home = () => {
           </div>
 
           <Link to="/category/all?type=party-wear" className="m-col-card m-col-card--large reveal-up">
-            <img src="/home1.jpg" alt="Evening Glamour" className="m-col-card__img" />
+            <img src="/home1.jpg" alt="Evening Glamour" className="m-col-card__img" loading="lazy" />
             <div className="m-col-card__overlay">
               <span className="m-col-card__label">The Evening Edit</span>
               <h3 className="m-col-card__title">Midnight <em>Glamour</em></h3>
@@ -148,7 +148,7 @@ const Home = () => {
           </Link>
 
           <Link to="/category/all?type=ethnic" className="m-col-card m-col-card--small reveal-up" style={{ transitionDelay: '0.2s' }}>
-            <img src="/home2.jpg" alt="Heritage Romance" className="m-col-card__img" />
+            <img src="/home2.jpg" alt="Heritage Romance" className="m-col-card__img" loading="lazy" />
             <div className="m-col-card__overlay">
               <span className="m-col-card__label">The Heritage Edit</span>
               <h3 className="m-col-card__title">Modern <em>Romance</em></h3>
@@ -161,7 +161,7 @@ const Home = () => {
       <section className="m-experience">
         <div className="m-experience__grid">
           <div className="m-experience__img-wrap reveal-up">
-            <img src="/home3.jpg" alt="Experience Luxury" className="m-experience__img" />
+            <img src="/home3.jpg" alt="Experience Luxury" className="m-experience__img" loading="lazy" />
           </div>
           <div className="m-experience__content reveal-up" style={{ transitionDelay: '0.2s' }}>
             <span className="m-label">The House of Mason</span>

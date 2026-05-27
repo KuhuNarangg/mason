@@ -82,8 +82,12 @@
 
 .auth-container {
   width: 100%;
-  max-width: 420px;
-  background: transparent;
+  max-width: 440px;
+  background: white;
+  padding: 3rem 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(169, 132, 120, 0.2);
   animation: fadeIn var(--duration-normal) var(--ease-smooth);
 }
 
@@ -213,5 +217,12 @@
   }
   .auth-back-link {
     display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-container {
+    padding: 2rem 1.5rem;
+    border-radius: 8px;
   }
 }

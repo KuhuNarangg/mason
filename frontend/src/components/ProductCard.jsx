@@ -46,6 +46,7 @@ const ProductCard = ({ product }) => {
           src={primaryImg}
           alt={product.name}
           className={`product-image primary ${imgLoaded ? 'loaded' : ''}`}
+          loading="lazy"
           onLoad={() => setImgLoaded(true)}
           onError={(e) => { e.target.onerror = null; e.target.src = NO_IMAGE; }}
         />
@@ -55,6 +56,7 @@ const ProductCard = ({ product }) => {
             src={secondaryImg}
             alt={product.name}
             className={`product-image secondary ${isHovered ? 'visible' : ''}`}
+            loading="lazy"
             onError={(e) => { e.target.onerror = null; e.target.src = NO_IMAGE; }}
           />
         )}

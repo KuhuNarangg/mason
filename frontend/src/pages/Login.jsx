@@ -13,7 +13,11 @@ const Login = () => {
     e.preventDefault();
     const res = await login(email, password);
     if (res.success) {
-      navigate('/');
+      if (res.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
     }
   };
 

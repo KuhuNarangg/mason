@@ -22,14 +22,8 @@ connectDB();
 
 const app = express();
 
-const allowedOrigins = [
-  'https://mason-iota-orcin.vercel.app',
-  ...(process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',').map(url => url.trim()) : []),
-  ...(process.env.ADMIN_URL ? process.env.ADMIN_URL.split(',').map(url => url.trim()) : [])
-].filter(Boolean);
-
 app.use(cors({
-  origin: allowedOrigins,
+  origin: true, // Allow all origins dynamically (reflects origin back)
   credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));

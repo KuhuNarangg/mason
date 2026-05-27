@@ -9,6 +9,7 @@ import ProductEdit from './pages/ProductEdit';
 import OrdersManagement from './pages/OrdersManagement';
 import CategoriesManagement from './pages/CategoriesManagement';
 import UsersManagement from './pages/UsersManagement';
+import UserDetail from './pages/UserDetail';
 import CouponsManagement from './pages/CouponsManagement';
 
 // Login Page
@@ -101,6 +102,7 @@ const App = () => {
             <Route path="/categories" element={<CategoriesManagement />} />
             <Route path="/coupons" element={<CouponsManagement />} />
             <Route path="/users" element={<UsersManagement />} />
+            <Route path="/users/:id" element={<UserDetail />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </div>
