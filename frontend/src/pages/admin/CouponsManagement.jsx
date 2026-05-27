@@ -1,29 +1,30 @@
 import { useState, useEffect } from 'react';
-import { Trash2, Plus, X, Ticket } from 'lucide-react';
+import { Trash2, Plus, X, Ticket, Tag } from 'lucide-react';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
 import './admin-pages.css';
 
-const CouponsManagement = () => {
-  const [coupons, setCoupons] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({
-    code: '',
-    discountType: 'percentage',
-    discountValue: '',
-    minOrderAmount: '0',
-    expiryDate: ''
-  });
+const EMPTY_FORM = {
+  code: '',
+  discountType: 'percentage',
+  discountValue: '',
+  minOrderAmount: '0',
+  expiryDate: '',
+};
 
-  useEffect(() => {
-    fetchCoupons();
-  }, []);
+const CouponsManagement = () => {
+  const [coupons, setCoupons]   = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [saving, setSaving]     = useState(false);
+  const [form, setForm]         = useState(EMPTY_FORM);
+
+  useEffect(() => { fetchCoupons(); }, []);
 
   const fetchCoupons = async () => {
     try {
       const { data } = await api.get('/coupons');
-      setCoupons(data.coupons);
+      setCoupons(data.coupons || []);
     } catch {
       toast.error('Failed to fetch coupons');
     } finally {
@@ -33,155 +34,211 @@ const CouponsManagement = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSaving(true);
     try {
       await api.post('/coupons', form);
-      toast.success('Coupon created successfully');
-      setForm({ code: '', discountType: 'percentage', discountValue: '', minOrderAmount: '0', expiryDate: '' });
+      toast.success('Coupon created');
+      setForm(EMPTY_FORM);
       setShowForm(false);
       fetchCoupons();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to create coupon');
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this coupon?')) {
-      try {
-        await api.delete(`/coupons/${id}`);
-        toast.success('Coupon deleted');
-        fetchCoupons();
-      } catch {
-        toast.error('Failed to delete coupon');
-      }
+    if (!confirm('Delete this coupon?')) return;
+    try {
+      await api.delete(`/coupons/${id}`);
+      toast.success('Coupon deleted');
+      fetchCoupons();
+    } catch {
+      toast.error('Failed to delete coupon');
     }
   };
 
-  if (loading) return <div className="admin-page-title">Loading...</div>;
+  const isExpired = (date) => new Date(date) < new Date();
+
+  if (loading) return (
+    <div className="admin-loading">
+      <div style={{ width:20, height:20, border:'2px solid #e2e8f0', borderTopColor:'#C08A74', borderRadius:'50%', animation:'spin 0.8s linear infinite' }} />
+      Loading…
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
+
+  const active  = coupons.filter(c => !isExpired(c.expiryDate));
+  const expired = coupons.filter(c => isExpired(c.expiryDate));
 
   return (
     <div>
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h1 className="admin-page-title" style={{ margin: 0 }}>Coupons Management</h1>
-        <button className="btn-primary" onClick={() => setShowForm(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Plus size={20} /> Create New Coupon
+      <div className="page-header">
+        <div className="page-header-left">
+          <h1 className="admin-page-title">Coupons</h1>
+          <p className="admin-page-subtitle">
+            {active.length} active · {expired.length} expired
+          </p>
+        </div>
+        <button className="btn-primary" onClick={() => setShowForm(true)}>
+          <Plus size={16} /> Create Coupon
         </button>
       </div>
 
+      {/* Create Form */}
       {showForm && (
-        <div className="form-container" style={{ marginBottom: '2rem', animation: 'slideDown 0.3s ease' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <h2 style={{ margin: 0 }}>Add New Coupon</h2>
-            <button onClick={() => setShowForm(false)} className="btn-icon"><X size={20} /></button>
+        <div className="form-container">
+          <div className="form-header">
+            <h3 className="form-header-title">
+              <Tag size={16} style={{ verticalAlign:'middle', marginRight:8 }} />
+              New Coupon
+            </h3>
+            <button onClick={() => { setShowForm(false); setForm(EMPTY_FORM); }} className="btn-icon-sm">
+              <X size={18}/>
+            </button>
           </div>
-          <form onSubmit={handleSubmit}>
-            <div className="form-row">
-              <div className="form-group">
-                <label>Coupon Code (e.g., WELCOME10)</label>
-                <input 
-                  type="text" 
-                  className="form-input" 
-                  value={form.code} 
-                  onChange={e => setForm({ ...form, code: e.target.value.toUpperCase() })} 
-                  required 
-                />
+          <div className="form-body">
+            <form onSubmit={handleSubmit}>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Coupon Code *</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={form.code}
+                    onChange={e => setForm({ ...form, code: e.target.value.toUpperCase().replace(/\s/g, '') })}
+                    placeholder="e.g. WELCOME20"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Discount Type</label>
+                  <select
+                    className="form-select"
+                    value={form.discountType}
+                    onChange={e => setForm({ ...form, discountType: e.target.value })}
+                  >
+                    <option value="percentage">Percentage (%)</option>
+                    <option value="flat">Flat Amount (₹)</option>
+                  </select>
+                </div>
               </div>
-              <div className="form-group">
-                <label>Discount Type</label>
-                <select 
-                  className="form-select" 
-                  value={form.discountType} 
-                  onChange={e => setForm({ ...form, discountType: e.target.value })}
-                >
-                  <option value="percentage">Percentage (%)</option>
-                  <option value="flat">Flat Amount (₹)</option>
-                </select>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Discount Value *</label>
+                  <input
+                    type="number"
+                    className="form-input"
+                    value={form.discountValue}
+                    onChange={e => setForm({ ...form, discountValue: e.target.value })}
+                    placeholder={form.discountType === 'percentage' ? 'e.g. 20' : 'e.g. 200'}
+                    min="1"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Min Order Amount (₹)</label>
+                  <input
+                    type="number"
+                    className="form-input"
+                    value={form.minOrderAmount}
+                    onChange={e => setForm({ ...form, minOrderAmount: e.target.value })}
+                    placeholder="0 = no minimum"
+                    min="0"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Expiry Date *</label>
+                  <input
+                    type="date"
+                    className="form-input"
+                    value={form.expiryDate}
+                    onChange={e => setForm({ ...form, expiryDate: e.target.value })}
+                    min={new Date().toISOString().split('T')[0]}
+                    required
+                  />
+                </div>
               </div>
-            </div>
-            <div className="form-row">
-              <div className="form-group">
-                <label>Discount Value</label>
-                <input 
-                  type="number" 
-                  className="form-input" 
-                  value={form.discountValue} 
-                  onChange={e => setForm({ ...form, discountValue: e.target.value })} 
-                  required 
-                />
+
+              <div className="form-buttons">
+                <button type="submit" className="btn-submit" disabled={saving}>
+                  {saving ? 'Creating…' : 'Create Coupon'}
+                </button>
+                <button type="button" onClick={() => { setShowForm(false); setForm(EMPTY_FORM); }} className="btn-cancel">
+                  Cancel
+                </button>
               </div>
-              <div className="form-group">
-                <label>Min Order Amount (₹)</label>
-                <input 
-                  type="number" 
-                  className="form-input" 
-                  value={form.minOrderAmount} 
-                  onChange={e => setForm({ ...form, minOrderAmount: e.target.value })} 
-                  required 
-                />
-              </div>
-              <div className="form-group">
-                <label>Expiry Date</label>
-                <input 
-                  type="date" 
-                  className="form-input" 
-                  value={form.expiryDate} 
-                  onChange={e => setForm({ ...form, expiryDate: e.target.value })} 
-                  required 
-                />
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-              <button type="submit" className="btn-submit">Create Coupon</button>
-              <button type="button" onClick={() => setShowForm(false)} className="btn-cancel">Cancel</button>
-            </div>
-          </form>
+            </form>
+          </div>
         </div>
       )}
 
-      <div className="table-container">
+      {/* Table */}
+      <div className="table-wrap">
         <table className="admin-table">
           <thead>
             <tr>
               <th>Code</th>
               <th>Discount</th>
               <th>Min Order</th>
-              <th>Expires</th>
+              <th>Expiry</th>
               <th>Status</th>
-              <th>Actions</th>
+              <th style={{ textAlign:'right' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {coupons.length === 0 ? (
-              <tr><td colSpan="6" className="no-data">No coupons found</td></tr>
+              <tr><td colSpan="6" className="no-data">No coupons yet — create one above.</td></tr>
             ) : (
-              coupons.map(coupon => (
-                <tr key={coupon._id}>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, color: 'var(--color-primary)' }}>
-                      <Ticket size={16} /> {coupon.code}
-                    </div>
-                  </td>
-                  <td>{coupon.discountType === 'percentage' ? `${coupon.discountValue}%` : `₹${coupon.discountValue}`}</td>
-                  <td>₹{coupon.minOrderAmount}</td>
-                  <td>{new Date(coupon.expiryDate).toLocaleDateString()}</td>
-                  <td>
-                    <span style={{ 
-                      padding: '4px 8px', 
-                      borderRadius: '4px', 
-                      fontSize: '0.8rem', 
-                      fontWeight: 600,
-                      background: new Date(coupon.expiryDate) > new Date() ? '#e8f5e9' : '#ffebee',
-                      color: new Date(coupon.expiryDate) > new Date() ? '#2e7d32' : '#c62828'
-                    }}>
-                      {new Date(coupon.expiryDate) > new Date() ? 'Active' : 'Expired'}
-                    </span>
-                  </td>
-                  <td>
-                    <button onClick={() => handleDelete(coupon._id)} className="btn-icon btn-danger" title="Delete">
-                      <Trash2 size={18} />
-                    </button>
-                  </td>
-                </tr>
-              ))
+              coupons.map(coupon => {
+                const expired = isExpired(coupon.expiryDate);
+                return (
+                  <tr key={coupon._id}>
+                    <td>
+                      <div style={{ display:'flex', alignItems:'center', gap:'0.5rem' }}>
+                        <Ticket size={14} color={expired ? '#94a3b8' : '#C08A74'} />
+                        <span style={{ fontWeight:700, fontFamily:'monospace', fontSize:'0.9rem', color: expired ? '#94a3b8' : '#0f172a', letterSpacing:'0.5px' }}>
+                          {coupon.code}
+                        </span>
+                      </div>
+                    </td>
+                    <td>
+                      <span style={{ fontWeight:600, color:'#C08A74' }}>
+                        {coupon.discountType === 'percentage'
+                          ? `${coupon.discountValue}% off`
+                          : `₹${coupon.discountValue} off`}
+                      </span>
+                    </td>
+                    <td style={{ fontSize:'0.875rem', color:'#374151' }}>
+                      {coupon.minOrderAmount > 0
+                        ? `₹${coupon.minOrderAmount} min`
+                        : <span style={{ color:'#94a3b8' }}>No minimum</span>}
+                    </td>
+                    <td style={{ fontSize:'0.875rem', color: expired ? '#ef4444' : '#374151' }}>
+                      {new Date(coupon.expiryDate).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' })}
+                    </td>
+                    <td>
+                      <span className={`status-badge ${expired ? 'badge-expired' : 'badge-active'}`}>
+                        {expired ? 'Expired' : 'Active'}
+                      </span>
+                    </td>
+                    <td>
+                      <div style={{ display:'flex', justifyContent:'flex-end' }}>
+                        <button
+                          onClick={() => handleDelete(coupon._id)}
+                          className="btn-icon-sm delete"
+                          title="Delete Coupon"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>

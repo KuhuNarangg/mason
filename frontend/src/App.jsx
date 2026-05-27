@@ -25,6 +25,7 @@ import TermsOfUse from './pages/policies/TermsOfUse';
 import TrackOrder from './pages/policies/TrackOrder';
 import Shipping from './pages/policies/Shipping';
 import Returns from './pages/policies/Returns';
+import About from './pages/About';
 
 // Admin Components
 import AdminLayout from './components/AdminLayout';
@@ -36,6 +37,7 @@ import CategoriesManagement from './pages/admin/CategoriesManagement';
 import UsersManagement from './pages/admin/UsersManagement';
 import UserDetail from './pages/admin/UserDetail';
 import CouponsManagement from './pages/admin/CouponsManagement';
+import AdminLogin from './pages/admin/AdminLogin';
 
 // Contexts
 import { CartProvider } from './context/CartContext';
@@ -71,6 +73,7 @@ const StorefrontLayout = () => {
           <Route path="/track-order" element={<TrackOrder />} />
           <Route path="/shipping" element={<Shipping />} />
           <Route path="/returns" element={<Returns />} />
+          <Route path="/about" element={<About />} />
         </Routes>
       </main>
       <Footer />
@@ -86,7 +89,10 @@ function App() {
         <NotificationProvider>
           <ScrollToTop />
           <Routes>
-            {/* Admin Portal */}
+            {/* Admin Login — outside the protected layout */}
+            <Route path="/admin/login" element={<AdminLogin />} />
+
+            {/* Admin Portal — requires admin role */}
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<Dashboard />} />
               <Route path="products" element={<ProductsManagement />} />

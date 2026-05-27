@@ -17,6 +17,7 @@ const uploadRoutes = require('./src/routes/upload');
 const couponRoutes = require('./src/routes/coupons');
 const notificationRoutes = require('./src/routes/notifications');
 const adRoutes = require('./src/routes/ads');
+const paymentRoutes = require('./src/routes/payments');
 
 connectDB();
 
@@ -45,6 +46,7 @@ app.use('/api/v1/upload', uploadRoutes);
 app.use('/api/v1/coupons', couponRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/ads', adRoutes);     // ad management (admin)
+app.use('/api/v1/payments', paymentRoutes); // Razorpay payment flow
 // Public ad redirect — Instagram/Facebook ads point to this URL:
 //   yourbackend.com/api/v1/r/:adId  → logs click → redirects to product page
 app.get('/api/v1/r/:adId', require('./src/controllers/adController').redirectAd);

@@ -146,11 +146,37 @@
   line-height: 1.8;
 }
 
+/* Field Validation Errors */
+.form-input.field-error {
+  border-bottom-color: #dc2626 !important;
+}
+
+.field-error-msg {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.75rem;
+  color: #dc2626;
+  letter-spacing: 0.02em;
+}
+
 /* Summary Items */
 .summary-items-list {
   max-height: 200px;
   overflow-y: auto;
   padding-right: var(--space-2);
+}
+
+/* Equal-width nav button row */
+.checkout-btn-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.checkout-nav-btn {
+  width: 100%;
+  justify-content: center;
+  padding: 1.1rem 1rem !important;
 }
 
 /* Responsive */

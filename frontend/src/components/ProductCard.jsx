@@ -50,13 +50,14 @@ const ProductCard = ({ product }) => {
           onLoad={() => setImgLoaded(true)}
           onError={(e) => { e.target.onerror = null; e.target.src = NO_IMAGE; }}
         />
-        {/* Secondary Image (hover) */}
+        {/* Secondary Image (hover) — eager loaded so hover is instant */}
         {secondaryImg !== primaryImg && (
           <img
             src={secondaryImg}
             alt={product.name}
             className={`product-image secondary ${isHovered ? 'visible' : ''}`}
-            loading="lazy"
+            loading="eager"
+            fetchPriority="low"
             onError={(e) => { e.target.onerror = null; e.target.src = NO_IMAGE; }}
           />
         )}

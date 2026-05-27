@@ -100,7 +100,7 @@ const ProductDetail = () => {
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [showSizeGuide, setShowSizeGuide] = useState(false);
   
-  const { addToCart } = useCart();
+  const { cart, addToCart, updateItem, removeItem } = useCart();
   const { toggle, isWishlisted } = useWishlist();
 
   useEffect(() => {
@@ -145,6 +145,11 @@ const ProductDetail = () => {
       addToCart(product._id, selectedSize, selectedColor, 1);
     }
   };
+
+  // Find if this product+size+color is already in cart
+  const cartItem = cart?.items?.find(
+    i => i.product?._id === product._id && i.variantSize === selectedSize && i.variantColor === selectedColor
+  );
 
   const wishlisted = isWishlisted(product._id);
 
@@ -221,16 +226,35 @@ const ProductDetail = () => {
 
           {/* Color Selector */}
           <div className="selector-group mt-4">
-            <div className="mb-2"><span className="font-weight-bold">Select Color:</span> {selectedColor}</div>
+            <div className="mb-2"><span className="font-weight-bold">Select Color:</span> <span style={{ color: 'var(--rose-gold)' }}>{selectedColor}</span></div>
             <div className="color-options">
               {uniqueColors.map(color => {
                 const hex = product.variants.find(v => v.color === color)?.colorHex || '#ccc';
+                // Detect near-white colors to add a visible border
+                const isLight = (() => {
+                  const h = hex.replace('#', '');
+                  if (h.length !== 6) return false;
+                  const r = parseInt(h.slice(0,2), 16);
+                  const g = parseInt(h.slice(2,4), 16);
+                  const b = parseInt(h.slice(4,6), 16);
+                  return (r + g + b) / 3 > 220;
+                })();
                 return (
                   <button
                     key={color}
                     className={`color-btn ${selectedColor === color ? 'active' : ''}`}
-                    style={{ backgroundColor: hex }}
-                    onClick={() => setSelectedColor(color)}
+                    style={{
+                      backgroundColor: hex,
+                      border: selectedColor === color
+                        ? '2px solid var(--ink)'
+                        : isLight
+                          ? '1.5px solid var(--champagne)'
+                          : '2px solid transparent',
+                    }}
+                    onClick={() => {
+                      setSelectedColor(color);
+                      setActiveImage(0); // reset to first image on color change
+                    }}
                     title={color}
                   />
                 );
@@ -240,16 +264,44 @@ const ProductDetail = () => {
 
           {/* Actions */}
           <div className="action-buttons mt-5">
-            <button 
-              className="btn btn-primary add-to-bag-btn" 
-              onClick={handleAddToCart}
-              disabled={isOutOfStock}
-            >
-              <ShoppingBag size={18} />
-              {isOutOfStock ? 'OUT OF STOCK' : 'ADD TO BAG'}
-            </button>
-            
-            <button 
+            {cartItem ? (
+              /* Quantity controls — shown when this variant is already in cart */
+              <div className="qty-controls-wrap">
+                <div className="qty-controls">
+                  <button
+                    className="qty-btn"
+                    onClick={() => cartItem.quantity > 1 ? updateItem(cartItem._id, cartItem.quantity - 1) : removeItem(cartItem._id)}
+                    aria-label="Decrease quantity"
+                  >
+                    −
+                  </button>
+                  <span className="qty-value">{cartItem.quantity}</span>
+                  <button
+                    className="qty-btn"
+                    onClick={() => updateItem(cartItem._id, cartItem.quantity + 1)}
+                    disabled={cartItem.quantity >= (currentVariant?.stock || 1)}
+                    aria-label="Increase quantity"
+                  >
+                    +
+                  </button>
+                </div>
+                <span className="qty-in-bag-label">
+                  <ShoppingBag size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
+                  In your bag
+                </span>
+              </div>
+            ) : (
+              <button
+                className="btn btn-primary add-to-bag-btn"
+                onClick={handleAddToCart}
+                disabled={isOutOfStock}
+              >
+                <ShoppingBag size={18} />
+                {isOutOfStock ? 'OUT OF STOCK' : 'ADD TO BAG'}
+              </button>
+            )}
+
+            <button
               className={`btn btn-outline wishlist-action-btn ${wishlisted ? 'wishlisted' : ''}`}
               onClick={() => toggle(product._id)}
             >

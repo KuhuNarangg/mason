@@ -7,6 +7,7 @@ import { formatPrice } from '../utils/formatPrice';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 import { states, indiaData } from '../utils/indiaData';
+import { loadRazorpayScript, openRazorpayCheckout } from '../utils/razorpay';
 import './Cart.css';
 import './Checkout.css';
 
@@ -28,6 +29,7 @@ const Checkout = () => {
   });
 
   const [paymentMethod, setPaymentMethod] = useState('razorpay');
+  const [fieldErrors, setFieldErrors] = useState({});
   const [discount, setDiscount] = useState(0);
   const [coupon, setCoupon] = useState('');
   const [savedAddresses, setSavedAddresses] = useState([]);
@@ -83,16 +85,20 @@ const Checkout = () => {
   const finalAmount = totalAmount - discount + shipping_charge;
 
   const validateShipping = () => {
-    if (!shipping.fullName || !shipping.phone || !shipping.line1 || !shipping.city || !shipping.state || !shipping.pincode) {
-      toast.error('Please fill all shipping details');
-      return false;
-    }
-    if (!/^[0-9]{10}$/.test(shipping.phone)) {
-      toast.error('Enter a valid 10-digit phone number');
-      return false;
-    }
-    if (!/^[0-9]{6}$/.test(shipping.pincode)) {
-      toast.error('Enter a valid 6-digit pincode');
+    const errors = {};
+    if (!shipping.fullName?.trim()) errors.fullName = 'Full name is required';
+    if (!shipping.phone?.trim()) errors.phone = 'Phone number is required';
+    else if (!/^[0-9]{10}$/.test(shipping.phone)) errors.phone = 'Enter a valid 10-digit number';
+    if (!shipping.line1?.trim()) errors.line1 = 'Address is required';
+    if (!shipping.city?.trim()) errors.city = 'City is required';
+    if (!shipping.state?.trim()) errors.state = 'State is required';
+    if (!shipping.pincode?.trim()) errors.pincode = 'Pincode is required';
+    else if (!/^[0-9]{6}$/.test(shipping.pincode)) errors.pincode = 'Enter a valid 6-digit pincode';
+
+    setFieldErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      toast.error('Please fill all required shipping details');
       return false;
     }
     return true;
@@ -118,7 +124,7 @@ const Checkout = () => {
 
     setLoading(true);
     try {
-      // Save address if requested
+      // Save address to profile if user opted in
       if (selectedAddressIndex === -1 && saveAddressToProfile) {
         await api.post('/auth/address', shipping);
       }
@@ -141,22 +147,81 @@ const Checkout = () => {
         totalAmount: finalAmount,
       };
 
+      // Step 1 — Create the DB order (paymentStatus: pending for Razorpay)
       const { data } = await api.post('/orders', orderData);
+      const dbOrder = data.order;
 
-      if (paymentMethod === 'razorpay') {
-        toast.success('Order created! Proceeding to payment...');
-        setTimeout(() => {
-          clearCart();
-          navigate(`/orders/${data.order._id}`);
-        }, 1500);
-      } else {
+      // ── COD flow ──────────────────────────────────────────────
+      if (paymentMethod === 'cod') {
         toast.success('Order placed successfully! 🎉');
         clearCart();
         navigate('/orders');
+        return;
       }
+
+      // ── Razorpay flow ─────────────────────────────────────────
+      setLoading(false); // release spinner while script loads
+
+      // Load Razorpay checkout.js
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded) {
+        toast.error('Could not load payment gateway. Please check your connection.');
+        return;
+      }
+
+      // Step 2 — Get Razorpay order from our backend
+      const { data: payData } = await api.post('/payments/create-razorpay-order', {
+        orderId: dbOrder._id,
+      });
+
+      // Step 3 — Open Razorpay modal
+      openRazorpayCheckout({
+        keyId: payData.keyId,
+        razorpayOrderId: payData.razorpayOrderId,
+        amount: payData.amount,
+        currency: payData.currency,
+        orderNumber: payData.orderNumber,
+        user: {
+          name: shipping.fullName,
+          email: user?.email || '',
+          phone: shipping.phone,
+        },
+
+        // Step 4 — On success, verify signature on backend
+        onSuccess: async (response) => {
+          try {
+            setLoading(true);
+            await api.post('/payments/verify', {
+              orderId: dbOrder._id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature,
+            });
+            toast.success('Payment successful! 🎉 Order confirmed.');
+            clearCart();
+            navigate(`/orders/${dbOrder._id}`);
+          } catch (err) {
+            toast.error(err.response?.data?.message || 'Payment verification failed. Contact support.');
+          } finally {
+            setLoading(false);
+          }
+        },
+
+        // Payment failed inside modal
+        onFailure: (msg) => {
+          toast.error(`Payment failed: ${msg}`);
+        },
+
+        // User closed modal without paying
+        onDismiss: () => {
+          toast('Payment cancelled. Your order is saved — you can pay from My Orders.', { icon: 'ℹ️' });
+          clearCart();
+          navigate(`/orders/${dbOrder._id}`);
+        },
+      });
+
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to create order');
-    } finally {
+      toast.error(err.response?.data?.message || 'Failed to place order');
       setLoading(false);
     }
   };
@@ -232,10 +297,11 @@ const Checkout = () => {
                     type="text"
                     placeholder="Enter your full name"
                     value={shipping.fullName}
-                    onChange={(e) => setShipping({ ...shipping, fullName: e.target.value })}
-                    className="form-input"
+                    onChange={(e) => { setShipping({ ...shipping, fullName: e.target.value }); setFieldErrors(p => ({ ...p, fullName: '' })); }}
+                    className={`form-input ${fieldErrors.fullName ? 'field-error' : ''}`}
                     disabled={selectedAddressIndex !== -1}
                   />
+                  {fieldErrors.fullName && <span className="field-error-msg">{fieldErrors.fullName}</span>}
                 </div>
 
                 <div className="form-group mb-4">
@@ -244,10 +310,11 @@ const Checkout = () => {
                     type="tel"
                     placeholder="10-digit mobile number"
                     value={shipping.phone}
-                    onChange={(e) => setShipping({ ...shipping, phone: e.target.value })}
-                    className="form-input"
+                    onChange={(e) => { setShipping({ ...shipping, phone: e.target.value }); setFieldErrors(p => ({ ...p, phone: '' })); }}
+                    className={`form-input ${fieldErrors.phone ? 'field-error' : ''}`}
                     disabled={selectedAddressIndex !== -1}
                   />
+                  {fieldErrors.phone && <span className="field-error-msg">{fieldErrors.phone}</span>}
                 </div>
 
                 <div className="form-group mb-4">
@@ -256,10 +323,11 @@ const Checkout = () => {
                     type="text"
                     placeholder="Address Line 1"
                     value={shipping.line1}
-                    onChange={(e) => setShipping({ ...shipping, line1: e.target.value })}
-                    className="form-input"
+                    onChange={(e) => { setShipping({ ...shipping, line1: e.target.value }); setFieldErrors(p => ({ ...p, line1: '' })); }}
+                    className={`form-input ${fieldErrors.line1 ? 'field-error' : ''}`}
                     disabled={selectedAddressIndex !== -1}
                   />
+                  {fieldErrors.line1 && <span className="field-error-msg">{fieldErrors.line1}</span>}
                 </div>
 
                 <div className="form-group mb-4">
@@ -279,21 +347,22 @@ const Checkout = () => {
                     <label className="form-label">State *</label>
                     <select
                       value={shipping.state}
-                      onChange={(e) => setShipping({ ...shipping, state: e.target.value, city: '' })}
-                      className="form-input"
+                      onChange={(e) => { setShipping({ ...shipping, state: e.target.value, city: '' }); setFieldErrors(p => ({ ...p, state: '', city: '' })); }}
+                      className={`form-input ${fieldErrors.state ? 'field-error' : ''}`}
                       disabled={selectedAddressIndex !== -1}
                     >
                       <option value="">Select State</option>
                       {states.map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
+                    {fieldErrors.state && <span className="field-error-msg">{fieldErrors.state}</span>}
                   </div>
                   <div className="form-group">
                     <label className="form-label">City *</label>
                     {shipping.state && indiaData[shipping.state] ? (
                       <select
                         value={shipping.city}
-                        onChange={(e) => setShipping({ ...shipping, city: e.target.value })}
-                        className="form-input"
+                        onChange={(e) => { setShipping({ ...shipping, city: e.target.value }); setFieldErrors(p => ({ ...p, city: '' })); }}
+                        className={`form-input ${fieldErrors.city ? 'field-error' : ''}`}
                         disabled={selectedAddressIndex !== -1}
                       >
                         <option value="">Select City</option>
@@ -304,11 +373,12 @@ const Checkout = () => {
                         type="text"
                         placeholder="City"
                         value={shipping.city}
-                        onChange={(e) => setShipping({ ...shipping, city: e.target.value })}
-                        className="form-input"
+                        onChange={(e) => { setShipping({ ...shipping, city: e.target.value }); setFieldErrors(p => ({ ...p, city: '' })); }}
+                        className={`form-input ${fieldErrors.city ? 'field-error' : ''}`}
                         disabled={selectedAddressIndex !== -1}
                       />
                     )}
+                    {fieldErrors.city && <span className="field-error-msg">{fieldErrors.city}</span>}
                   </div>
                 </div>
 
@@ -318,10 +388,11 @@ const Checkout = () => {
                     type="text"
                     placeholder="6-digit Pincode"
                     value={shipping.pincode}
-                    onChange={(e) => setShipping({ ...shipping, pincode: e.target.value })}
-                    className="form-input"
+                    onChange={(e) => { setShipping({ ...shipping, pincode: e.target.value }); setFieldErrors(p => ({ ...p, pincode: '' })); }}
+                    className={`form-input ${fieldErrors.pincode ? 'field-error' : ''}`}
                     disabled={selectedAddressIndex !== -1}
                   />
+                  {fieldErrors.pincode && <span className="field-error-msg">{fieldErrors.pincode}</span>}
                 </div>
 
                 {selectedAddressIndex === -1 && (
@@ -397,11 +468,11 @@ const Checkout = () => {
                   </div>
                 </div>
 
-                <div className="d-flex gap-3 mt-5">
-                  <button onClick={() => setStep(1)} className="btn btn-outline flex-1">
+                <div className="checkout-btn-row mt-5">
+                  <button onClick={() => setStep(1)} className="btn btn-outline checkout-nav-btn">
                     Back
                   </button>
-                  <button onClick={() => setStep(3)} className="btn btn-primary flex-1">
+                  <button onClick={() => setStep(3)} className="btn btn-primary checkout-nav-btn">
                     Review Summary <ArrowRight size={18} />
                   </button>
                 </div>

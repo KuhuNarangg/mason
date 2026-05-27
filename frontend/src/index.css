@@ -66,7 +66,44 @@
   /* Cinematic Transitions */
   --ease-expo: cubic-bezier(0.19, 1, 0.22, 1);
   --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
-  
+
+  /* Duration Scale */
+  --duration-fast: 0.15s;
+  --duration-normal: 0.3s;
+  --duration-slow: 0.5s;
+  --duration-glacial: 0.8s;
+
+  /* Extended Palette */
+  --cream: #F9F4EE;
+  --cream-dark: #EFE5D9;
+  --rose-gold-light: rgba(192, 138, 116, 0.3);
+  --error: #dc2626;
+  --success: #16a34a;
+
+  /* Semantic Text Colors */
+  --text-primary: var(--ink);
+  --text-secondary: var(--ink-soft);
+  --text-tertiary: var(--ink-muted);
+
+  /* Component Colors */
+  --color-primary: var(--rose-gold);
+  --color-border: var(--champagne);
+
+  /* Font aliases */
+  --font-heading: var(--font-display);
+
+  /* Font Size Scale (component-level aliases) */
+  --font-size-xs: var(--text-xs);
+  --font-size-sm: var(--text-sm);
+  --font-size-base: var(--text-base);
+  --font-size-md: var(--text-md);
+  --font-size-lg: var(--text-lg);
+  --font-size-xl: var(--text-xl);
+
+  /* Border Radius Aliases */
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
   /* Layout */
   --container-max: 1600px;
   --gutter: clamp(1.5rem, 5vw, 4rem);

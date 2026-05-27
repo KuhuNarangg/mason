@@ -1,248 +1,432 @@
-import { useState, useEffect } from 'react';
-import { ShoppingCart, LayoutDashboard, Package, Users, Eye, X } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import {
+  ShoppingCart, Package, Users, TrendingUp, TrendingDown,
+  ArrowRight, AlertTriangle, Eye, X, IndianRupee,
+} from 'lucide-react';
 import api from '../../utils/api';
 import './admin-pages.css';
 
+/* ── Status badge helper ───────────────────────────────── */
+const statusClass = {
+  pending: 'badge-pending', confirmed: 'badge-confirmed',
+  processing: 'badge-processing', shipped: 'badge-shipped',
+  delivered: 'badge-delivered', cancelled: 'badge-cancelled',
+  cancel_requested: 'badge-cancel_requested',
+  return_requested: 'badge-return_requested',
+  returned: 'badge-returned', return_rejected: 'badge-return_rejected',
+};
+const statusLabel = {
+  pending: 'Pending', confirmed: 'Confirmed', processing: 'Processing',
+  shipped: 'Shipped', delivered: 'Delivered', cancelled: 'Cancelled',
+  cancel_requested: 'Cancel Request', return_requested: 'Return Request',
+  returned: 'Returned', return_rejected: 'Return Rejected',
+};
+
+/* ── Revenue Sparkline ─────────────────────────────────── */
+const RevenueChart = ({ data }) => {
+  const W = 100, H = 100;
+  const padding = { top: 8, right: 2, bottom: 20, left: 6 };
+
+  const values = data.map(d => d.revenue);
+  const maxVal = Math.max(...values, 1);
+  const minVal = Math.min(...values, 0);
+  const range  = maxVal - minVal || 1;
+
+  const pts = values.map((v, i) => ({
+    x: padding.left + (i / Math.max(values.length - 1, 1)) * (W - padding.left - padding.right),
+    y: padding.top + (1 - (v - minVal) / range) * (H - padding.top - padding.bottom),
+  }));
+
+  const linePath = pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+  const areaPath = [
+    `M ${pts[0]?.x.toFixed(1)} ${(H - padding.bottom).toFixed(1)}`,
+    ...pts.map(p => `L ${p.x.toFixed(1)} ${p.y.toFixed(1)}`),
+    `L ${pts[pts.length - 1]?.x.toFixed(1)} ${(H - padding.bottom).toFixed(1)}`,
+    'Z',
+  ].join(' ');
+
+  const gridY = [0.25, 0.5, 0.75, 1].map(
+    pct => (padding.top + (1 - pct) * (H - padding.top - padding.bottom)).toFixed(1)
+  );
+
+  // Show every ~5 labels
+  const step = Math.ceil(data.length / 6);
+  const labels = data.filter((_, i) => i % step === 0 || i === data.length - 1);
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="chart-svg" preserveAspectRatio="none">
+      {gridY.map((y, i) => (
+        <line key={i} x1={padding.left} x2={W - padding.right} y1={y} y2={y} className="chart-grid-line" />
+      ))}
+      <path d={areaPath} className="chart-area" />
+      <path d={linePath} className="chart-line" />
+      {labels.map((d, i) => {
+        const idx = data.indexOf(d);
+        return (
+          <text
+            key={i}
+            x={pts[idx]?.x.toFixed(1)}
+            y={(H - 4).toFixed(1)}
+            fontSize="5"
+            fill="#94a3b8"
+            textAnchor="middle"
+          >
+            {new Date(d.date).toLocaleDateString('en-IN', { day:'2-digit', month:'short' })}
+          </text>
+        );
+      })}
+    </svg>
+  );
+};
+
+/* ── Stock Modal ───────────────────────────────────────── */
+const StockModal = ({ product, onClose }) => {
+  if (!product) return null;
+  return (
+    <div
+      style={{
+        position:'fixed', inset:0, background:'rgba(0,0,0,0.45)',
+        display:'flex', alignItems:'center', justifyContent:'center',
+        zIndex:9999, padding:'1rem',
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          background:'white', borderRadius:'14px', width:'100%', maxWidth:'480px',
+          maxHeight:'85vh', overflow:'hidden', display:'flex', flexDirection:'column',
+          boxShadow:'0 20px 40px rgba(0,0,0,0.15)',
+        }}
+        onClick={e => e.stopPropagation()}
+      >
+        <div style={{ padding:'1.25rem 1.5rem', borderBottom:'1px solid #f1f5f9', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+          <div>
+            <h3 style={{ margin:0, fontSize:'1rem', fontWeight:700, color:'#0f172a' }}>Stock Details</h3>
+            <p style={{ margin:0, fontSize:'0.75rem', color:'#94a3b8', marginTop:'2px' }}>{product.name}</p>
+          </div>
+          <button onClick={onClose} className="btn-icon-sm">
+            <X size={18} />
+          </button>
+        </div>
+
+        <div style={{ overflowY:'auto', padding:'1.25rem 1.5rem' }}>
+          <table className="admin-table" style={{ border:'none', boxShadow:'none' }}>
+            <thead>
+              <tr>
+                <th>Size</th>
+                <th>Color</th>
+                <th style={{ textAlign:'right' }}>Stock</th>
+              </tr>
+            </thead>
+            <tbody>
+              {product.variants.map((v, i) => (
+                <tr key={i}>
+                  <td><span className="tag-badge">{v.size}</span></td>
+                  <td>
+                    <div style={{ display:'flex', alignItems:'center', gap:'0.5rem' }}>
+                      <div style={{ width:12, height:12, borderRadius:'50%', background: v.colorHex||'#000', border:'1px solid #e2e8f0', flexShrink:0 }} />
+                      {v.color}
+                    </div>
+                  </td>
+                  <td style={{ textAlign:'right' }}>
+                    <span className={`status-badge ${v.stock === 0 ? 'badge-critical' : v.stock <= 3 ? 'badge-low-stock' : 'badge-ok'}`} style={{ float:'right' }}>
+                      {v.stock}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div style={{ padding:'1rem 1.5rem', borderTop:'1px solid #f1f5f9', display:'flex', justifyContent:'flex-end' }}>
+          <button onClick={onClose} className="btn-cancel">Close</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ── Dashboard ─────────────────────────────────────────── */
 const Dashboard = () => {
   const [stats, setStats] = useState(null);
-  const [showStockModal, setShowStockModal] = useState(false);
-  const [selectedProductStock, setSelectedProductStock] = useState(null);
+  const [stockModal, setStockModal] = useState(null);
 
   useEffect(() => {
     api.get('/admin/dashboard').then(res => setStats(res.data)).catch(console.error);
   }, []);
 
-  if (!stats) return <div style={{ textAlign: 'center', padding: '2rem' }}>Loading dashboard...</div>;
+  const totalRevenue30 = useMemo(() => {
+    if (!stats?.last30Days) return 0;
+    return stats.last30Days.reduce((s, d) => s + d.revenue, 0);
+  }, [stats]);
+
+  if (!stats) return (
+    <div className="admin-loading">
+      <div style={{ width:20, height:20, border:'2px solid #e2e8f0', borderTopColor:'#C08A74', borderRadius:'50%', animation:'spin 0.8s linear infinite' }} />
+      Loading dashboard…
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
+
+  const kpis = [
+    {
+      label: 'Total Revenue',
+      value: `₹${(stats.totalRevenue || 0).toLocaleString('en-IN')}`,
+      icon: IndianRupee,
+      color: 'rose',
+      sub: `₹${totalRevenue30.toLocaleString('en-IN')} last 30 days`,
+    },
+    {
+      label: 'Total Orders',
+      value: stats.totalOrders,
+      icon: ShoppingCart,
+      color: 'blue',
+      sub: `${stats.recentOrders?.length || 0} recent`,
+    },
+    {
+      label: 'Products',
+      value: stats.totalProducts,
+      icon: Package,
+      color: 'green',
+      sub: `${stats.lowStockProducts?.length || 0} low stock`,
+    },
+    {
+      label: 'Customers',
+      value: stats.totalUsers,
+      icon: Users,
+      color: 'purple',
+      sub: 'Registered accounts',
+    },
+  ];
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h1 className="admin-page-title" style={{ margin: 0 }}>Dashboard Overview</h1>
+      {/* Page header */}
+      <div className="page-header">
+        <div className="page-header-left">
+          <h1 className="admin-page-title">Dashboard</h1>
+          <p className="admin-page-subtitle">Welcome back — here's what's happening today.</p>
+        </div>
+        <Link to="/admin/orders" className="btn-primary" style={{ textDecoration:'none' }}>
+          <ShoppingCart size={16} /> View All Orders
+        </Link>
       </div>
-      
+
+      {/* Alert Banner */}
       {stats.returnRequestsCount > 0 && (
-        <div style={{ 
-          background: '#fff7ed', 
-          borderLeft: '4px solid #f97316', 
-          padding: '1rem 1.5rem', 
-          marginBottom: '2rem', 
-          borderRadius: '0.5rem',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div style={{ background: '#f97316', color: 'white', padding: '0.25rem 0.5rem', borderRadius: '999px', fontSize: '0.8rem', fontWeight: 700 }}>
-              {stats.returnRequestsCount}
-            </div>
-            <p style={{ margin: 0, fontWeight: 600, color: '#9a3412' }}>
-              Action Required: You have {stats.returnRequestsCount === 1 ? '1 pending return request' : `${stats.returnRequestsCount} pending return requests`} that need your approval.
-            </p>
+        <div className="admin-alert warning">
+          <div className="admin-alert-left">
+            <AlertTriangle size={18} color="#f97316" />
+            <span className="admin-alert-count">{stats.returnRequestsCount}</span>
+            <span className="admin-alert-text">
+              {stats.returnRequestsCount === 1
+                ? '1 pending return request needs your approval'
+                : `${stats.returnRequestsCount} pending return requests need your approval`}
+            </span>
           </div>
-          <a href="/admin/orders" style={{ 
-            padding: '0.5rem 1rem', 
-            background: 'white', 
-            color: '#f97316', 
-            textDecoration: 'none', 
-            borderRadius: '0.25rem', 
-            fontWeight: 600,
-            border: '1px solid #fed7aa',
-            fontSize: '0.9rem'
-          }}>
-            Review Now
-          </a>
+          <Link
+            to="/admin/orders"
+            style={{ display:'flex', alignItems:'center', gap:'0.35rem', fontSize:'0.8rem', fontWeight:600, color:'#f97316', textDecoration:'none', whiteSpace:'nowrap' }}
+          >
+            Review Now <ArrowRight size={14} />
+          </Link>
         </div>
       )}
 
+      {/* KPI Cards */}
       <div className="kpi-grid">
-        <div className="kpi-card">
-          <div className="kpi-icon"><ShoppingCart size={24}/></div>
-          <div className="kpi-info"><h3>Total Orders</h3><p>{stats.totalOrders}</p></div>
-        </div>
-        <div className="kpi-card">
-          <div className="kpi-icon" style={{backgroundColor: '#e8f5e9', color: '#2e7d32'}}><LayoutDashboard size={24}/></div>
-          <div className="kpi-info"><h3>Total Revenue</h3><p>₹{stats.totalRevenue.toLocaleString()}</p></div>
-        </div>
-        <div className="kpi-card">
-          <div className="kpi-icon" style={{backgroundColor: '#e3f2fd', color: '#1565c0'}}><Package size={24}/></div>
-          <div className="kpi-info"><h3>Products</h3><p>{stats.totalProducts}</p></div>
-        </div>
-        <div className="kpi-card">
-          <div className="kpi-icon" style={{backgroundColor: '#fff3e0', color: '#ef6c00'}}><Users size={24}/></div>
-          <div className="kpi-info"><h3>Customers</h3><p>{stats.totalUsers}</p></div>
-        </div>
-      </div>
-
-      <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem'}}>
-        <div style={{ background: 'white', padding: '1.5rem', border: '1px solid #e0d5ce', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
-          <h3 style={{marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 600}}>Recent Orders</h3>
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Order ID</th>
-                <th>Amount</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stats.recentOrders.length === 0 ? (
-                <tr><td colSpan="3" className="no-data">No orders yet</td></tr>
-              ) : (
-                stats.recentOrders.map(o => (
-                  <tr key={o._id}>
-                    <td>{o.orderNumber || o._id.substring(0, 8)}</td>
-                    <td>₹{o.totalAmount}</td>
-                    <td><span style={{padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', background: '#e3f2fd', color: '#1565c0', fontWeight: 600}}>{o.status}</span></td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-        
-        <div style={{ background: 'white', padding: '1.5rem', border: '1px solid #e0d5ce', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
-          <h3 style={{marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 600}}>Low Stock Alerts</h3>
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Product</th>
-                <th>Low Stock</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stats.lowStockProducts.length === 0 ? (
-                <tr><td colSpan="2" className="no-data">All stock levels good!</td></tr>
-              ) : (
-                stats.lowStockProducts.map(p => (
-                  <tr key={p._id}>
-                    <td>{p.name.substring(0, 25)}</td>
-                    <td>
-                      <button 
-                        onClick={() => { setSelectedProductStock(p); setShowStockModal(true); }}
-                        style={{ 
-                          background: 'none', 
-                          border: 'none', 
-                          color: '#ef4444', 
-                          fontWeight: 700, 
-                          cursor: 'pointer', 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          gap: '0.4rem',
-                          padding: '0.25rem 0.5rem',
-                          borderRadius: '4px',
-                          transition: 'background 0.2s'
-                        }}
-                        onMouseOver={(e) => e.target.style.background = '#fef2f2'}
-                        onMouseOut={(e) => e.target.style.background = 'none'}
-                      >
-                        <Eye size={14} /> 
-                        {p.variants.filter(v => v.stock <= 5).length} {p.variants.filter(v => v.stock <= 5).length === 1 ? 'variant' : 'variants'} low
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Stock Details Modal */}
-      {showStockModal && selectedProductStock && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-          padding: '1rem'
-        }} onClick={() => setShowStockModal(false)}>
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '0.75rem',
-            width: '100%',
-            maxWidth: '500px',
-            maxHeight: '80vh',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
-          }} onClick={e => e.stopPropagation()}>
-            <div style={{
-              padding: '1.25rem 1.5rem',
-              borderBottom: '1px solid #e5e7eb',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#111827' }}>Stock Details</h3>
-              <button onClick={() => setShowStockModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}>
-                <X size={20} />
-              </button>
-            </div>
-            <div style={{ padding: '1.5rem', overflowY: 'auto' }}>
-              <div style={{ marginBottom: '1.25rem' }}>
-                <p style={{ margin: 0, fontWeight: 600, color: '#374151' }}>{selectedProductStock.name}</p>
-                <p style={{ margin: 0, fontSize: '0.875rem', color: '#6b7280' }}>Variant Stock Breakdown</p>
+        {kpis.map(({ label, value, icon: Icon, color, sub }) => (
+          <div key={label} className="kpi-card">
+            <div className="kpi-header">
+              <div className={`kpi-icon-wrap ${color}`}>
+                <Icon size={20} strokeWidth={1.75} />
               </div>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead style={{ backgroundColor: '#f9fafb' }}>
-                  <tr>
-                    <th style={{ padding: '0.75rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', textTransform: 'uppercase' }}>Size</th>
-                    <th style={{ padding: '0.75rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', textTransform: 'uppercase' }}>Color</th>
-                    <th style={{ padding: '0.75rem', textAlign: 'right', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', textTransform: 'uppercase' }}>Stock</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {selectedProductStock.variants.map((v, i) => (
-                    <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                      <td style={{ padding: '0.75rem', fontSize: '0.875rem', color: '#111827' }}>{v.size}</td>
-                      <td style={{ padding: '0.75rem', fontSize: '0.875rem', color: '#111827' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: v.colorHex || '#000', border: '1px solid #e5e7eb' }}></div>
-                          {v.color}
+            </div>
+            <div className="kpi-value">{value}</div>
+            <div className="kpi-label">{label}</div>
+            {sub && <div style={{ fontSize:'0.72rem', color:'#94a3b8', marginTop:'0.375rem' }}>{sub}</div>}
+          </div>
+        ))}
+      </div>
+
+      {/* Charts + Tables row */}
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 340px', gap:'1.25rem', marginBottom:'1.25rem' }}>
+        {/* Revenue chart */}
+        {stats.last30Days?.length > 0 && (
+          <div className="admin-card">
+            <div className="admin-card-header">
+              <div>
+                <div className="admin-card-title">Revenue — Last 30 Days</div>
+                <div className="admin-card-subtitle">Daily order revenue</div>
+              </div>
+              <div style={{ fontSize:'1.25rem', fontWeight:700, color:'#0f172a' }}>
+                ₹{totalRevenue30.toLocaleString('en-IN')}
+              </div>
+            </div>
+            <div className="admin-card-body" style={{ paddingTop:'0.75rem' }}>
+              <div className="chart-wrap">
+                <RevenueChart data={stats.last30Days} />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Top Products */}
+        <div className="admin-card">
+          <div className="admin-card-header">
+            <div className="admin-card-title">Top Products</div>
+          </div>
+          <div style={{ overflowX:'auto' }}>
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Product</th>
+                  <th style={{ textAlign:'right' }}>Sold</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(stats.topProducts || []).length === 0 ? (
+                  <tr><td colSpan="3" className="no-data">No data yet</td></tr>
+                ) : (
+                  stats.topProducts.map((p, i) => (
+                    <tr key={p._id}>
+                      <td>
+                        <div className={`rank-badge rank-${i < 3 ? i+1 : 'other'}`}>
+                          {i + 1}
                         </div>
                       </td>
-                      <td style={{ 
-                        padding: '0.75rem', 
-                        fontSize: '0.875rem', 
-                        textAlign: 'right', 
-                        fontWeight: v.stock <= 5 ? 700 : 500,
-                        color: v.stock <= 5 ? '#ef4444' : '#111827'
-                      }}>
-                        {v.stock}
+                      <td>
+                        <div className="table-cell-primary" style={{ fontSize:'0.8rem', maxWidth:120, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                          {p.name}
+                        </div>
                       </td>
+                      <td style={{ textAlign:'right', fontWeight:600, color:'#C08A74' }}>{p.totalSold}</td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div style={{ padding: '1.25rem 1.5rem', backgroundColor: '#f9fafb', borderTop: '1px solid #e5e7eb', textAlign: 'right' }}>
-              <button 
-                onClick={() => setShowStockModal(false)}
-                style={{
-                  padding: '0.5rem 1rem',
-                  backgroundColor: 'white',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.375rem',
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  color: '#374151',
-                  cursor: 'pointer'
-                }}
-              >
-                Close
-              </button>
-            </div>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
-      )}
+      </div>
+
+      {/* Recent Orders + Low Stock */}
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1.25rem' }}>
+        {/* Recent Orders */}
+        <div className="admin-card">
+          <div className="admin-card-header">
+            <div className="admin-card-title">Recent Orders</div>
+            <Link to="/admin/orders" style={{ display:'flex', alignItems:'center', gap:'0.3rem', fontSize:'0.78rem', color:'#C08A74', textDecoration:'none', fontWeight:600 }}>
+              See all <ArrowRight size={13} />
+            </Link>
+          </div>
+          <div style={{ overflowX:'auto' }}>
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Order</th>
+                  <th>Customer</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(stats.recentOrders || []).length === 0 ? (
+                  <tr><td colSpan="4" className="no-data">No orders yet</td></tr>
+                ) : (
+                  stats.recentOrders.map(o => (
+                    <tr key={o._id}>
+                      <td>
+                        <Link
+                          to="/admin/orders"
+                          style={{ color:'#C08A74', fontWeight:600, fontSize:'0.8rem', textDecoration:'none' }}
+                        >
+                          #{o.orderNumber?.replace('ORD-','') || o._id.slice(-6).toUpperCase()}
+                        </Link>
+                      </td>
+                      <td style={{ fontSize:'0.8rem', color:'#374151' }}>
+                        {o.user?.name?.split(' ')[0] || '—'}
+                      </td>
+                      <td style={{ fontWeight:600, fontSize:'0.8rem' }}>
+                        ₹{Number(o.totalAmount).toLocaleString('en-IN')}
+                      </td>
+                      <td>
+                        <span className={`status-badge ${statusClass[o.status] || 'badge-pending'}`}>
+                          {statusLabel[o.status] || o.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Low Stock Alerts */}
+        <div className="admin-card">
+          <div className="admin-card-header">
+            <div>
+              <div className="admin-card-title">Low Stock Alerts</div>
+              <div className="admin-card-subtitle">Products with ≤ 5 units in any variant</div>
+            </div>
+          </div>
+          <div style={{ overflowX:'auto' }}>
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Variants</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {(stats.lowStockProducts || []).length === 0 ? (
+                  <tr>
+                    <td colSpan="3" className="no-data">
+                      <span style={{ color:'#16a34a', fontWeight:600 }}>✓</span> All stock levels are healthy
+                    </td>
+                  </tr>
+                ) : (
+                  stats.lowStockProducts.map(p => {
+                    const lowCount = p.variants.filter(v => v.stock <= 5).length;
+                    const critCount = p.variants.filter(v => v.stock === 0).length;
+                    return (
+                      <tr key={p._id}>
+                        <td>
+                          <div className="table-cell-primary" style={{ fontSize:'0.8rem', maxWidth:140, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                            {p.name}
+                          </div>
+                        </td>
+                        <td>
+                          <span className={`status-badge ${critCount > 0 ? 'badge-critical' : 'badge-low-stock'}`}>
+                            {critCount > 0 ? `${critCount} out of stock` : `${lowCount} low`}
+                          </span>
+                        </td>
+                        <td>
+                          <button
+                            onClick={() => setStockModal(p)}
+                            className="btn-icon-sm view"
+                            title="View stock details"
+                          >
+                            <Eye size={15} />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {/* Stock Modal */}
+      <StockModal product={stockModal} onClose={() => setStockModal(null)} />
     </div>
   );
 };

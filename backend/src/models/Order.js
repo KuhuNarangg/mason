@@ -36,7 +36,8 @@ const orderSchema = new mongoose.Schema(
     shippingAddress: shippingSchema,
     paymentMethod: { type: String, default: 'razorpay' },
     paymentStatus: { type: String, enum: ['pending', 'paid', 'failed', 'refunded'], default: 'pending' },
-    paymentId: { type: String },
+    paymentId: { type: String },           // Razorpay payment_id after capture
+    razorpayOrderId: { type: String },     // Razorpay order_id (rzp_order_xxx)
     status: {
       type: String,
       enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'cancel_requested', 'return_requested', 'return_rejected', 'returned'],

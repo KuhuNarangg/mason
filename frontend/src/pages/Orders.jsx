@@ -1,17 +1,21 @@
 import { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { Package, MapPin, CalendarDays, DollarSign, ChevronDown, ArrowLeft, Download, Star, Upload, X, CheckCircle2, Clock, Truck, Box, AlertCircle, HelpCircle } from 'lucide-react';
+import { Package, MapPin, CalendarDays, DollarSign, ChevronDown, ArrowLeft, Download, Star, Upload, X, CheckCircle2, Clock, Truck, Box, AlertCircle, HelpCircle, CreditCard } from 'lucide-react';
 import api from '../utils/api';
 import { formatPrice } from '../utils/formatPrice';
 import { generateInvoicePDF } from '../utils/generateInvoice';
+import { loadRazorpayScript, openRazorpayCheckout } from '../utils/razorpay';
+import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import './Orders.css';
 
 const Orders = () => {
   const { orderId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [payingOrderId, setPayingOrderId] = useState(null);
   const [expandedOrderId, setExpandedOrderId] = useState(null);
   const [downloadingInvoiceId, setDownloadingInvoiceId] = useState(null);
 
@@ -176,6 +180,50 @@ const Orders = () => {
       toast.error(err.response?.data?.message || 'Failed to request cancellation');
     } finally {
       setCancelling(false);
+    }
+  };
+
+  // ── Re-initiate Razorpay payment for a pending order ───────
+  const handlePayNow = async (order) => {
+    setPayingOrderId(order._id);
+    try {
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded) { toast.error('Could not load payment gateway.'); return; }
+
+      const { data } = await api.post('/payments/create-razorpay-order', { orderId: order._id });
+
+      openRazorpayCheckout({
+        keyId: data.keyId,
+        razorpayOrderId: data.razorpayOrderId,
+        amount: data.amount,
+        currency: data.currency,
+        orderNumber: data.orderNumber,
+        user: {
+          name: order.shippingAddress?.fullName || user?.name || '',
+          email: user?.email || '',
+          phone: order.shippingAddress?.phone || '',
+        },
+        onSuccess: async (response) => {
+          try {
+            await api.post('/payments/verify', {
+              orderId: order._id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature,
+            });
+            toast.success('Payment successful! Order confirmed. 🎉');
+            fetchOrders();
+          } catch (err) {
+            toast.error(err.response?.data?.message || 'Verification failed. Contact support.');
+          }
+        },
+        onFailure: (msg) => toast.error(`Payment failed: ${msg}`),
+        onDismiss: () => toast('Payment cancelled.', { icon: 'ℹ️' }),
+      });
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not initiate payment');
+    } finally {
+      setPayingOrderId(null);
     }
   };
 
@@ -370,6 +418,19 @@ const Orders = () => {
                       <Download size={16} /> {downloadingInvoiceId === order._id ? 'Downloading...' : 'Invoice'}
                     </button>
                     <Link to="/contact" className="btn-action-v2"><HelpCircle size={16} /> Support</Link>
+
+                    {/* Pay Now — shown for razorpay orders still pending payment */}
+                    {order.paymentMethod === 'razorpay' && order.paymentStatus === 'pending' && order.status === 'pending' && (
+                      <button
+                        className="btn-action-v2"
+                        style={{ background: '#C08A74', color: 'white', borderColor: '#C08A74' }}
+                        onClick={() => handlePayNow(order)}
+                        disabled={payingOrderId === order._id}
+                      >
+                        <CreditCard size={16} />
+                        {payingOrderId === order._id ? 'Opening...' : 'Pay Now'}
+                      </button>
+                    )}
 
                     {['pending', 'confirmed', 'processing'].includes(order.status) && (
                       <button className="btn-action-v2 danger" onClick={() => { setCancelOrderId(order._id); setCancelModalOpen(true); }}>Cancel Order</button>

@@ -2,6 +2,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ShoppingBag, Heart, User, Search, Menu, X, Bell, Package, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
 import { useNotifications } from '../context/NotificationContext';
 import { useState, useEffect } from 'react';
 import './Navbar.css';
@@ -9,6 +10,7 @@ import './Navbar.css';
 const Navbar = () => {
   const { isAuth, user, logout } = useAuth();
   const { totalItems } = useCart();
+  const { wishlist } = useWishlist();
   const { notifications, unreadCount, markRead, markAllRead } = useNotifications();
   const navigate = useNavigate();
   const location = useLocation();
@@ -124,8 +126,11 @@ const Navbar = () => {
               </div>
             )}
 
-            <Link to="/wishlist" className="btn-icon desktop-only" aria-label="Wishlist">
+            <Link to="/wishlist" className="btn-icon desktop-only" aria-label="Wishlist" style={{ position: 'relative' }}>
               <Heart size={20} strokeWidth={1} />
+              {wishlist.length > 0 && (
+                <span className="m-cart-count">{wishlist.length}</span>
+              )}
             </Link>
 
             <Link to="/cart" className="btn-icon cart-icon" aria-label="Cart">

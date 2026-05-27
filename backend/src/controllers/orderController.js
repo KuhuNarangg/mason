@@ -60,11 +60,38 @@ const getAllOrders = asyncHandler(async (req, res) => {
   res.json({ success: true, total, orders });
 });
 
+// Valid forward-only status transitions for admin general status update
+const ALLOWED_TRANSITIONS = {
+  pending:          ['confirmed', 'cancelled'],
+  confirmed:        ['processing', 'cancelled'],
+  processing:       ['shipped', 'cancelled'],
+  shipped:          ['delivered'],
+  // Terminal / managed-by-dedicated-endpoints — no free changes allowed:
+  delivered:        [],
+  cancelled:        [],
+  cancel_requested: [],   // managed by /cancel-handle
+  return_requested: [],   // managed by /return-item-handle
+  returned:         [],
+  return_rejected:  [],
+};
+
 // @PUT /api/v1/orders/:id/status (admin)
 const updateOrderStatus = asyncHandler(async (req, res) => {
   const { status, note } = req.body;
   const order = await Order.findById(req.params.id);
   if (!order) { res.status(404); throw new Error('Order not found'); }
+
+  const allowed = ALLOWED_TRANSITIONS[order.status] || [];
+  if (!allowed.includes(status)) {
+    res.status(400);
+    throw new Error(
+      `Cannot transition order from "${order.status}" to "${status}". ` +
+      (allowed.length
+        ? `Allowed next statuses: ${allowed.join(', ')}.`
+        : `Order is in a terminal or managed state and cannot be changed here.`)
+    );
+  }
+
   order.status = status;
   order.statusHistory.push({ status, note });
   if (status === 'delivered') order.paymentStatus = 'paid';
