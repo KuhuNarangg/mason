@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Home, Search, Heart, ShoppingBag, User } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
 import { useAuth } from '../context/AuthContext';
 import './MobileBottomNav.css';
 
@@ -9,6 +10,7 @@ const MobileBottomNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { cart } = useCart();
+  const { wishlist } = useWishlist();
   const { user } = useAuth();
   const [hidden, setHidden] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
@@ -79,7 +81,10 @@ const MobileBottomNav = () => {
         </button>
 
         <Link to="/wishlist" className={`bottom-nav-item ${isActive('/wishlist') ? 'active' : ''}`}>
-          <Heart size={22} strokeWidth={isActive('/wishlist') ? 2.5 : 1.8} />
+          <div className="bottom-nav-cart-wrap">
+            <Heart size={22} strokeWidth={isActive('/wishlist') ? 2.5 : 1.8} />
+            {wishlist?.length > 0 && <span className="bottom-nav-badge">{wishlist.length > 9 ? '9+' : wishlist.length}</span>}
+          </div>
           <span>Wishlist</span>
         </Link>
 

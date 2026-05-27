@@ -98,7 +98,7 @@ const Checkout = () => {
     setFieldErrors(errors);
 
     if (Object.keys(errors).length > 0) {
-      toast.error('Please fill all required shipping details');
+      toast.error(Object.values(errors)[0]);
       return false;
     }
     return true;

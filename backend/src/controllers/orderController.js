@@ -1,6 +1,7 @@
 const asyncHandler = require('express-async-handler');
 const Order = require('../models/Order');
 const Cart = require('../models/Cart');
+const Product = require('../models/Product');
 const { createNotification } = require('../utils/notificationHelper');
 
 // @POST /api/v1/orders
@@ -23,6 +24,21 @@ const createOrder = asyncHandler(async (req, res) => {
     statusHistory: [{ status: 'pending', note: 'Order placed' }],
   });
 
+  // Decrement stock for each ordered item
+  await Promise.all(
+    items.map(async (item) => {
+      await Product.updateOne(
+        {
+          _id: item.product,
+          variants: { $elemMatch: { size: item.variantSize, color: item.variantColor } },
+        },
+        {
+          $inc: { 'variants.$.stock': -item.quantity },
+        }
+      );
+    })
+  );
+
   // Clear cart after order
   await Cart.findOneAndDelete({ user: req.user._id });
 
@@ -31,13 +47,13 @@ const createOrder = asyncHandler(async (req, res) => {
 
 // @GET /api/v1/orders/my
 const getMyOrders = asyncHandler(async (req, res) => {
-  const orders = await Order.find({ user: req.user._id }).sort({ createdAt: -1 });
+  const orders = await Order.find({ user: req.user._id }).sort({ createdAt: -1 }).lean();
   res.json({ success: true, orders });
 });
 
 // @GET /api/v1/orders/:id
 const getOrderById = asyncHandler(async (req, res) => {
-  const order = await Order.findById(req.params.id).populate('user', 'name email');
+  const order = await Order.findById(req.params.id).populate('user', 'name email').lean();
   if (!order) { res.status(404); throw new Error('Order not found'); }
   if (order.user._id.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
     res.status(403); throw new Error('Not authorized');
@@ -51,12 +67,15 @@ const getOrderById = asyncHandler(async (req, res) => {
 const getAllOrders = asyncHandler(async (req, res) => {
   const { status, page = 1, limit = 20 } = req.query;
   const query = status ? { status } : {};
-  const total = await Order.countDocuments(query);
-  const orders = await Order.find(query)
-    .populate('user', 'name email')
-    .sort({ createdAt: -1 })
-    .skip((page - 1) * limit)
-    .limit(Number(limit));
+  const [total, orders] = await Promise.all([
+    Order.countDocuments(query),
+    Order.find(query)
+      .populate('user', 'name email')
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(Number(limit))
+      .lean()
+  ]);
   res.json({ success: true, total, orders });
 });
 
@@ -95,6 +114,18 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
   order.status = status;
   order.statusHistory.push({ status, note });
   if (status === 'delivered') order.paymentStatus = 'paid';
+  
+  if (status === 'cancelled') {
+    await Promise.all(
+      order.items.map(async (item) => {
+        await Product.updateOne(
+          { _id: item.product, variants: { $elemMatch: { size: item.variantSize, color: item.variantColor } } },
+          { $inc: { 'variants.$.stock': item.quantity } }
+        );
+      })
+    );
+  }
+
   await order.save();
 
   // Send Notification
@@ -110,23 +141,26 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
 
 // @GET /api/v1/orders/stats (admin)
 const getOrderStats = asyncHandler(async (req, res) => {
-  const totalOrders = await Order.countDocuments();
-  const totalRevenue = await Order.aggregate([
-    { $match: { paymentStatus: 'paid' } },
-    { $group: { _id: null, total: { $sum: '$totalAmount' } } },
+  const [totalOrders, revenueResult, statusCounts, last7Days] = await Promise.all([
+    Order.countDocuments(),
+    Order.aggregate([
+      { $match: { paymentStatus: 'paid' } },
+      { $group: { _id: null, total: { $sum: '$totalAmount' } } },
+    ]),
+    Order.aggregate([
+      { $group: { _id: '$status', count: { $sum: 1 } } },
+    ]),
+    Order.aggregate([
+      { $match: { createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } } },
+      { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, count: { $sum: 1 }, revenue: { $sum: '$totalAmount' } } },
+      { $sort: { _id: 1 } },
+    ])
   ]);
-  const statusCounts = await Order.aggregate([
-    { $group: { _id: '$status', count: { $sum: 1 } } },
-  ]);
-  const last7Days = await Order.aggregate([
-    { $match: { createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } } },
-    { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, count: { $sum: 1 }, revenue: { $sum: '$totalAmount' } } },
-    { $sort: { _id: 1 } },
-  ]);
+
   res.json({
     success: true,
     totalOrders,
-    totalRevenue: totalRevenue[0]?.total || 0,
+    totalRevenue: revenueResult[0]?.total || 0,
     statusCounts,
     last7Days,
   });
@@ -141,7 +175,7 @@ const trackOrder = asyncHandler(async (req, res) => {
   const cleanOrderId = orderId.replace(/^#/, '').trim().toUpperCase();
   
   // Try to find the order by orderNumber and populate user
-  const order = await Order.findOne({ orderNumber: cleanOrderId }).populate('user', 'email name');
+  const order = await Order.findOne({ orderNumber: cleanOrderId }).populate('user', 'email name').lean();
   if (!order) { res.status(404); throw new Error('Order not found with that ID'); }
 
   // Verify email matches
@@ -237,6 +271,12 @@ const handleItemReturn = asyncHandler(async (req, res) => {
       status: 'returned', 
       note: `Return approved for "${item.name}". ${adminNote || ''}` 
     });
+
+    // Restore stock for returned item
+    await Product.updateOne(
+      { _id: item.product, variants: { $elemMatch: { size: item.variantSize, color: item.variantColor } } },
+      { $inc: { 'variants.$.stock': item.quantity } }
+    );
   } else {
     item.returnStatus = 'rejected';
     item.returnAdminNote = adminNote || 'Return rejected';
@@ -322,6 +362,16 @@ const handleCancellationRequest = asyncHandler(async (req, res) => {
     if (order.paymentStatus === 'paid') {
       order.paymentStatus = 'refunded';
     }
+
+    // Restore stock for all items
+    await Promise.all(
+      order.items.map(async (item) => {
+        await Product.updateOne(
+          { _id: item.product, variants: { $elemMatch: { size: item.variantSize, color: item.variantColor } } },
+          { $inc: { 'variants.$.stock': item.quantity } }
+        );
+      })
+    );
   } else {
     // Revert to processing or confirmed
     order.status = 'confirmed';

@@ -65,6 +65,7 @@
 .m-navbar__left {
   display: flex;
   align-items: center;
+  gap: var(--space-5);
 }
 
 .m-navbar__nav {
@@ -369,9 +370,9 @@
 
 .m-mobile-link {
   display: block;
-  padding: var(--space-4) var(--gutter);
+  padding: var(--space-3) var(--gutter);
   font-family: var(--font-display);
-  font-size: var(--text-3xl);
+  font-size: var(--text-xl);
   color: var(--ink);
   transition: padding-left 0.6s var(--ease-expo), color 0.4s;
 }
@@ -412,6 +413,7 @@
 /* Responsive Overrides */
 .mobile-toggle {
   display: none;
+  margin-left: -12px;
 }
 
 @media (max-width: 768px) {

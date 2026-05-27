@@ -153,6 +153,14 @@ const ProductDetail = () => {
 
   const wishlisted = isWishlisted(product._id);
 
+  let displayImages = product.images || [];
+  if (selectedColor) {
+    const filtered = displayImages.filter(img => img.toLowerCase().includes(selectedColor.toLowerCase()));
+    if (filtered.length > 0) {
+      displayImages = filtered;
+    }
+  }
+
   return (
     <div className="container product-detail-container">
       {/* Breadcrumbs */}
@@ -166,7 +174,7 @@ const ProductDetail = () => {
         {/* Images */}
         <div className="product-gallery">
           <div className="thumbnail-list">
-            {product.images.map((img, idx) => (
+            {displayImages.map((img, idx) => (
               <img 
                 key={idx} 
                 src={img} 
@@ -177,7 +185,7 @@ const ProductDetail = () => {
             ))}
           </div>
           <div className="main-image-wrap">
-            <img src={product.images?.[activeImage] || 'https://via.placeholder.com/400?text=No+Image'} alt={product.name} className="main-image" />
+            <img src={displayImages[activeImage] || displayImages[0] || 'https://via.placeholder.com/400?text=No+Image'} alt={product.name} className="main-image" />
           </div>
         </div>
 

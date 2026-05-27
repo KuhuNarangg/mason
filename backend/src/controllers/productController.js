@@ -15,18 +15,7 @@ const getProducts = asyncHandler(async (req, res) => {
   if (featured === 'true') query.isFeatured = true;
   if (trending === 'true') query.isTrending = true;
   if (search) {
-    const searchTerms = search.split(' ').filter(term => term.trim());
-    if (searchTerms.length > 0) {
-      query.$and = searchTerms.map(term => ({
-        $or: [
-          { name: new RegExp(term, 'i') },
-          { description: new RegExp(term, 'i') },
-          { brand: new RegExp(term, 'i') },
-          { type: new RegExp(term, 'i') },
-          { tags: new RegExp(term, 'i') }
-        ]
-      }));
-    }
+    query.$text = { $search: search };
   }
   if (minPrice || maxPrice) {
     query.price = {};
@@ -46,22 +35,24 @@ const getProducts = asyncHandler(async (req, res) => {
   const sortBy = sortOptions[sort] || { createdAt: -1 };
 
   const skip = (Number(page) - 1) * Number(limit);
-  const total = await Product.countDocuments(query);
-  const products = await Product.find(query).sort(sortBy).skip(skip).limit(Number(limit));
+  const [total, products] = await Promise.all([
+    Product.countDocuments(query),
+    Product.find(query).sort(sortBy).skip(skip).limit(Number(limit)).lean()
+  ]);
 
   res.json({ success: true, total, page: Number(page), pages: Math.ceil(total / limit), products });
 });
 
 // @GET /api/v1/products/:id
 const getProductById = asyncHandler(async (req, res) => {
-  const product = await Product.findById(req.params.id).populate('reviews.user', 'name avatar');
+  const product = await Product.findById(req.params.id).populate('reviews.user', 'name avatar').lean();
   if (!product) { res.status(404); throw new Error('Product not found'); }
   res.json({ success: true, product });
 });
 
 // @GET /api/v1/products/slug/:slug
 const getProductBySlug = asyncHandler(async (req, res) => {
-  const product = await Product.findOne({ slug: req.params.slug }).populate('reviews.user', 'name avatar');
+  const product = await Product.findOne({ slug: req.params.slug }).populate('reviews.user', 'name avatar').lean();
   if (!product) { res.status(404); throw new Error('Product not found'); }
   res.json({ success: true, product });
 });
@@ -139,7 +130,7 @@ const toggleWishlist = asyncHandler(async (req, res) => {
 
 // @GET /api/v1/products/wishlist/details
 const getWishlistProducts = asyncHandler(async (req, res) => {
-  const products = await Product.find({ _id: { $in: req.user.wishlist } });
+  const products = await Product.find({ _id: { $in: req.user.wishlist } }).lean();
   res.json({ success: true, products });
 });
 
@@ -160,7 +151,7 @@ const getRelatedProducts = asyncHandler(async (req, res) => {
       { brand: product.brand },
       { tags: { $in: product.tags || [] } },
     ],
-  }).limit(50);
+  }).limit(50).lean();
 
   // Score each candidate by how closely it relates
   const scored = candidates.map(c => {

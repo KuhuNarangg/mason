@@ -63,14 +63,11 @@ const Wishlist = () => {
 
   if (products.length === 0) {
     return (
-      <div className="container wishlist-page-container text-center fade-in reveal active" style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <div className="empty-wishlist-icon mb-4" style={{ background: '#fff0f3', width: '100px', height: '100px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>
-          <Heart size={48} strokeWidth={1} color="#e91e63" fill="#fff0f3" />
-        </div>
-        <h2 className="font-heading mb-3">Your Wishlist is Empty</h2>
-        <p className="text-muted mb-4" style={{ maxWidth: '500px' }}>Add items that you like to your wishlist to review them later and buy them.</p>
-        <Link to="/category/all" className="btn btn-primary" style={{ padding: '1rem 2.5rem' }}>
-          BROWSE COLLECTIONS
+      <div className="container wishlist-page-container text-center fade-in reveal active" style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 2rem' }}>
+        <h2 className="font-heading mb-3" style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', color: 'var(--ink)', lineHeight: '1.2' }}>Playing hard to get?</h2>
+        <p className="text-muted mb-5" style={{ fontSize: 'var(--text-lg)', maxWidth: '500px', lineHeight: '1.6' }}>Your wishlist is completely empty. Let's find you something you can't resist.</p>
+        <Link to="/category/all" className="btn btn-primary" style={{ padding: '1.2rem 3rem', letterSpacing: '0.1em' }}>
+          EXPLORE COLLECTIONS
         </Link>
       </div>
     );

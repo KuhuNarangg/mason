@@ -65,6 +65,10 @@ const orderSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+orderSchema.index({ createdAt: -1 });
+orderSchema.index({ paymentStatus: 1 });
+orderSchema.index({ status: 1 });
+
 // Auto-generate order number
 orderSchema.pre('save', function () {
   if (!this.orderNumber) {

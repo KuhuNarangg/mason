@@ -1,0 +1,253 @@
+/* ============================================================
+   MASON - About Page Luxury Styling
+   ============================================================ */
+
+.about-page {
+  background-color: var(--ivory);
+  min-height: 100vh;
+  padding-bottom: var(--space-20);
+}
+
+/* --- Hero Section --- */
+.about-hero {
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: center;
+  min-height: 80vh;
+  position: relative;
+  overflow: hidden;
+}
+
+@media (min-width: 1024px) {
+  .about-hero {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-12);
+  }
+}
+
+.about-hero-content {
+  padding: var(--space-12) var(--gutter);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  z-index: 2;
+}
+
+.about-label {
+  font-family: var(--font-body);
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  font-size: var(--text-xs);
+  color: var(--rose-gold);
+  margin-bottom: var(--space-6);
+  display: block;
+}
+
+.about-title {
+  font-size: var(--text-5xl);
+  line-height: 1;
+  color: var(--ink);
+  margin-bottom: var(--space-6);
+  font-family: var(--font-display);
+}
+
+.about-title em {
+  display: block;
+  font-family: var(--font-script);
+  font-size: 1.2em;
+  color: var(--rose-gold);
+  margin-top: -0.2em;
+}
+
+.about-subtitle {
+  font-size: var(--text-lg);
+  color: var(--ink-soft);
+  max-width: 500px;
+  line-height: 1.7;
+  font-weight: 300;
+}
+
+.about-hero-image-wrapper {
+  height: 60vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+@media (min-width: 1024px) {
+  .about-hero-image-wrapper {
+    height: 100vh;
+  }
+}
+
+.about-hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+/* --- Story Section (Asymmetric) --- */
+.about-story {
+  padding: var(--space-20) var(--gutter);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-12);
+  align-items: center;
+}
+
+@media (min-width: 1024px) {
+  .about-story {
+    grid-template-columns: 5fr 7fr;
+  }
+}
+
+.about-story-img-wrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  aspect-ratio: 4/5;
+  box-shadow: var(--shadow-md);
+}
+
+.about-story-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 1.5s var(--ease-expo);
+}
+
+.about-story-img-wrapper:hover .about-story-img {
+  transform: scale(1.05);
+}
+
+.about-story-content {
+  max-width: 600px;
+}
+
+.about-section-title {
+  font-size: var(--text-3xl);
+  font-family: var(--font-display);
+  color: var(--ink);
+  margin-bottom: var(--space-6);
+  position: relative;
+  padding-bottom: var(--space-6);
+}
+
+.about-section-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 1px;
+  background-color: var(--rose-gold);
+}
+
+.about-text {
+  font-size: var(--text-base);
+  color: var(--ink-soft);
+  line-height: 2;
+  margin-bottom: var(--space-6);
+  font-weight: 300;
+}
+
+/* --- Philosophy (Centered Statement) --- */
+.about-philosophy {
+  padding: var(--space-24) var(--gutter);
+  text-align: center;
+  background-color: var(--beige);
+  margin: var(--space-12) 0;
+}
+
+.about-philosophy-quote {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  color: var(--ink);
+  max-width: 800px;
+  margin: 0 auto var(--space-6);
+  line-height: 1.4;
+}
+
+.about-philosophy-quote em {
+  font-family: var(--font-script);
+  color: var(--rose-gold);
+  font-size: 1.3em;
+  padding: 0 0.2em;
+}
+
+/* --- Promises Grid --- */
+.about-promises-section {
+  padding: var(--space-12) var(--gutter);
+}
+
+.about-promises-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-8);
+  margin-top: var(--space-12);
+}
+
+@media (min-width: 768px) {
+  .about-promises-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .about-promises-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.promise-card {
+  padding: var(--space-8) var(--space-6);
+  background-color: var(--white);
+  border: 1px solid var(--champagne);
+  text-align: center;
+  transition: transform 0.6s var(--ease-expo), box-shadow 0.6s var(--ease-expo);
+}
+
+.promise-card:hover {
+  transform: translateY(-10px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--rose-gold-light);
+}
+
+.promise-icon {
+  font-size: var(--text-2xl);
+  color: var(--rose-gold);
+  margin-bottom: var(--space-4);
+}
+
+.promise-title {
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  color: var(--ink);
+  margin-bottom: var(--space-3);
+  letter-spacing: 0.05em;
+}
+
+.promise-desc {
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+  line-height: 1.7;
+}
+
+/* --- Call to Action --- */
+.about-cta {
+  text-align: center;
+  padding: var(--space-20) var(--gutter);
+  border-top: 1px solid var(--champagne);
+  margin-top: var(--space-12);
+}
+
+.about-cta h2 {
+  font-size: var(--text-3xl);
+  margin-bottom: var(--space-4);
+}
+
+.about-cta p {
+  font-size: var(--text-base);
+  color: var(--ink-muted);
+  margin-bottom: var(--space-8);
+}
