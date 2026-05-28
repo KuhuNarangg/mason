@@ -1,8 +1,30 @@
 const asyncHandler = require('express-async-handler');
+const Razorpay = require('razorpay');
 const Order = require('../models/Order');
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
 const { createNotification } = require('../utils/notificationHelper');
+
+// Shared Razorpay instance
+const razorpay = new Razorpay({
+  key_id:     process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
+
+// Helper: trigger a Razorpay refund. Returns { success, refund } or { success: false, error }
+const initiateRazorpayRefund = async (paymentId, amountRupees, reason = 'Refund') => {
+  try {
+    const refund = await razorpay.payments.refund(paymentId, {
+      amount: Math.round(amountRupees * 100), // convert to paise
+      speed: 'normal',
+      notes: { reason },
+    });
+    return { success: true, refund };
+  } catch (err) {
+    console.error('Razorpay refund error:', err?.error || err);
+    return { success: false, error: err?.error?.description || err.message };
+  }
+};
 
 // @POST /api/v1/orders
 const createOrder = asyncHandler(async (req, res) => {
@@ -265,51 +287,79 @@ const handleItemReturn = asyncHandler(async (req, res) => {
   }
 
   if (action === 'approve') {
-    item.returnStatus = 'approved';
+    item.returnStatus   = 'approved';
     item.returnAdminNote = adminNote || 'Return approved';
-    order.statusHistory.push({ 
-      status: 'returned', 
-      note: `Return approved for "${item.name}". ${adminNote || ''}` 
-    });
 
     // Restore stock for returned item
     await Product.updateOne(
       { _id: item.product, variants: { $elemMatch: { size: item.variantSize, color: item.variantColor } } },
       { $inc: { 'variants.$.stock': item.quantity } }
     );
+
+    // ── Trigger partial Razorpay refund for this item ─────────
+    const itemRefundAmount = item.price * item.quantity;
+    if (order.paymentStatus === 'paid' && order.paymentId) {
+      const { success, refund, error } = await initiateRazorpayRefund(
+        order.paymentId,
+        itemRefundAmount,
+        `Return approved for "${item.name}" in order #${order.orderNumber}`
+      );
+      if (success) {
+        item.refundId     = refund.id;
+        item.refundAmount = itemRefundAmount;
+        order.statusHistory.push({
+          status: 'returned',
+          note: `Return approved for "${item.name}". Refund of ₹${itemRefundAmount} initiated. Razorpay Refund ID: ${refund.id}. ${adminNote || ''}`,
+        });
+      } else {
+        item.refundAmount = itemRefundAmount; // record intended amount even if failed
+        order.statusHistory.push({
+          status: 'returned',
+          note: `Return approved for "${item.name}". Refund of ₹${itemRefundAmount} could not be auto-processed (${error}). Admin will process manually. ${adminNote || ''}`,
+        });
+      }
+    } else {
+      order.statusHistory.push({
+        status: 'returned',
+        note: `Return approved for "${item.name}". ${adminNote || ''}`,
+      });
+    }
+    // ─────────────────────────────────────────────────────────
+
   } else {
-    item.returnStatus = 'rejected';
+    item.returnStatus   = 'rejected';
     item.returnAdminNote = adminNote || 'Return rejected';
-    order.statusHistory.push({ 
-      status: 'return_rejected', 
-      note: `Return rejected for "${item.name}". ${adminNote || ''}` 
+    order.statusHistory.push({
+      status: 'return_rejected',
+      note: `Return rejected for "${item.name}". ${adminNote || ''}`
     });
   }
 
-  // Auto-update order status based on all items' return states
+  // Auto-update order-level status based on all items' return states
   const allItems = order.items;
   const hasRequested = allItems.some(i => i.returnStatus === 'requested');
-  const allProcessed = allItems.every(i => i.returnStatus === 'none' || i.returnStatus === 'approved' || i.returnStatus === 'rejected');
-  
+  const allProcessed = allItems.every(i => ['none','approved','rejected'].includes(i.returnStatus));
+
   if (!hasRequested && allProcessed) {
     const hasApproved = allItems.some(i => i.returnStatus === 'approved');
     const allRejected = allItems.filter(i => i.returnStatus !== 'none').every(i => i.returnStatus === 'rejected');
-    
-    if (allRejected) {
-      order.status = 'return_rejected';
-    } else if (hasApproved) {
-      order.status = 'returned';
-    }
+    if (allRejected)   order.status = 'return_rejected';
+    else if (hasApproved) order.status = 'returned';
   }
 
   await order.save();
 
   // Send Notification
+  const itemRefundAmt = item.price * item.quantity;
   await createNotification({
     user: order.user,
-    title: `Return ${action === 'approve' ? 'Approved' : 'Rejected'}: ${item.name}`,
-    message: `Your return request for "${item.name}" in order #${order.orderNumber} has been ${action}d. ${adminNote || ''}`,
-    link: `/orders/${order._id}`
+    title: action === 'approve'
+      ? `Return Approved — Refund of ₹${itemRefundAmt} Initiated`
+      : `Return Request Rejected: ${item.name}`,
+    message: action === 'approve'
+      ? `Your return for "${item.name}" (order #${order.orderNumber}) was approved. A refund of ₹${itemRefundAmt} has been initiated and will reflect within 5–7 business days. ${adminNote || ''}`
+      : `Your return request for "${item.name}" in order #${order.orderNumber} was rejected. ${adminNote || ''}`,
+    link: `/orders/${order._id}`,
   });
 
   res.json({ success: true, order });
@@ -359,9 +409,6 @@ const handleCancellationRequest = asyncHandler(async (req, res) => {
   if (action === 'approve') {
     order.status = 'cancelled';
     order.statusHistory.push({ status: 'cancelled', note: `Cancellation approved by admin. ${adminNote || ''}` });
-    if (order.paymentStatus === 'paid') {
-      order.paymentStatus = 'refunded';
-    }
 
     // Restore stock for all items
     await Promise.all(
@@ -372,8 +419,37 @@ const handleCancellationRequest = asyncHandler(async (req, res) => {
         );
       })
     );
+
+    // ── Trigger real Razorpay refund ──────────────────────────
+    if (order.paymentStatus === 'paid' && order.paymentId) {
+      const { success, refund, error } = await initiateRazorpayRefund(
+        order.paymentId,
+        order.totalAmount,
+        `Order #${order.orderNumber} cancelled — ${order.cancellationRequest?.reason || 'Customer request'}`
+      );
+      if (success) {
+        order.paymentStatus = 'refunded';
+        order.refundId     = refund.id;
+        order.refundAmount = order.totalAmount;
+        order.refundStatus = 'initiated';
+        order.statusHistory.push({
+          status: 'cancelled',
+          note: `Refund of ₹${order.totalAmount} initiated. Razorpay Refund ID: ${refund.id}. Expected within 5–7 business days.`,
+        });
+      } else {
+        // Don't block the cancellation; flag for manual follow-up
+        order.paymentStatus = 'refunded';
+        order.refundStatus = 'failed';
+        order.statusHistory.push({
+          status: 'cancelled',
+          note: `Refund could not be auto-processed (${error}). Admin will process manually.`,
+        });
+      }
+    }
+    // ─────────────────────────────────────────────────────────
+
   } else {
-    // Revert to processing or confirmed
+    // Revert to confirmed
     order.status = 'confirmed';
     order.statusHistory.push({ status: 'confirmed', note: `Cancellation request rejected by admin. ${adminNote || ''}` });
   }
@@ -382,11 +458,14 @@ const handleCancellationRequest = asyncHandler(async (req, res) => {
   await order.save();
 
   // Send Notification
+  const isApproved = action === 'approve';
   await createNotification({
     user: order.user,
-    title: `Cancellation Request ${action === 'approve' ? 'Approved' : 'Rejected'}`,
-    message: `Your cancellation request for order #${order.orderNumber} has been ${action}ed. ${adminNote || ''}`,
-    link: `/orders/${order._id}`
+    title: `Cancellation ${isApproved ? 'Approved — Refund Initiated' : 'Request Rejected'}`,
+    message: isApproved
+      ? `Your order #${order.orderNumber} has been cancelled. A refund of ₹${order.totalAmount} has been initiated and will reflect within 5–7 business days. ${adminNote || ''}`
+      : `Your cancellation request for order #${order.orderNumber} was rejected. ${adminNote || ''}`,
+    link: `/orders/${order._id}`,
   });
 
   res.json({ success: true, order });

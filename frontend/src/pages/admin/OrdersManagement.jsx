@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Search, ChevronDown, ChevronUp, Check, X, Package } from 'lucide-react';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
@@ -90,9 +91,12 @@ const NoteModal = ({ title, onConfirm, onClose }) => {
 
 /* ── Main Component ────────────────────────────────────── */
 const OrdersManagement = () => {
+  const location = useLocation();
+  const initialFilter = new URLSearchParams(location.search).get('status') || '';
+
   const [orders, setOrders]       = useState([]);
   const [loading, setLoading]     = useState(true);
-  const [filter, setFilter]       = useState('');
+  const [filter, setFilter]       = useState(initialFilter);
   const [search, setSearch]       = useState('');
   const [expandedId, setExpandedId] = useState(null);
   const [noteModal, setNoteModal] = useState(null); // { title, onConfirm }
@@ -268,9 +272,19 @@ const OrdersManagement = () => {
                         <div className="table-cell-secondary" style={{ textTransform:'capitalize' }}>{order.paymentMethod}</div>
                       </td>
                       <td>
-                        <span className={`status-badge ${order.paymentStatus === 'paid' ? 'badge-paid' : 'badge-unpaid'}`}>
-                          {order.paymentStatus === 'paid' ? 'Paid' : 'Unpaid'}
+                        <span className={`status-badge ${
+                          order.paymentStatus === 'paid'     ? 'badge-paid'     :
+                          order.paymentStatus === 'refunded' ? 'badge-delivered' :
+                          'badge-unpaid'
+                        }`}>
+                          {order.paymentStatus === 'paid'     ? 'Paid'     :
+                           order.paymentStatus === 'refunded' ? 'Refunded' : 'Unpaid'}
                         </span>
+                        {order.refundId && (
+                          <div style={{ fontSize: '0.65rem', color: '#64748b', marginTop: '2px' }}>
+                            ID: {order.refundId.slice(0, 14)}…
+                          </div>
+                        )}
                       </td>
                       <td>
                         <span className={`status-badge ${STATUS_CLASS[order.status] || 'badge-pending'}`}>
@@ -334,6 +348,12 @@ const OrdersManagement = () => {
                                             Admin note: {item.returnAdminNote}
                                           </p>
                                         )}
+                                        {rStatus === 'approved' && item.refundAmount && (
+                                          <div style={{ margin:'0.35rem 0 0', padding:'6px 10px', background:'#f0fdf4', border:'1px solid #bbf7d0', borderRadius:'6px', fontSize:'0.72rem', color:'#15803d' }}>
+                                            💚 Refund ₹{item.refundAmount} initiated
+                                            {item.refundId && <span style={{ marginLeft:'6px', fontFamily:'monospace', color:'#4ade80' }}>{item.refundId}</span>}
+                                          </div>
+                                        )}
                                         {rStatus === 'requested' && (
                                           <div style={{ display:'flex', gap:'0.5rem', marginTop:'0.625rem' }}>
                                             <button
@@ -387,10 +407,33 @@ const OrdersManagement = () => {
                                   <span className="stat-label">Total Amount</span>
                                   <span className="stat-value">₹{Number(order.totalAmount).toLocaleString('en-IN')}</span>
                                 </div>
-                                {order.discountAmount > 0 && (
+                                {order.discount > 0 && (
                                   <div className="stat-row">
                                     <span className="stat-label">Discount</span>
-                                    <span className="stat-value" style={{ color:'#16a34a' }}>-₹{order.discountAmount}</span>
+                                    <span className="stat-value" style={{ color:'#16a34a' }}>-₹{order.discount}</span>
+                                  </div>
+                                )}
+                                {order.paymentStatus === 'refunded' && (
+                                  <div className="stat-row" style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #f1f5f9' }}>
+                                    <span className="stat-label" style={{ color: '#16a34a', fontWeight: 700 }}>Refund Status</span>
+                                    <span className="status-badge badge-delivered" style={{ fontSize: '0.7rem' }}>Refunded</span>
+                                  </div>
+                                )}
+                                {order.refundAmount && (
+                                  <div className="stat-row">
+                                    <span className="stat-label">Refund Amount</span>
+                                    <span className="stat-value" style={{ color: '#16a34a' }}>₹{Number(order.refundAmount).toLocaleString('en-IN')}</span>
+                                  </div>
+                                )}
+                                {order.refundId && (
+                                  <div className="stat-row">
+                                    <span className="stat-label">Razorpay Refund ID</span>
+                                    <span style={{ fontSize: '0.72rem', color: '#64748b', fontFamily: 'monospace' }}>{order.refundId}</span>
+                                  </div>
+                                )}
+                                {order.refundStatus === 'failed' && (
+                                  <div style={{ marginTop: '8px', padding: '8px 10px', background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: '6px', fontSize: '0.75rem', color: '#c2410c' }}>
+                                    ⚠ Auto-refund failed — please process manually via Razorpay dashboard.
                                   </div>
                                 )}
                               </div>
@@ -417,6 +460,51 @@ const OrdersManagement = () => {
                               )}
                             </div>
                           </div>
+
+                          {/* Return Requests — dedicated card for all pending items */}
+                          {order.items?.some(i => i.returnStatus === 'requested') && (
+                            <div style={{ margin:'0 1.5rem 1.5rem', background:'#fff7ed', border:'1px solid #fed7aa', borderRadius:'12px', padding:'1.25rem' }}>
+                              <p style={{ margin:'0 0 1rem', fontWeight:700, fontSize:'0.85rem', color:'#c2410c', display:'flex', alignItems:'center', gap:'6px' }}>
+                                ↩ Return Request{order.items.filter(i => i.returnStatus === 'requested').length > 1 ? 's' : ''} Pending Approval
+                              </p>
+                              <div style={{ display:'flex', flexDirection:'column', gap:'0.875rem' }}>
+                                {order.items.filter(i => i.returnStatus === 'requested').map((item, idx) => (
+                                  <div key={idx} style={{ background:'white', border:'1px solid #fed7aa', borderRadius:'8px', padding:'0.875rem' }}>
+                                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'0.5rem' }}>
+                                      <div>
+                                        <div style={{ fontWeight:700, fontSize:'0.85rem', color:'#0f172a' }}>{item.name}</div>
+                                        <div style={{ fontSize:'0.75rem', color:'#64748b', marginTop:'2px' }}>
+                                          {item.variantSize} · {item.variantColor} · Qty {item.quantity} · ₹{item.price * item.quantity}
+                                        </div>
+                                      </div>
+                                      <span style={{ fontSize:'0.7rem', background:'#fef3c7', color:'#92400e', fontWeight:700, padding:'3px 8px', borderRadius:'4px' }}>
+                                        Pending
+                                      </span>
+                                    </div>
+                                    {item.returnReason && (
+                                      <p style={{ margin:'0 0 0.75rem', fontSize:'0.78rem', color:'#64748b', background:'#f8fafc', padding:'6px 10px', borderRadius:'6px' }}>
+                                        <strong>Reason:</strong> {item.returnReason}
+                                      </p>
+                                    )}
+                                    <div style={{ display:'flex', gap:'0.625rem' }}>
+                                      <button
+                                        onClick={() => handleItemReturn(order._id, item._id, 'approve')}
+                                        style={{ display:'flex', alignItems:'center', gap:'0.3rem', padding:'0.45rem 1rem', background:'#10b981', color:'white', border:'none', borderRadius:'7px', fontSize:'0.78rem', fontWeight:700, cursor:'pointer' }}
+                                      >
+                                        <Check size={13}/> Approve & Refund ₹{item.price * item.quantity}
+                                      </button>
+                                      <button
+                                        onClick={() => handleItemReturn(order._id, item._id, 'reject')}
+                                        style={{ display:'flex', alignItems:'center', gap:'0.3rem', padding:'0.45rem 1rem', background:'#ef4444', color:'white', border:'none', borderRadius:'7px', fontSize:'0.78rem', fontWeight:700, cursor:'pointer' }}
+                                      >
+                                        <X size={13}/> Reject
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
 
                           {/* Cancellation Request */}
                           {order.status === 'cancel_requested' && (

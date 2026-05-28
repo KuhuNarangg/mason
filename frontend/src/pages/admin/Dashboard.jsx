@@ -227,7 +227,7 @@ const Dashboard = () => {
             </span>
           </div>
           <Link
-            to="/admin/orders"
+            to="/admin/orders?status=return_requested"
             style={{ display:'flex', alignItems:'center', gap:'0.35rem', fontSize:'0.8rem', fontWeight:600, color:'#f97316', textDecoration:'none', whiteSpace:'nowrap' }}
           >
             Review Now <ArrowRight size={14} />

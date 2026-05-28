@@ -28,6 +28,30 @@ const createCoupon = asyncHandler(async (req, res) => {
   res.status(201).json({ success: true, coupon });
 });
 
+// @PUT /api/v1/coupons/:id (Admin only)
+const updateCoupon = asyncHandler(async (req, res) => {
+  const { code, discountType, discountValue, minOrderAmount, expiryDate, isActive } = req.body;
+
+  const coupon = await Coupon.findById(req.params.id);
+  if (!coupon) { res.status(404); throw new Error('Coupon not found'); }
+
+  // If code is changing, make sure it doesn't clash with another coupon
+  if (code && code.toUpperCase() !== coupon.code) {
+    const exists = await Coupon.findOne({ code: code.toUpperCase(), _id: { $ne: req.params.id } });
+    if (exists) { res.status(400); throw new Error('Coupon code already in use'); }
+    coupon.code = code.toUpperCase();
+  }
+
+  if (discountType   !== undefined) coupon.discountType   = discountType;
+  if (discountValue  !== undefined) coupon.discountValue  = discountValue;
+  if (minOrderAmount !== undefined) coupon.minOrderAmount = minOrderAmount;
+  if (expiryDate     !== undefined) coupon.expiryDate     = expiryDate;
+  if (isActive       !== undefined) coupon.isActive       = isActive;
+
+  await coupon.save();
+  res.json({ success: true, coupon });
+});
+
 // @DELETE /api/v1/coupons/:id (Admin only)
 const deleteCoupon = asyncHandler(async (req, res) => {
   const coupon = await Coupon.findByIdAndDelete(req.params.id);
@@ -82,6 +106,7 @@ const validateCoupon = asyncHandler(async (req, res) => {
 module.exports = {
   getCoupons,
   createCoupon,
+  updateCoupon,
   deleteCoupon,
   validateCoupon
 };

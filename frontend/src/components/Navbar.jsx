@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { ShoppingBag, Heart, User, Search, Menu, X, Bell, Package, LogOut } from 'lucide-react';
+import { ShoppingBag, Heart, User, Search, Menu, X, Bell, Package, LogOut, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -145,6 +145,14 @@ const Navbar = () => {
                     <User size={20} strokeWidth={1} />
                   </button>
                   <div className="m-dropdown">
+                    {user?.role === 'admin' && (
+                      <>
+                        <Link to="/admin" className="m-dropdown__link" style={{ color: '#C08A74', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <LayoutDashboard size={14} /> Admin Panel
+                        </Link>
+                        <div className="m-dropdown__divider" />
+                      </>
+                    )}
                     <Link to="/profile" className="m-dropdown__link">My Account</Link>
                     <Link to="/orders" className="m-dropdown__link">Orders</Link>
                     <Link to="/wishlist" className="m-dropdown__link">Wishlist</Link>
@@ -205,6 +213,11 @@ const Navbar = () => {
         <div className="m-mobile-menu__footer">
           {isAuth ? (
             <>
+              {user?.role === 'admin' && (
+                <Link to="/admin" className="m-mobile-action" onClick={() => setMobileMenuOpen(false)} style={{ color: '#C08A74', fontWeight: 700 }}>
+                  <LayoutDashboard size={16} strokeWidth={1} /> Admin Panel
+                </Link>
+              )}
               <Link to="/orders" className="m-mobile-action" onClick={() => setMobileMenuOpen(false)}>
                 <Package size={16} strokeWidth={1} /> My Orders
               </Link>

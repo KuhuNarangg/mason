@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trash2, Plus, X, Ticket, Tag } from 'lucide-react';
+import { Trash2, Plus, X, Ticket, Tag, Pencil } from 'lucide-react';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
 import './admin-pages.css';
@@ -16,6 +16,7 @@ const CouponsManagement = () => {
   const [coupons, setCoupons]   = useState([]);
   const [loading, setLoading]   = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null); // null = create mode, id = edit mode
   const [saving, setSaving]     = useState(false);
   const [form, setForm]         = useState(EMPTY_FORM);
 
@@ -32,17 +33,45 @@ const CouponsManagement = () => {
     }
   };
 
+  const openCreate = () => {
+    setEditingId(null);
+    setForm(EMPTY_FORM);
+    setShowForm(true);
+  };
+
+  const openEdit = (coupon) => {
+    setEditingId(coupon._id);
+    setForm({
+      code: coupon.code,
+      discountType: coupon.discountType,
+      discountValue: String(coupon.discountValue),
+      minOrderAmount: String(coupon.minOrderAmount),
+      expiryDate: coupon.expiryDate ? coupon.expiryDate.split('T')[0] : '',
+    });
+    setShowForm(true);
+  };
+
+  const closeForm = () => {
+    setShowForm(false);
+    setEditingId(null);
+    setForm(EMPTY_FORM);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
     try {
-      await api.post('/coupons', form);
-      toast.success('Coupon created');
-      setForm(EMPTY_FORM);
-      setShowForm(false);
+      if (editingId) {
+        await api.put(`/coupons/${editingId}`, form);
+        toast.success('Coupon updated');
+      } else {
+        await api.post('/coupons', form);
+        toast.success('Coupon created');
+      }
+      closeForm();
       fetchCoupons();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to create coupon');
+      toast.error(err.response?.data?.message || `Failed to ${editingId ? 'update' : 'create'} coupon`);
     } finally {
       setSaving(false);
     }
@@ -81,7 +110,7 @@ const CouponsManagement = () => {
             {active.length} active · {expired.length} expired
           </p>
         </div>
-        <button className="btn-primary" onClick={() => setShowForm(true)}>
+        <button className="btn-primary" onClick={openCreate}>
           <Plus size={16} /> Create Coupon
         </button>
       </div>
@@ -92,9 +121,9 @@ const CouponsManagement = () => {
           <div className="form-header">
             <h3 className="form-header-title">
               <Tag size={16} style={{ verticalAlign:'middle', marginRight:8 }} />
-              New Coupon
+              {editingId ? 'Edit Coupon' : 'New Coupon'}
             </h3>
-            <button onClick={() => { setShowForm(false); setForm(EMPTY_FORM); }} className="btn-icon-sm">
+            <button onClick={closeForm} className="btn-icon-sm">
               <X size={18}/>
             </button>
           </div>
@@ -165,9 +194,9 @@ const CouponsManagement = () => {
 
               <div className="form-buttons">
                 <button type="submit" className="btn-submit" disabled={saving}>
-                  {saving ? 'Creating…' : 'Create Coupon'}
+                  {saving ? (editingId ? 'Saving…' : 'Creating…') : (editingId ? 'Save Changes' : 'Create Coupon')}
                 </button>
-                <button type="button" onClick={() => { setShowForm(false); setForm(EMPTY_FORM); }} className="btn-cancel">
+                <button type="button" onClick={closeForm} className="btn-cancel">
                   Cancel
                 </button>
               </div>
@@ -226,7 +255,14 @@ const CouponsManagement = () => {
                       </span>
                     </td>
                     <td>
-                      <div style={{ display:'flex', justifyContent:'flex-end' }}>
+                      <div style={{ display:'flex', justifyContent:'flex-end', gap:'0.5rem' }}>
+                        <button
+                          onClick={() => openEdit(coupon)}
+                          className="btn-icon-sm"
+                          title="Edit Coupon"
+                        >
+                          <Pencil size={15} />
+                        </button>
                         <button
                           onClick={() => handleDelete(coupon._id)}
                           className="btn-icon-sm delete"

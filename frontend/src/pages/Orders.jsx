@@ -238,13 +238,60 @@ const Orders = () => {
 
   if (orders.length === 0) {
     return (
-      <div className="container py-5 text-center">
-        <div className="empty-state-icon mb-4">🛍️</div>
-        <h2 className="font-heading">No Orders Yet</h2>
-        <p className="text-muted mt-2 mb-4">Looks like you haven't made your first purchase yet.</p>
-        <Link to="/" className="btn btn-primary px-5 py-3">
-          Explore Collection
-        </Link>
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#faf9f7',
+        padding: '120px 1rem 4rem',
+      }}>
+        <div style={{
+          textAlign: 'center',
+          maxWidth: '420px',
+          width: '100%',
+        }}>
+          <h2 style={{
+            fontFamily: 'var(--font-heading, serif)',
+            fontSize: '1.75rem',
+            fontWeight: '700',
+            color: '#1a1a1a',
+            margin: '0 0 0.75rem',
+            letterSpacing: '-0.02em',
+          }}>
+            No Orders Yet
+          </h2>
+
+          <p style={{
+            color: '#888',
+            fontSize: '0.95rem',
+            lineHeight: '1.6',
+            margin: '0 0 2rem',
+          }}>
+            Looks like you haven't made your first purchase yet. Discover our curated collections crafted just for you.
+          </p>
+
+          <Link
+            to="/category/all?type=dress"
+            style={{
+              display: 'inline-block',
+              padding: '14px 40px',
+              background: '#2c2c2c',
+              color: 'white',
+              textDecoration: 'none',
+              borderRadius: '4px',
+              fontSize: '0.8rem',
+              fontWeight: '700',
+              letterSpacing: '2px',
+              textTransform: 'uppercase',
+              transition: 'background 0.2s, transform 0.2s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#444'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#2c2c2c'; e.currentTarget.style.transform = 'translateY(0)'; }}
+          >
+            Explore Collection
+          </Link>
+        </div>
       </div>
     );
   }
@@ -339,13 +386,22 @@ const Orders = () => {
                               </div>
                               {/* Per-item return status badge */}
                               {item.returnStatus && item.returnStatus !== 'none' && (
-                                <div style={{
-                                  marginTop: '6px', padding: '4px 10px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700, display: 'inline-block',
-                                  background: item.returnStatus === 'requested' ? '#fef3c7' : item.returnStatus === 'approved' ? '#d1fae5' : '#fee2e2',
-                                  color: item.returnStatus === 'requested' ? '#92400e' : item.returnStatus === 'approved' ? '#065f46' : '#991b1b',
-                                }}>
-                                  Return {item.returnStatus.charAt(0).toUpperCase() + item.returnStatus.slice(1)}
-                                  {item.returnAdminNote && <span style={{ fontWeight: 400, marginLeft: '6px' }}>— {item.returnAdminNote}</span>}
+                                <div style={{ marginTop: '6px' }}>
+                                  <div style={{
+                                    padding: '4px 10px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700, display: 'inline-block',
+                                    background: item.returnStatus === 'requested' ? '#fef3c7' : item.returnStatus === 'approved' ? '#d1fae5' : '#fee2e2',
+                                    color: item.returnStatus === 'requested' ? '#92400e' : item.returnStatus === 'approved' ? '#065f46' : '#991b1b',
+                                  }}>
+                                    Return {item.returnStatus.charAt(0).toUpperCase() + item.returnStatus.slice(1)}
+                                    {item.returnAdminNote && <span style={{ fontWeight: 400, marginLeft: '6px' }}>— {item.returnAdminNote}</span>}
+                                  </div>
+                                  {/* Per-item refund info */}
+                                  {item.returnStatus === 'approved' && item.refundAmount && (
+                                    <div style={{ marginTop: '6px', padding: '8px 10px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '6px', fontSize: '0.75rem', color: '#15803d' }}>
+                                      💚 <strong>Refund of {formatPrice(item.refundAmount)} initiated</strong> — expected within 5–7 business days.
+                                      {item.refundId && <span style={{ display: 'block', marginTop: '2px', fontSize: '0.7rem', color: '#4ade80' }}>ID: {item.refundId}</span>}
+                                    </div>
+                                  )}
                                 </div>
                               )}
                               <div style={{ display: 'flex', gap: '0.5rem', marginTop: '8px', flexWrap: 'wrap' }}>
@@ -407,8 +463,37 @@ const Orders = () => {
                             {order.discount > 0 && <div className="price-row text-success"><span>Discount</span><span>-{formatPrice(order.discount)}</span></div>}
                             <div className="price-row"><span>Shipping</span><span>{order.shippingCharge === 0 ? 'FREE' : formatPrice(order.shippingCharge)}</span></div>
                             <div className="price-row total"><span>Total</span><span>{formatPrice(order.totalAmount)}</span></div>
+                            {order.paymentStatus === 'refunded' && (
+                              <div className="price-row" style={{ color: '#16a34a', fontWeight: 700, marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #eee' }}>
+                                <span>Refund</span><span>-{formatPrice(order.refundAmount || order.totalAmount)}</span>
+                              </div>
+                            )}
                           </div>
                         </div>
+
+                        {/* Refund Status Banner */}
+                        {order.paymentStatus === 'refunded' && (
+                          <div style={{
+                            marginTop: '1rem',
+                            padding: '1rem 1.25rem',
+                            background: '#f0fdf4',
+                            border: '1px solid #bbf7d0',
+                            borderRadius: '10px',
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                              <span style={{ fontSize: '1rem' }}>💚</span>
+                              <span style={{ fontWeight: 700, fontSize: '0.85rem', color: '#15803d' }}>Refund Initiated</span>
+                            </div>
+                            <p style={{ margin: 0, fontSize: '0.78rem', color: '#166534', lineHeight: 1.5 }}>
+                              {formatPrice(order.refundAmount || order.totalAmount)} will be credited to your original payment method within <strong>5–7 business days</strong>.
+                            </p>
+                            {order.refundId && (
+                              <p style={{ margin: '4px 0 0', fontSize: '0.72rem', color: '#4ade80' }}>
+                                Refund ID: <code style={{ background: '#dcfce7', padding: '1px 5px', borderRadius: '3px' }}>{order.refundId}</code>
+                              </p>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

@@ -16,6 +16,8 @@ const orderItemSchema = new mongoose.Schema({
   returnReason: { type: String },
   returnRequestedAt: { type: Date },
   returnAdminNote: { type: String },
+  refundId:     { type: String },   // Razorpay refund ID for this item
+  refundAmount: { type: Number },   // Actual refunded amount for this item
 });
 
 const shippingSchema = new mongoose.Schema({
@@ -54,6 +56,10 @@ const orderSchema = new mongoose.Schema(
       requestedAt: Date,
       adminNote: String
     },
+    // Order-level refund (full cancellation refund)
+    refundId:     { type: String },
+    refundAmount: { type: Number },
+    refundStatus: { type: String, enum: ['none', 'initiated', 'failed'], default: 'none' },
     statusHistory: [
       {
         status: String,
