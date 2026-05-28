@@ -318,3 +318,9 @@ img, video {
     --navbar-height: 70px;
   }
 }
+
+
+/* Navbar offset for fixed header */
+.pt-navbar {
+  padding-top: var(--navbar-height);
+}

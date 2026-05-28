@@ -6,6 +6,7 @@ import { useWishlist } from '../context/WishlistContext';
 import { useNotifications } from '../context/NotificationContext';
 import { useState, useEffect } from 'react';
 import './Navbar.css';
+import logoImg from '../assets/logo.png';
 
 const Navbar = () => {
   const { isAuth, user, logout } = useAuth();
@@ -79,6 +80,11 @@ const Navbar = () => {
               {mobileMenuOpen ? <X size={22} strokeWidth={1} /> : <Menu size={22} strokeWidth={1} />}
             </button>
             
+            {/* Logo — left side */}
+            <Link to="/" className="m-navbar__logo-wrap">
+              <img src={logoImg} alt="Mason" className="m-navbar__logo-img" />
+            </Link>
+
             <nav className="m-navbar__nav desktop-only">
               <Link to="/category/all?type=dress" className="m-nav-link">Dresses</Link>
               <Link to="/category/all?type=top" className="m-nav-link">Tops</Link>
@@ -87,11 +93,6 @@ const Navbar = () => {
               <Link to="/category/all?type=westernwear" className="m-nav-link">Westernwear</Link>
             </nav>
           </div>
-
-          {/* Center: Logo */}
-          <Link to="/" className="m-navbar__logo-wrap">
-            <span className="m-navbar__logo-text">MASON</span>
-          </Link>
 
           {/* Right: Actions */}
           <div className="m-navbar__right">
@@ -197,7 +198,7 @@ const Navbar = () => {
       <div className={`m-mobile-veil ${mobileMenuOpen ? 'show' : ''}`} onClick={() => setMobileMenuOpen(false)} />
       <aside className={`m-mobile-menu ${mobileMenuOpen ? 'show' : ''}`}>
         <div className="m-mobile-menu__head">
-          <span className="m-mobile-menu__logo-text">MASON</span>
+          <img src={logoImg} alt="Mason" className="m-mobile-menu__logo-img" />
           <button className="btn-icon" onClick={() => setMobileMenuOpen(false)}>
             <X size={24} strokeWidth={1} />
           </button>

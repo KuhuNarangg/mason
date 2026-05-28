@@ -26,6 +26,8 @@ import TrackOrder from './pages/policies/TrackOrder';
 import Shipping from './pages/policies/Shipping';
 import Returns from './pages/policies/Returns';
 import About from './pages/About';
+import SizeGuide from './pages/policies/SizeGuide';
+import GarmentCare from './pages/policies/GarmentCare';
 
 // Admin Components
 import AdminLayout from './components/AdminLayout';
@@ -74,6 +76,8 @@ const StorefrontLayout = () => {
           <Route path="/shipping" element={<Shipping />} />
           <Route path="/returns" element={<Returns />} />
           <Route path="/about" element={<About />} />
+          <Route path="/size-guide" element={<SizeGuide />} />
+          <Route path="/care" element={<GarmentCare />} />
         </Routes>
       </main>
       <Footer />

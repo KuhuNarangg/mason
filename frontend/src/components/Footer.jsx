@@ -54,9 +54,6 @@ const Footer = () => {
             <h4 className="m-footer__title">The House</h4>
             <nav className="m-footer__nav">
               <Link to="/about">Our Story</Link>
-              <Link to="/sustainability">Sustainability</Link>
-              <Link to="/careers">Careers</Link>
-              <Link to="/press">Press & Media</Link>
             </nav>
           </div>
 

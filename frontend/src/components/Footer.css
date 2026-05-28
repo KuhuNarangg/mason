@@ -4,7 +4,7 @@
 
 .m-footer {
   background: var(--ivory);
-  padding: var(--space-20) 0 var(--space-8);
+  padding: var(--space-12) 0 var(--space-6);
   border-top: 1px solid var(--champagne);
   color: var(--ink);
 }
@@ -13,7 +13,7 @@
   display: grid;
   grid-template-columns: 2fr 1fr 1fr 1fr;
   gap: var(--space-12);
-  margin-bottom: var(--space-20);
+  margin-bottom: var(--space-10);
 }
 
 .m-footer__col--brand {
