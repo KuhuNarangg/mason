@@ -61,6 +61,7 @@ const productSchema = new mongoose.Schema(
     isReturnable: { type: Boolean, default: true },
     returnWindow: { type: Number, default: 14 },  // days
   },
+  { timestamps: true }
 );
 
 productSchema.index({ name: 'text', description: 'text', brand: 'text', tags: 'text' });

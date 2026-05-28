@@ -26,7 +26,7 @@ const getProducts = asyncHandler(async (req, res) => {
   if (color) query['variants.color'] = { $in: color.split(',') };
 
   const sortOptions = {
-    newest: { createdAt: -1 },
+    newest: { _id: -1 },
     priceLow: { price: 1 },
     priceHigh: { price: -1 },
     rating: { rating: -1 },

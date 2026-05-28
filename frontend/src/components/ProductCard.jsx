@@ -68,7 +68,7 @@ const ProductCard = ({ product }) => {
         {/* Badges */}
         <div className="product-badges">
           {product.isTrending && <span className="badge trending">Trending</span>}
-          {product.isFeatured && <span className="badge featured">New</span>}
+
         </div>
 
         {/* Wishlist */}

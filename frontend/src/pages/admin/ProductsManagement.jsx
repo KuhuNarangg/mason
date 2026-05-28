@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trash2, Edit, Plus, X, Upload, Link as LinkIcon, Eye } from 'lucide-react';
+import { Trash2, Edit, Plus, X, Upload, Link as LinkIcon, Eye, Star } from 'lucide-react';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
 import './admin-pages.css';
@@ -175,6 +175,17 @@ const ProductsManagement = () => {
       }
     }
   };
+  const toggleFeatured = async (product) => {
+    try {
+      await api.put(`/products/${product._id}`, { ...product, isFeatured: !product.isFeatured });
+      toast.success(product.isFeatured ? 'Removed from Featured' : 'Marked as Featured');
+      fetchProducts();
+    } catch {
+      toast.error('Failed to update featured status');
+    }
+  };
+
+
 
   const handleEdit = (product) => {
     navigate(`/admin/products/${product._id}/edit`);
@@ -733,6 +744,18 @@ const ProductsManagement = () => {
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button
+                        onClick={() => toggleFeatured(p)}
+                        className="btn-small"
+                        title={p.isFeatured ? 'Remove from Featured' : 'Mark as Featured'}
+                        style={{
+                          background: p.isFeatured ? '#fff3e0' : undefined,
+                          color: p.isFeatured ? '#e65100' : undefined,
+                          border: p.isFeatured ? '1px solid #ffb74d' : undefined,
+                        }}
+                      >
+                        <Star size={18} fill={p.isFeatured ? 'currentColor' : 'none'} />
+                      </button>
                       <button onClick={() => handleEdit(p)} className="btn-small" title="Edit">
                         <Edit size={18} />
                       </button>

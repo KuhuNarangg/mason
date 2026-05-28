@@ -247,3 +247,32 @@
     transform: translateY(0);
   }
 }
+
+/* ============================================================
+   Product Badges (Trending / Featured)
+   ============================================================ */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-body);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 4px 9px;
+  border-radius: 2px;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.badge.trending {
+  background: var(--ink);
+  color: var(--ivory);
+}
+
+.badge.featured {
+  background: var(--rose-gold, #b08d72);
+  color: #fff;
+  box-shadow: 0 1px 4px rgba(176, 141, 114, 0.35);
+}

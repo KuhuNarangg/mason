@@ -579,3 +579,150 @@
     bottom: var(--space-4);
   }
 }
+/* ============================================================
+   NEW ARRIVALS — Horizontal Scroll (beige background)
+   ============================================================ */
+.m-new-arrivals {
+  padding: var(--space-24) 0 var(--space-8);
+  background: var(--beige);
+  border-top: 1px solid var(--champagne);
+}
+
+.m-new-arrivals__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: var(--space-10);
+  padding: 0 var(--gutter);
+}
+
+.m-new-arrivals__scroll {
+  width: 100%;
+  overflow-x: auto;
+  padding: 0 var(--gutter) var(--space-6);
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.m-new-arrivals__scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.m-new-arrivals__track {
+  display: inline-flex;
+  gap: var(--space-6);
+}
+
+.m-new-arrivals__item {
+  width: 300px;
+  flex-shrink: 0;
+}
+
+.m-new-arrivals__drag-hint {
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  padding-bottom: var(--space-8);
+  margin-top: var(--space-4);
+  opacity: 0.7;
+}
+
+/* ============================================================
+   FEATURED COLLECTION — Admin-curated editorial grid
+   ============================================================ */
+.m-featured {
+  padding: var(--space-24) 0;
+  background: var(--ivory);
+  border-top: 1px solid var(--champagne);
+}
+
+.m-featured__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: var(--space-12);
+}
+
+.m-featured__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-6);
+}
+
+.m-featured__item {
+  /* Each item is a standard ProductCard — no extra sizing needed */
+}
+
+/* ============================================================
+   Shared: nav-link CTA (text + arrow, no box)
+   ============================================================ */
+.m-nav-link-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink);
+  border-bottom: 1px solid var(--ink-muted);
+  padding-bottom: 4px;
+  transition: all 0.3s var(--ease-expo);
+  white-space: nowrap;
+}
+
+.m-nav-link-cta:hover {
+  color: var(--rose-gold-dark);
+  border-bottom-color: var(--rose-gold-dark);
+  gap: var(--space-3);
+}
+
+/* Empty state */
+.m-empty-state {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+  letter-spacing: 0.1em;
+  padding: var(--space-12) var(--gutter);
+}
+
+/* ============================================================
+   Responsive — New Arrivals & Featured
+   ============================================================ */
+@media (max-width: 1200px) {
+  .m-featured__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .m-featured__grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
+  }
+  
+  .m-new-arrivals__item {
+    width: 260px;
+  }
+}
+
+@media (max-width: 600px) {
+  .m-new-arrivals__header,
+  .m-featured__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-4);
+  }
+  
+  .m-new-arrivals__item {
+    width: 220px;
+  }
+  
+  .m-featured__grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-3);
+  }
+}

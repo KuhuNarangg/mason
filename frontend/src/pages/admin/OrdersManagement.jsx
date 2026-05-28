@@ -89,6 +89,87 @@ const NoteModal = ({ title, onConfirm, onClose }) => {
   );
 };
 
+/* ── Cancellation Detail Modal ─────────────────────────── */
+const CancellationModal = ({ order, onApprove, onReject, onClose }) => {
+  const [note, setNote] = useState('');
+  if (!order) return null;
+  return (
+    <div
+      style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.45)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:9999, padding:'1rem' }}
+      onClick={onClose}
+    >
+      <div
+        style={{ background:'white', borderRadius:'16px', width:'100%', maxWidth:'460px', boxShadow:'0 20px 40px rgba(0,0,0,0.18)', overflow:'hidden' }}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div style={{ padding:'1.25rem 1.5rem', borderBottom:'1px solid #f1f5f9', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+          <div>
+            <h3 style={{ margin:0, fontSize:'1rem', fontWeight:700, color:'#0f172a' }}>Cancellation Request</h3>
+            <p style={{ margin:'2px 0 0', fontSize:'0.75rem', color:'#94a3b8' }}>
+              #{order.orderNumber?.replace('ORD-','') || order._id.slice(-6).toUpperCase()} · {order.user?.name}
+            </p>
+          </div>
+          <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'#94a3b8', padding:'4px' }}>
+            <X size={18}/>
+          </button>
+        </div>
+
+        {/* Reason Card */}
+        <div style={{ padding:'1.25rem 1.5rem' }}>
+          <div style={{ background:'#fff7ed', border:'1px solid #fed7aa', borderRadius:'10px', padding:'1rem 1.25rem', marginBottom:'1.25rem' }}>
+            <p style={{ margin:'0 0 0.4rem', fontSize:'0.68rem', fontWeight:700, letterSpacing:'0.12em', textTransform:'uppercase', color:'#c2410c' }}>
+              Customer Reason
+            </p>
+            <p style={{ margin:'0 0 0.75rem', fontSize:'0.9rem', color:'#0f172a', lineHeight:1.55, fontWeight:500 }}>
+              {order.cancellationRequest?.reason || 'No reason provided'}
+            </p>
+            <p style={{ margin:0, fontSize:'0.72rem', color:'#94a3b8' }}>
+              Requested on {new Date(order.cancellationRequest?.requestedAt).toLocaleString('en-IN', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })}
+            </p>
+          </div>
+
+          {/* Order summary */}
+          <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'1.25rem', padding:'0.75rem 1rem', background:'#f8fafc', borderRadius:'8px', fontSize:'0.82rem' }}>
+            <span style={{ color:'#64748b' }}>Order Amount</span>
+            <span style={{ fontWeight:700, color:'#0f172a' }}>₹{Number(order.totalAmount).toLocaleString('en-IN')}</span>
+          </div>
+
+          {/* Admin note */}
+          <label style={{ display:'block', fontSize:'0.72rem', fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', color:'#374151', marginBottom:'0.4rem' }}>
+            Admin Note (optional)
+          </label>
+          <textarea
+            className="form-textarea"
+            value={note}
+            onChange={e => setNote(e.target.value)}
+            placeholder="Add an internal note..."
+            rows={2}
+            style={{ marginBottom:'1.25rem' }}
+          />
+        </div>
+
+        {/* Actions */}
+        <div style={{ padding:'1rem 1.5rem', borderTop:'1px solid #f1f5f9', display:'flex', gap:'0.75rem', justifyContent:'flex-end' }}>
+          <button onClick={onClose} className="btn-cancel">Close</button>
+          <button
+            onClick={() => onReject(note)}
+            style={{ display:'flex', alignItems:'center', gap:'0.35rem', padding:'0.55rem 1.1rem', background:'#475569', color:'white', border:'none', borderRadius:'8px', fontWeight:700, fontSize:'0.82rem', cursor:'pointer' }}
+          >
+            <X size={14}/> Reject
+          </button>
+          <button
+            onClick={() => onApprove(note)}
+            style={{ display:'flex', alignItems:'center', gap:'0.35rem', padding:'0.55rem 1.1rem', background:'#ef4444', color:'white', border:'none', borderRadius:'8px', fontWeight:700, fontSize:'0.82rem', cursor:'pointer' }}
+          >
+            <Check size={14}/> Approve & Refund
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 /* ── Main Component ────────────────────────────────────── */
 const OrdersManagement = () => {
   const location = useLocation();
@@ -99,7 +180,8 @@ const OrdersManagement = () => {
   const [filter, setFilter]       = useState(initialFilter);
   const [search, setSearch]       = useState('');
   const [expandedId, setExpandedId] = useState(null);
-  const [noteModal, setNoteModal] = useState(null); // { title, onConfirm }
+  const [noteModal, setNoteModal]     = useState(null); // { title, onConfirm }
+  const [cancelModal, setCancelModal] = useState(null); // order object
 
   useEffect(() => { fetchOrders(); }, [filter]);
 
@@ -148,7 +230,18 @@ const OrdersManagement = () => {
     });
   };
 
-  const handleCancellation = (orderId, action) => {
+  const handleCancellation = async (orderId, action, preNote) => {
+    // If called from CancellationModal, preNote is already provided — skip NoteModal
+    if (preNote !== undefined) {
+      try {
+        await api.put(`/orders/${orderId}/cancel-handle`, { action, adminNote: preNote || `Cancellation ${action}d` });
+        toast.success(`Cancellation ${action}d`);
+        fetchOrders();
+      } catch {
+        toast.error('Failed to process cancellation');
+      }
+      return;
+    }
     promptNote(`${action === 'approve' ? 'Approve' : 'Reject'} Cancellation`, async (adminNote) => {
       setNoteModal(null);
       try {
@@ -292,7 +385,21 @@ const OrdersManagement = () => {
                         </span>
                       </td>
                       <td>
-                        {isTerminal ? (
+                        {order.status === 'cancel_requested' ? (
+                          <button
+                            onClick={() => setCancelModal(order)}
+                            style={{ display:'flex', alignItems:'center', gap:'0.25rem', padding:'0.35rem 0.85rem', background:'#f97316', color:'white', border:'none', borderRadius:'6px', fontSize:'0.72rem', fontWeight:700, cursor:'pointer', whiteSpace:'nowrap' }}
+                          >
+                            <ChevronDown size={12}/> View & Act
+                          </button>
+                        ) : order.status === 'return_requested' ? (
+                          <button
+                            onClick={() => setExpandedId(isExpanded ? null : order._id)}
+                            style={{ display:'flex', alignItems:'center', gap:'0.25rem', padding:'0.35rem 0.85rem', background:'#f97316', color:'white', border:'none', borderRadius:'6px', fontSize:'0.72rem', fontWeight:700, cursor:'pointer', whiteSpace:'nowrap' }}
+                          >
+                            <ChevronDown size={12}/> Review
+                          </button>
+                        ) : isTerminal ? (
                           <span style={{ fontSize:'0.75rem', color:'#94a3b8' }}>—</span>
                         ) : (
                           <select
@@ -541,6 +648,22 @@ const OrdersManagement = () => {
             </tbody>
           </table>
         </div>
+      )}
+
+      {/* Cancellation Detail Modal */}
+      {cancelModal && (
+        <CancellationModal
+          order={cancelModal}
+          onApprove={(note) => {
+            setCancelModal(null);
+            handleCancellation(cancelModal._id, 'approve', note);
+          }}
+          onReject={(note) => {
+            setCancelModal(null);
+            handleCancellation(cancelModal._id, 'reject', note);
+          }}
+          onClose={() => setCancelModal(null)}
+        />
       )}
 
       {/* Note Modal */}

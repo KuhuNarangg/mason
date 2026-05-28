@@ -8,6 +8,7 @@ import './Home.css';
 const Home = () => {
   const [featured, setFeatured] = useState([]);
   const [trending, setTrending] = useState([]);
+  const [newArrivals, setNewArrivals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentHero, setCurrentHero] = useState(0);
 
@@ -31,12 +32,14 @@ const Home = () => {
   useEffect(() => {
     const fetchHomeData = async () => {
       try {
-        const [featRes, trendRes] = await Promise.all([
-          api.get('/products?featured=true&limit=4'),
-          api.get('/products?trending=true&limit=8')
+        const [featRes, trendRes, newRes] = await Promise.all([
+          api.get('/products?featured=true&limit=8'),
+          api.get('/products?trending=true&limit=8'),
+          api.get('/products?sort=newest&limit=8')
         ]);
         setFeatured(featRes.data.products);
         setTrending(trendRes.data.products);
+        setNewArrivals(newRes.data.products);
       } catch (err) {
         console.error('Failed to fetch home data', err);
       } finally {
@@ -55,21 +58,29 @@ const Home = () => {
   }, [heroImages.length]);
 
   // Intersection observer for scroll reveals
+  // setTimeout avoids React 18 Strict Mode double-invoke killing the observer
+  // before initial callbacks fire. threshold 0.05 = 5% visible is enough to trigger.
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('in-view');
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
-    );
-    
-    document.querySelectorAll('.reveal-up').forEach(el => observer.observe(el));
-    return () => observer.disconnect();
+    let observer;
+    const timer = setTimeout(() => {
+      observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('in-view');
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.05 }
+      );
+      document.querySelectorAll('.reveal-up:not(.in-view)').forEach(el => observer.observe(el));
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      if (observer) observer.disconnect();
+    };
   }, [loading]);
 
   const reviews = [
@@ -130,7 +141,37 @@ const Home = () => {
         </div>
       </section>
 
-      {/* 2. CURATED COLLECTIONS (Editorial Asymmetry) */}
+      {/* 2. NEW ARRIVALS (Horizontal Scroll) */}
+      <section className="m-new-arrivals">
+        <div className="container m-new-arrivals__header reveal-up">
+          <div>
+            <span className="m-label">Just In</span>
+            <h2 className="m-section-title">New <em>Arrivals</em></h2>
+          </div>
+          <Link to="/category/all?sort=newest" className="m-nav-link-cta">
+            View All <ArrowRight size={14} strokeWidth={1.5} />
+          </Link>
+        </div>
+
+        <div className="m-new-arrivals__scroll">
+          <div className="m-new-arrivals__track">
+            {loading ? (
+              <div className="m-loading-state"><div className="spinner" /></div>
+            ) : newArrivals.length > 0 ? (
+              newArrivals.map((product, i) => (
+                <div key={product._id} className="m-new-arrivals__item reveal-up" style={{ transitionDelay: `${i * 0.05}s` }}>
+                  <ProductCard product={product} />
+                </div>
+              ))
+            ) : (
+              <div className="m-empty-state">New products coming soon.</div>
+            )}
+          </div>
+        </div>
+        <div className="m-new-arrivals__drag-hint">← Swipe to explore →</div>
+      </section>
+
+      {/* 3. CURATED COLLECTIONS (Editorial Asymmetry) */}
       <section className="m-collections container">
         <div className="m-collections__grid">
           <div className="m-col-text reveal-up">
@@ -157,7 +198,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* 3. EXPERIENCE LUXURY (Brand Story) */}
+      {/* 4. EXPERIENCE LUXURY (Brand Story) */}
       <section className="m-experience">
         <div className="m-experience__grid">
           <div className="m-experience__img-wrap reveal-up">
@@ -173,7 +214,36 @@ const Home = () => {
         </div>
       </section>
 
-      {/* 4. TRENDING NOW (Horizontal Scroll Slider) */}
+      {/* 5. FEATURED PRODUCTS (Admin-curated editorial grid) */}
+      {(loading || featured.length > 0) && (
+        <section className="m-featured">
+          <div className="container">
+            <div className="m-featured__header reveal-up">
+              <div>
+                <span className="m-label">Editor's Picks</span>
+                <h2 className="m-section-title">Featured <em>Collection</em></h2>
+              </div>
+              <Link to="/category/all?featured=true" className="m-nav-link-cta">
+                Explore All <ArrowRight size={14} strokeWidth={1.5} />
+              </Link>
+            </div>
+
+            {loading ? (
+              <div className="m-loading-state"><div className="spinner" /></div>
+            ) : (
+              <div className="m-featured__grid">
+                {featured.map((product, i) => (
+                  <div key={product._id} className="m-featured__item reveal-up" style={{ transitionDelay: `${i * 0.07}s` }}>
+                    <ProductCard product={product} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* 6. TRENDING NOW (Horizontal Scroll Slider) */}
       <section className="m-trending">
         <div className="container m-trending__header reveal-up">
           <h2 className="m-section-title">Trending <em>Now</em></h2>
@@ -195,7 +265,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* 5. EDITORIAL CAMPAIGN */}
+      {/* 7. EDITORIAL CAMPAIGN */}
       <section className="m-campaign reveal-up">
         <div className="m-campaign__bg" style={{ backgroundImage: `url('/home4.jpg')` }} />
         <div className="m-campaign__overlay" />
@@ -207,7 +277,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* 6. TESTIMONIALS (Monochromatic Minimalist) */}
+      {/* 8. TESTIMONIALS (Monochromatic Minimalist) */}
       <section className="m-reviews">
         <div className="container">
           <h2 className="m-section-title text-center reveal-up mb-12">The Mason <em>Muse</em></h2>
@@ -226,8 +296,8 @@ const Home = () => {
         </div>
       </section>
 
-      {/* 7. NEWSLETTER (Ultra Premium) */}
-      <section className="m-newsletter">
+      {/* 9. NEWSLETTER (Ultra Premium) — commented out, not needed right now */}
+      {/* <section className="m-newsletter">
         <div className="container m-newsletter__inner reveal-up">
           <h2 className="m-newsletter__title">Join The <em>Inner Circle</em></h2>
           <p className="m-newsletter__desc">Sign up for early access to new collections, exclusive events, and styling inspiration.</p>
@@ -238,7 +308,7 @@ const Home = () => {
             </button>
           </form>
         </div>
-      </section>
+      </section> */}
 
     </div>
   );
