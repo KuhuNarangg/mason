@@ -59,6 +59,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  position: relative;
 }
 
 /* Left Nav */
@@ -66,6 +67,14 @@
   display: flex;
   align-items: center;
   gap: var(--space-5);
+}
+
+.m-navbar__center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
 }
 
 .m-navbar__nav {

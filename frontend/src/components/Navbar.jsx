@@ -22,8 +22,6 @@ const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [hideNav, setHideNav] = useState(false);
-  const [lastScrollY, setLastScrollY] = useState(0);
 
   useEffect(() => {
     if (!isHome && window.scrollY > 0) {
@@ -31,26 +29,16 @@ const Navbar = () => {
     }
 
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      
-      if (currentScrollY > 50) {
+      if (window.scrollY > 50) {
         setScrolled(true);
       } else {
         setScrolled(false);
       }
-
-      if (currentScrollY > lastScrollY && currentScrollY > 300) {
-        setHideNav(true);
-      } else {
-        setHideNav(false);
-      }
-      
-      setLastScrollY(currentScrollY);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [isHome, lastScrollY]);
+  }, [isHome]);
 
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -67,7 +55,7 @@ const Navbar = () => {
 
   return (
     <>
-      <header className={`m-navbar ${scrolled ? 'is-scrolled' : ''} ${hideNav ? 'is-hidden' : ''} ${isHome ? 'is-home' : ''}`}>
+      <header className={`m-navbar ${scrolled ? 'is-scrolled' : ''} ${isHome ? 'is-home' : ''}`}>
         <div className="m-navbar__inner">
           
           {/* Left: Nav Links */}
@@ -90,8 +78,14 @@ const Navbar = () => {
               <Link to="/category/all?type=top" className="m-nav-link">Tops</Link>
               <Link to="/category/all?type=trouser" className="m-nav-link">Trousers</Link>
               <Link to="/category/all?type=ethnic" className="m-nav-link">Ethnics</Link>
-              <Link to="/category/all?type=westernwear" className="m-nav-link">Westernwear</Link>
             </nav>
+          </div>
+
+          {/* Center: Brand Name */}
+          <div className="m-navbar__center">
+            <Link to="/" className="m-navbar__logo-text" style={{ textDecoration: 'none' }}>
+              MASON
+            </Link>
           </div>
 
           {/* Right: Actions */}
