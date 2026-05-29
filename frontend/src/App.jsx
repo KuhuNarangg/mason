@@ -53,7 +53,7 @@ const StorefrontLayout = () => {
   return (
     <div className="app-container">
       <Navbar />
-      <main className={!isHome ? 'pt-navbar' : ''}>
+      <main className="pt-navbar">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />

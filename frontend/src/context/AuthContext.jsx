@@ -48,6 +48,32 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Manually set auth state (used after admin code verification)
+  const setAuthUser = (token, userData) => {
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(userData));
+    setToken(token);
+    setUser(userData);
+  };
+
+  const googleLogin = async (credential) => {
+    setLoading(true);
+    try {
+      const { data } = await api.post('/auth/google', { credential });
+      setUser(data.user);
+      setToken(data.token);
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      toast.success(`Welcome, ${data.user.name}! 👋`);
+      return { success: true, role: data.user.role };
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Google sign-in failed');
+      return { success: false };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logout = () => {
     setUser(null);
     setToken(null);
@@ -57,7 +83,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout, isAuth: !!user }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, googleLogin, setAuthUser, logout, isAuth: !!user }}>
       {children}
     </AuthContext.Provider>
   );

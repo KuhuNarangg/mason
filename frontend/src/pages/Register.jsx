@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { GoogleLogin } from '@react-oauth/google';
 import './Auth.css';
 
 const Register = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { register, loading } = useAuth();
+  const { register, googleLogin, loading } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -16,6 +17,11 @@ const Register = () => {
     if (res.success) {
       navigate('/');
     }
+  };
+
+  const handleGoogle = async (credentialResponse) => {
+    const res = await googleLogin(credentialResponse.credential);
+    if (res?.success) navigate('/');
   };
 
   return (
@@ -75,6 +81,23 @@ const Register = () => {
               {loading ? 'Creating account...' : 'Create Account'}
             </button>
           </form>
+
+          <div style={{ margin: '1.25rem 0', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ flex: 1, height: 1, background: 'var(--champagne)' }} />
+            <span style={{ fontSize: '0.72rem', color: 'var(--ink-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>or</span>
+            <div style={{ flex: 1, height: 1, background: 'var(--champagne)' }} />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <GoogleLogin
+              onSuccess={handleGoogle}
+              onError={() => {}}
+              text="signup_with"
+              shape="rectangular"
+              theme="outline"
+              size="large"
+              width="340"
+            />
+          </div>
 
           <p className="auth-footer">
             Already a member? <Link to="/login">Sign In</Link>

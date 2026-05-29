@@ -117,10 +117,7 @@ const Home = () => {
               <span className="m-hero__line">The Art of</span>
               <span className="m-hero__line m-hero__line--italic"><em>Femininity</em></span>
             </h1>
-            <div className="m-hero__tagline">
-              <span>• WOMEN WEAR •</span>
-              <span>ETHNIC • PARTY • COMFORT</span>
-            </div>
+
             <div className="m-hero__info">
               <Link to="/category/women" className="m-hero__cta">
                 Shop The Collection

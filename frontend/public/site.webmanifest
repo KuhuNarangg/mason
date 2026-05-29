@@ -1,0 +1,13 @@
+{
+  "name": "Mason — Women Wear",
+  "short_name": "Mason",
+  "description": "Premium women's ethnic, party & western wear",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAF6F1",
+  "theme_color": "#FAF6F1",
+  "icons": [
+    { "src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

@@ -104,4 +104,33 @@ const getUserDetail = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { getAllUsers, getUserDetail, deleteUser, getDashboardStats };
+
+// ── @GET /api/v1/admin/failed-payments ─────────────────────────────────────
+const getFailedPayments = asyncHandler(async (req, res) => {
+  const orders = await Order.find({ paymentStatus: 'failed' })
+    .populate('user', 'name email')
+    .sort({ updatedAt: -1 })
+    .lean();
+  res.json({ success: true, orders });
+});
+
+// ── @POST /api/v1/admin/orders/:id/manual-confirm ──────────────────────────
+const manualConfirmOrder = asyncHandler(async (req, res) => {
+  const { note, paymentId } = req.body;
+  const order = await Order.findById(req.params.id);
+  if (!order) { res.status(404); throw new Error('Order not found'); }
+
+  order.paymentStatus = 'paid';
+  order.status        = 'confirmed';
+  if (paymentId) order.paymentId = paymentId;
+  order.statusHistory.push({
+    status: 'confirmed',
+    note: note || `Manually confirmed by admin. ${paymentId ? `Payment ID: ${paymentId}` : ''}`,
+  });
+  await order.save();
+
+  res.json({ success: true, order });
+});
+
+module.exports = { getAllUsers, getUserDetail, deleteUser, getDashboardStats, getFailedPayments, manualConfirmOrder };
+

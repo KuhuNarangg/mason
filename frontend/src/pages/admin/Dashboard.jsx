@@ -6,6 +6,7 @@ import {
   PlusCircle, Store,
 } from 'lucide-react';
 import api from '../../utils/api';
+import toast from 'react-hot-toast';
 import './admin-pages.css';
 
 /* ── Status helpers ─────────────────────────────────────── */
@@ -48,6 +49,23 @@ const RevenueChart = ({ data }) => {
   );
   const step = Math.ceil(data.length / 6);
   const labels = data.filter((_, i) => i % step === 0 || i === data.length - 1);
+  const handleManualConfirm = async () => {
+    if (!convertModal) return;
+    setConverting(true);
+    try {
+      await api.post(`/admin/orders/${convertModal._id}/manual-confirm`, {
+        note: convertNote, paymentId: convertPid,
+      });
+      setFailedPayments(prev => prev.filter(o => o._id !== convertModal._id));
+      setConvertModal(null); setConvertNote(''); setConvertPid('');
+      toast && toast.success('Order manually confirmed ✓');
+    } catch (err) {
+      toast && toast.error(err.response?.data?.message || 'Failed');
+    } finally {
+      setConverting(false);
+    }
+  };
+
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="chart-svg" preserveAspectRatio="none">
       {gridY.map((y, i) => (
@@ -131,11 +149,17 @@ const HubSection = ({ title, children }) => (
 
 /* ── Dashboard ─────────────────────────────────────────── */
 const Dashboard = () => {
-  const [stats, setStats] = useState(null);
-  const [stockModal, setStockModal] = useState(null);
+  const [stats, setStats]               = useState(null);
+  const [stockModal, setStockModal]     = useState(null);
+  const [failedPayments, setFailedPayments] = useState([]);
+  const [convertModal, setConvertModal] = useState(null); // order to manually confirm
+  const [convertNote, setConvertNote]   = useState('');
+  const [convertPid, setConvertPid]     = useState('');
+  const [converting, setConverting]     = useState(false);
 
   useEffect(() => {
     api.get('/admin/dashboard').then(res => setStats(res.data)).catch(console.error);
+    api.get('/admin/failed-payments').then(res => setFailedPayments(res.data.orders || [])).catch(() => {});
   }, []);
 
   const totalRevenue30 = useMemo(() => {
@@ -363,6 +387,91 @@ const Dashboard = () => {
           <div style={{ width:20, height:20, border:'2px solid #e2e8f0', borderTopColor:'#C08A74', borderRadius:'50%', animation:'spin 0.8s linear infinite' }} />
           Loading stats…
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
+      )}
+
+      {/* ── Failed Payments ── */}
+      {failedPayments.length > 0 && (
+        <div className="admin-card" style={{ marginTop: '1.25rem', borderLeft: '4px solid #ef4444' }}>
+          <div className="admin-card-header">
+            <div>
+              <div className="admin-card-title" style={{ color: '#ef4444' }}>⚠ Failed Payments ({failedPayments.length})</div>
+              <div className="admin-card-subtitle">Payment was attempted but failed — convert to order manually if payment succeeded</div>
+            </div>
+          </div>
+          <div style={{ overflowX: 'auto' }}>
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Order</th><th>Customer</th><th>Amount</th><th>Date</th><th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {failedPayments.map(o => (
+                  <tr key={o._id}>
+                    <td style={{ color: '#C08A74', fontWeight: 600, fontSize: '0.85rem' }}>
+                      #{o.orderNumber?.replace('ORD-','') || o._id.slice(-6).toUpperCase()}
+                    </td>
+                    <td>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>{o.user?.name || '—'}</div>
+                      <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{o.user?.email}</div>
+                    </td>
+                    <td style={{ fontWeight: 700 }}>₹{Number(o.totalAmount).toLocaleString('en-IN')}</td>
+                    <td style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                      {new Date(o.updatedAt).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' })}
+                    </td>
+                    <td>
+                      <button
+                        onClick={() => { setConvertModal(o); setConvertNote(''); setConvertPid(''); }}
+                        style={{ padding: '0.4rem 0.9rem', background: '#16a34a', color: 'white', border: 'none', borderRadius: '6px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}
+                      >
+                        ✓ Convert to Order
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ── Manual Confirm Modal ── */}
+      {convertModal && (
+        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.45)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:9999, padding:'1rem' }}
+          onClick={() => setConvertModal(null)}>
+          <div style={{ background:'white', borderRadius:'16px', width:'100%', maxWidth:'440px', boxShadow:'0 20px 40px rgba(0,0,0,0.18)' }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ padding:'1.25rem 1.5rem', borderBottom:'1px solid #f1f5f9' }}>
+              <h3 style={{ margin:0, fontSize:'1rem', fontWeight:700 }}>Manually Confirm Order</h3>
+              <p style={{ margin:'4px 0 0', fontSize:'0.78rem', color:'#94a3b8' }}>
+                #{convertModal.orderNumber} · ₹{Number(convertModal.totalAmount).toLocaleString('en-IN')}
+              </p>
+            </div>
+            <div style={{ padding:'1.25rem 1.5rem', display:'flex', flexDirection:'column', gap:'1rem' }}>
+              <div>
+                <label style={{ display:'block', fontSize:'0.72rem', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.08em', color:'#374151', marginBottom:'0.4rem' }}>
+                  Razorpay / Payment ID (optional)
+                </label>
+                <input className="form-input" value={convertPid} onChange={e => setConvertPid(e.target.value)}
+                  placeholder="pay_XXXXXXXXXX" />
+              </div>
+              <div>
+                <label style={{ display:'block', fontSize:'0.72rem', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.08em', color:'#374151', marginBottom:'0.4rem' }}>
+                  Admin Note
+                </label>
+                <textarea className="form-textarea" rows={2} value={convertNote} onChange={e => setConvertNote(e.target.value)}
+                  placeholder="Reason for manual confirmation..." />
+              </div>
+            </div>
+            <div style={{ padding:'1rem 1.5rem', borderTop:'1px solid #f1f5f9', display:'flex', gap:'0.75rem', justifyContent:'flex-end' }}>
+              <button onClick={() => setConvertModal(null)} className="btn-cancel">Cancel</button>
+              <button onClick={handleManualConfirm} disabled={converting}
+                style={{ padding:'0.55rem 1.25rem', background: converting ? '#9ca3af' : '#16a34a', color:'white', border:'none', borderRadius:'8px', fontWeight:700, fontSize:'0.85rem', cursor: converting ? 'not-allowed' : 'pointer' }}>
+                {converting ? 'Confirming…' : '✓ Confirm Order'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
