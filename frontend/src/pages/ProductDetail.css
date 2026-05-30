@@ -2,9 +2,9 @@
    MASON — Product Detail Page
    ============================================================ */
 
-/* Top Container Padding to clear fixed navbar */
+/* Top Container Padding */
 .product-detail-container {
-  padding-top: 160px !important;
+  padding-top: var(--space-6) !important;
   padding-bottom: var(--space-12) !important;
 }
 
