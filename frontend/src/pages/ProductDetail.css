@@ -562,15 +562,11 @@
   }
 
   .thumbnail-list {
-    flex-direction: row;
-    width: auto;
-    overflow-x: auto;
+    display: none;
   }
 
   .thumbnail {
-    width: 56px;
-    height: 70px;
-    flex-shrink: 0;
+    display: none;
   }
 
   .action-buttons {
