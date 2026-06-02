@@ -32,6 +32,9 @@ const Login = () => {
       if (data.user.role === 'admin') {
         setTempToken(data.token);
         setShowCode(true);           // just reveal the code field, nothing else changes
+      } else if (data.user.role === 'vendor') {
+        setAuthUser(data.token, data.user);
+        navigate('/vendor');
       } else {
         setAuthUser(data.token, data.user);
         navigate('/');
@@ -70,7 +73,7 @@ const Login = () => {
 
   const handleGoogle = async (credentialResponse) => {
     const res = await googleLogin(credentialResponse.credential);
-    if (res?.success) navigate(res.role === 'admin' ? '/admin' : '/');
+    if (res?.success) navigate(res.role === 'admin' ? '/admin' : res.role === 'vendor' ? '/vendor' : '/');
   };
 
   return (

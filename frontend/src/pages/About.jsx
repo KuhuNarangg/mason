@@ -62,6 +62,26 @@ const About = () => {
         </div>
       </section>
 
+      {/* Brand Video Section */}
+      <section className="about-video-section reveal-up">
+        <div className="container" style={{ padding: '4rem 1.5rem', textAlign: 'center' }}>
+          <h2 className="about-section-title">The Craftsmanship</h2>
+          <p className="about-text" style={{ maxWidth: '600px', margin: '0 auto 2.5rem' }}>
+            Witness the meticulous attention to detail and the quiet elegance woven into every piece of our collection.
+          </p>
+          <div style={{ position: 'relative', width: '100%', maxWidth: '900px', margin: '0 auto', borderRadius: '20px', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }}>
+            <video 
+              src="/hero-video.mp4" 
+              autoPlay 
+              loop 
+              muted 
+              playsInline 
+              style={{ width: '100%', display: 'block', objectFit: 'cover' }}
+            />
+          </div>
+        </div>
+      </section>
+
       {/* Philosophy Banner */}
       <section className="about-philosophy reveal-up">
         <h2 className="about-philosophy-quote">
