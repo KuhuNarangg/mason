@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const EmailLog = require('../models/EmailLog');
 
 const createTransporter = () =>
   nodemailer.createTransport({
@@ -26,8 +27,22 @@ const sendEmail = async ({ to, subject, html }) => {
       html,
     });
     console.log(`[Email] Sent to ${to}: ${subject}`);
+    
+    // Log success
+    try {
+      await EmailLog.create({ to, subject, body: html, status: 'sent' });
+    } catch (logErr) {
+      console.error('[Email Log Error]', logErr);
+    }
   } catch (err) {
     console.error('[Email] Send failed:', err.message);
+    
+    // Log failure
+    try {
+      await EmailLog.create({ to, subject, body: html, status: 'failed', error: err.message });
+    } catch (logErr) {
+      console.error('[Email Log Error]', logErr);
+    }
   }
 };
 
@@ -116,4 +131,102 @@ const sendOrderConfirmation = async ({ name, email, orderNumber, totalAmount, it
   });
 };
 
-module.exports = { sendEmail, sendAdminLockoutAlert, sendWelcomeEmail, sendOrderConfirmation };
+/* ── Order Shipped ─────────────────────────────────── */
+const sendOrderShipped = async ({ name, email, orderNumber, trackingUrl }) => {
+  await sendEmail({
+    to: email,
+    subject: `Your Mason Order #${orderNumber} is Shipped! 🚚`,
+    html: `
+      <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#fff;border-radius:8px;border:1px solid #e5e7eb;">
+        <div style="background:#0f172a;padding:24px;text-align:center;">
+          <h1 style="color:#C08A74;margin:0;font-size:1.4rem;letter-spacing:3px;">MASON</h1>
+        </div>
+        <div style="padding:28px 32px;">
+          <h2 style="color:#0f172a;margin:0 0 8px;">Great news, ${name}!</h2>
+          <p style="color:#6b7280;line-height:1.6;">Your order <strong>#${orderNumber}</strong> has been handed over to our delivery partner and is on its way to you.</p>
+          ${trackingUrl ? `<a href="${trackingUrl}" style="display:inline-block;margin-top:16px;padding:12px 28px;background:#C08A74;color:#fff;text-decoration:none;border-radius:6px;font-size:0.85rem;font-weight:bold;">Track Order</a>` : ''}
+        </div>
+      </div>`,
+  });
+};
+
+/* ── Order Out for Delivery ────────────────────────── */
+const sendOrderOutForDelivery = async ({ name, email, orderNumber }) => {
+  await sendEmail({
+    to: email,
+    subject: `Your Mason Order #${orderNumber} is Out for Delivery! 🛵`,
+    html: `
+      <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#fff;border-radius:8px;border:1px solid #e5e7eb;">
+        <div style="padding:28px 32px;">
+          <h2 style="color:#0f172a;margin:0 0 8px;">It's arriving today!</h2>
+          <p style="color:#6b7280;line-height:1.6;">Hi ${name}, your order <strong>#${orderNumber}</strong> is out for delivery. Please be available to receive your package.</p>
+        </div>
+      </div>`,
+  });
+};
+
+/* ── Order Delivered ───────────────────────────────── */
+const sendOrderDelivered = async ({ name, email, orderNumber }) => {
+  await sendEmail({
+    to: email,
+    subject: `Your Mason Order #${orderNumber} has been Delivered! 🎉`,
+    html: `
+      <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#fff;border-radius:8px;border:1px solid #e5e7eb;">
+        <div style="padding:28px 32px;">
+          <h2 style="color:#0f172a;margin:0 0 8px;">Order Delivered</h2>
+          <p style="color:#6b7280;line-height:1.6;">Hi ${name}, we are delighted to let you know that your order <strong>#${orderNumber}</strong> has been delivered. We hope you love it!</p>
+        </div>
+      </div>`,
+  });
+};
+
+/* ── Return Request ────────────────────────────────── */
+const sendReturnRequest = async ({ name, email, orderNumber, itemName }) => {
+  await sendEmail({
+    to: email,
+    subject: `Return Request Received — #${orderNumber}`,
+    html: `
+      <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#fff;border-radius:8px;border:1px solid #e5e7eb;">
+        <div style="padding:28px 32px;">
+          <h2 style="color:#0f172a;margin:0 0 8px;">Return Request Submitted</h2>
+          <p style="color:#6b7280;line-height:1.6;">Hi ${name}, we have received your return request for <strong>${itemName}</strong> from order #${orderNumber}. Our team will review it within 24-48 hours.</p>
+        </div>
+      </div>`,
+  });
+};
+
+/* ── Return Approved ───────────────────────────────── */
+const sendReturnApproved = async ({ name, email, orderNumber, itemName, refundAmount }) => {
+  await sendEmail({
+    to: email,
+    subject: `Return Approved — #${orderNumber}`,
+    html: `
+      <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#fff;border-radius:8px;border:1px solid #e5e7eb;">
+        <div style="padding:28px 32px;">
+          <h2 style="color:#10b981;margin:0 0 8px;">Return Approved ✅</h2>
+          <p style="color:#6b7280;line-height:1.6;">Hi ${name}, your return for <strong>${itemName}</strong> has been approved. A refund of ₹${refundAmount} has been initiated.</p>
+        </div>
+      </div>`,
+  });
+};
+
+/* ── Refund Processed ──────────────────────────────── */
+const sendRefundProcessed = async ({ name, email, orderNumber, amount }) => {
+  await sendEmail({
+    to: email,
+    subject: `Refund Processed — #${orderNumber}`,
+    html: `
+      <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#fff;border-radius:8px;border:1px solid #e5e7eb;">
+        <div style="padding:28px 32px;">
+          <h2 style="color:#10b981;margin:0 0 8px;">Refund Initiated 💸</h2>
+          <p style="color:#6b7280;line-height:1.6;">Hi ${name}, a refund of <strong>₹${amount}</strong> for order #${orderNumber} has been successfully processed to your original payment method. It may take 5-7 business days to reflect in your account.</p>
+        </div>
+      </div>`,
+  });
+};
+
+module.exports = { 
+  sendEmail, sendAdminLockoutAlert, sendWelcomeEmail, sendOrderConfirmation,
+  sendOrderShipped, sendOrderOutForDelivery, sendOrderDelivered,
+  sendReturnRequest, sendReturnApproved, sendRefundProcessed
+};

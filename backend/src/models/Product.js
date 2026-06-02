@@ -40,7 +40,15 @@ const productSchema = new mongoose.Schema(
 
     originalPrice: { type: Number, required: true },
     discount: { type: Number, default: 0 },   // percentage
-    price: { type: Number },                   // computed
+    price: { type: Number },                   // computed final customer price
+
+    taxConfig: {
+      isInclusive: { type: Boolean, default: true },
+      basePrice: { type: Number, default: 0 },
+      cgstPercent: { type: Number, default: 6 },
+      sgstPercent: { type: Number, default: 6 },
+      additionalCharges: { type: Number, default: 0 }
+    },
 
     variants: [variantSchema],
     reviews: [reviewSchema],
@@ -68,7 +76,32 @@ productSchema.index({ name: 'text', description: 'text', brand: 'text', tags: 't
 
 // Auto-compute discounted price & slug before save
 productSchema.pre('save', function () {
-  this.price = Math.round(this.originalPrice * (1 - this.discount / 100));
+  // Compute final price based on tax config
+  if (this.taxConfig && !this.taxConfig.isInclusive) {
+    // Exclusive mode: price is derived from basePrice + taxes + additionalCharges, then discount is applied to it
+    // Or does originalPrice act as the base?
+    // Based on requirements: User enters base product price, CGST, SGST, additional charges -> Final Selling Price.
+    const base = this.originalPrice; // Use originalPrice as the base price input in exclusive mode
+    const taxFactor = 1 + (this.taxConfig.cgstPercent + this.taxConfig.sgstPercent) / 100;
+    const finalPriceBeforeDiscount = (base * taxFactor) + this.taxConfig.additionalCharges;
+    this.price = Math.round(finalPriceBeforeDiscount * (1 - this.discount / 100));
+    
+    // Reverse engineer basePrice after discount for invoice calculation
+    this.taxConfig.basePrice = Math.round(this.price / taxFactor); 
+  } else {
+    // Inclusive mode: originalPrice is the final price before discount
+    this.price = Math.round(this.originalPrice * (1 - this.discount / 100));
+    // Determine basePrice based on default or provided CGST/SGST (usually 6% each = 12% total)
+    const cgst = this.taxConfig ? this.taxConfig.cgstPercent : 6;
+    const sgst = this.taxConfig ? this.taxConfig.sgstPercent : 6;
+    const taxFactor = 1 + (cgst + sgst) / 100;
+    
+    if (!this.taxConfig) {
+      this.taxConfig = { isInclusive: true, cgstPercent: 6, sgstPercent: 6, additionalCharges: 0 };
+    }
+    this.taxConfig.basePrice = this.price / taxFactor;
+  }
+
   if (!this.slug) {
     this.slug = this.name
       .toLowerCase()

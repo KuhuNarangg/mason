@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Search, ChevronDown, ChevronUp, Check, X, Package } from 'lucide-react';
+import { Search, ChevronDown, ChevronUp, Check, X, Package, Download } from 'lucide-react';
+import { generateInvoicePDF } from '../../utils/generateInvoice';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
 import './admin-pages.css';
@@ -228,6 +229,33 @@ const OrdersManagement = () => {
         toast.error(err.response?.data?.message || 'Failed to update');
       }
     });
+  };
+
+  const handleUpdateTracking = async (orderId, url) => {
+    if (url && !/^(https?:\/\/)/i.test(url)) {
+      toast.error('Invalid URL. Must start with http:// or https://');
+      // Refetch to reset the input value in UI
+      fetchOrders();
+      return;
+    }
+
+    try {
+      await api.put(`/orders/${orderId}/tracking`, { trackingUrl: url });
+      toast.success('Tracking URL updated');
+      fetchOrders();
+    } catch (err) {
+      toast.error('Failed to update tracking');
+    }
+  };
+
+  const handleUpdateAdminNotes = async (orderId, notes) => {
+    try {
+      await api.put(`/orders/${orderId}/admin-notes`, { adminNotes: notes });
+      toast.success('Admin notes saved');
+      fetchOrders();
+    } catch (err) {
+      toast.error('Failed to update admin notes');
+    }
   };
 
   const handleCancellation = async (orderId, action, preNote) => {
@@ -486,6 +514,36 @@ const OrdersManagement = () => {
 
                             {/* Right column: address + cancellation */}
                             <div>
+                              {order.customerNotes && (
+                                <div style={{ marginBottom:'1.25rem' }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                    <p className="order-detail-section-title" style={{ margin: 0 }}>Order Notes</p>
+                                  </div>
+                                  <div style={{ padding:'0.75rem', background:'#fdf8f6', border:'1px solid #fbd5c8', borderRadius:'6px', fontSize:'0.8rem', color:'#92400e', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
+                                    {order.customerNotes}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Admin Internal Notes */}
+                              <div style={{ marginBottom: '1.25rem', padding: '1rem', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px' }}>
+                                <p className="order-detail-section-title" style={{ margin: '0 0 0.5rem 0', color: '#92400e' }}>Internal Admin Notes</p>
+                                <textarea
+                                  placeholder="Add private notes for this order (only visible to admins/vendors)..."
+                                  defaultValue={order.adminNotes || ''}
+                                  onBlur={(e) => {
+                                    if(e.target.value !== (order.adminNotes || '')) {
+                                       handleUpdateAdminNotes(order._id, e.target.value);
+                                    }
+                                  }}
+                                  rows={2}
+                                  style={{ width: '100%', padding: '0.5rem 0.75rem', border: '1px solid #fcd34d', borderRadius: '6px', fontSize: '0.8rem', outline: 'none', resize: 'vertical' }}
+                                />
+                                <p style={{ margin: '0.4rem 0 0', fontSize: '0.65rem', color: '#b45309' }}>
+                                  Notes save automatically when you click outside the box.
+                                </p>
+                              </div>
+
                               <div className="shipping-detail" style={{ marginBottom:'1.25rem' }}>
                                 <p className="order-detail-section-title">Shipping Address</p>
                                 <p style={{ margin:0, fontWeight:600 }}>{order.shippingAddress?.fullName}</p>
@@ -495,6 +553,29 @@ const OrdersManagement = () => {
                                   {order.shippingAddress?.city}, {order.shippingAddress?.state} – {order.shippingAddress?.pincode}
                                 </p>
                                 {order.shippingAddress?.phone && <p style={{ margin:'0.25rem 0 0', color:'#64748b', fontSize:'0.8rem' }}>📞 {order.shippingAddress.phone}</p>}
+                              </div>
+
+                              {/* Tracking URL */}
+                              <div style={{ marginBottom: '1.25rem', padding: '1rem', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+                                <p className="order-detail-section-title" style={{ margin: '0 0 0.5rem 0' }}>Tracking Link</p>
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                  <input 
+                                    type="url" 
+                                    placeholder="Paste courier tracking URL..." 
+                                    defaultValue={order.trackingUrl || ''}
+                                    onBlur={(e) => {
+                                      if(e.target.value !== order.trackingUrl) {
+                                         handleUpdateTracking(order._id, e.target.value);
+                                      }
+                                    }}
+                                    style={{ flex: 1, padding: '0.5rem 0.75rem', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.8rem', outline: 'none' }}
+                                  />
+                                </div>
+                                {order.trackingUrl && (
+                                  <p style={{ margin: '0.5rem 0 0', fontSize: '0.72rem', color: '#10b981', fontWeight: 600 }}>
+                                    ✓ Customers can now track this order.
+                                  </p>
+                                )}
                               </div>
 
                               {/* Order summary */}
@@ -541,6 +622,20 @@ const OrdersManagement = () => {
                                 {order.refundStatus === 'failed' && (
                                   <div style={{ marginTop: '8px', padding: '8px 10px', background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: '6px', fontSize: '0.75rem', color: '#c2410c' }}>
                                     ⚠ Auto-refund failed — please process manually via Razorpay dashboard.
+                                  </div>
+                                )}
+                                {/* Invoice Action */}
+                                {order.statusHistory?.some(h => h.status === 'delivered') && (
+                                  <div style={{ marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid #e2e8f0' }}>
+                                    <button
+                                      onClick={() => {
+                                        toast.success('Generating invoice...');
+                                        generateInvoicePDF(order);
+                                      }}
+                                      style={{ display:'flex', alignItems:'center', gap:'0.35rem', padding:'0.5rem 1.25rem', background:'#10b981', color:'white', border:'none', borderRadius:'8px', fontWeight:700, fontSize:'0.8rem', cursor:'pointer', width: '100%', justifyContent: 'center' }}
+                                    >
+                                      <Download size={15}/> Download Invoice
+                                    </button>
                                   </div>
                                 )}
                               </div>

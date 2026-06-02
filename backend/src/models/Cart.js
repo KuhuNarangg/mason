@@ -6,6 +6,8 @@ const cartItemSchema = new mongoose.Schema({
   variantColor: { type: String, required: true },
   quantity: { type: Number, default: 1, min: 1 },
   price: { type: Number, required: true },
+  cgstPercent: { type: Number, default: 6 },
+  sgstPercent: { type: Number, default: 6 },
 });
 
 const cartSchema = new mongoose.Schema(

@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Package, Heart, MapPin, Settings, LogOut, ChevronRight, User, Ruler, ArrowLeft } from 'lucide-react';
+import { Package, Heart, MapPin, Settings, LogOut, ChevronRight, User, Ruler, ArrowLeft, FileText, Download } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
+import { generateInvoicePDF } from '../utils/generateInvoice';
 import './Profile.css';
 
 const Profile = () => {
@@ -22,6 +23,10 @@ const Profile = () => {
   const [profileData, setProfileData] = useState({ name: '', email: '' });
   const [passwords, setPasswords] = useState({ oldPassword: '', newPassword: '' });
 
+  // Orders State
+  const [orders, setOrders] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
+
   useEffect(() => {
     if (!user) {
       navigate('/login');
@@ -39,6 +44,24 @@ const Profile = () => {
       console.error(err);
     }
   };
+
+  const fetchOrders = async () => {
+    try {
+      setLoadingOrders(true);
+      const { data } = await api.get('/orders/my');
+      setOrders(data.orders || []);
+    } catch (err) {
+      toast.error('Failed to fetch orders');
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'invoices' && orders.length === 0) {
+      fetchOrders();
+    }
+  }, [activeTab]);
 
   const handleLogout = () => {
     logout();
@@ -139,6 +162,15 @@ const Profile = () => {
             <div className="profile-card-info">
               <h3>Account Settings</h3>
               <p>Update personal details and password</p>
+            </div>
+            <ChevronRight className="profile-card-arrow" />
+          </button>
+
+          <button className="profile-card text-left w-100" onClick={() => setActiveTab('invoices')}>
+            <div className="profile-card-icon"><FileText size={24} /></div>
+            <div className="profile-card-info">
+              <h3>Bills & Invoices</h3>
+              <p>Download invoices for delivered orders</p>
             </div>
             <ChevronRight className="profile-card-arrow" />
           </button>
@@ -261,6 +293,72 @@ const Profile = () => {
               </form>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Invoices Tab */}
+      {activeTab === 'invoices' && (
+        <div className="profile-section fade-in">
+          <button className="btn-back mb-4" onClick={() => setActiveTab('overview')}>
+            <ArrowLeft size={18} /> Back to Profile
+          </button>
+          
+          <h3 className="mb-4">Bills & Invoices</h3>
+          
+          {loadingOrders ? (
+            <p>Loading invoices...</p>
+          ) : (
+            <div className="invoices-list">
+              {orders.filter(o => o.statusHistory?.some(h => h.status === 'delivered')).length === 0 ? (
+                <p className="text-muted">You have no invoices yet. Invoices are generated once an order is delivered.</p>
+              ) : (
+                orders
+                  .filter(o => o.statusHistory?.some(h => h.status === 'delivered'))
+                  .map(order => {
+                    const isInvalid = ['returned', 'return_rejected', 'cancelled'].includes(order.status) || order.statusHistory?.some(h => h.status === 'returned');
+                    return (
+                      <div key={order._id} className="card p-4 mb-3 d-flex justify-between align-center" style={{ flexWrap: 'wrap', gap: '1rem' }}>
+                        <div>
+                          <h4 style={{ margin: '0 0 0.5rem 0' }}>Invoice #{order.orderNumber}</h4>
+                          <p className="text-muted" style={{ margin: '0 0 0.25rem 0', fontSize: '0.9rem' }}>
+                            Billing Date: {new Date(order.createdAt).toLocaleDateString()}
+                          </p>
+                          <p className="text-muted" style={{ margin: 0, fontSize: '0.9rem' }}>
+                            Final Amount Paid: <strong>₹{order.totalAmount}</strong>
+                          </p>
+                          <p className="text-muted" style={{ margin: '0.25rem 0 0 0', fontSize: '0.8rem' }}>
+                            Order ID: {order._id}
+                          </p>
+                          {isInvalid && (
+                            <span style={{ display: 'inline-block', marginTop: '0.75rem', padding: '0.25rem 0.5rem', background: '#fee2e2', color: '#dc2626', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600 }}>
+                              Returned / Invalid Invoice
+                            </span>
+                          )}
+                        </div>
+                        
+                        <div>
+                          {!isInvalid ? (
+                            <button 
+                              className="btn btn-outline"
+                              onClick={() => {
+                                toast.success('Generating invoice...');
+                                generateInvoicePDF(order);
+                              }}
+                            >
+                              <Download size={16} /> Download PDF
+                            </button>
+                          ) : (
+                            <button className="btn btn-outline" disabled style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+                              Unavailable
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

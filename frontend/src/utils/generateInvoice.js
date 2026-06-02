@@ -21,8 +21,9 @@ export const generateInvoicePDF = async (order) => {
     <div style="max-width: 900px; margin: 0 auto;">
       <!-- Header -->
       <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 15px;">
-        <h1 style="margin: 0; font-size: 28px; color: #000;">CLOTHING WEB</h1>
-        <p style="margin: 5px 0 0 0; color: #666; font-size: 11px;">Your Fashion Destination</p>
+        <h1 style="margin: 0; font-size: 28px; color: #000;">MASON</h1>
+        <p style="margin: 5px 0 0 0; color: #666; font-size: 11px;">The Art of Femininity</p>
+        <p style="margin: 5px 0 0 0; color: #666; font-size: 11px;"><strong>GSTIN:</strong> 27AAAAA0000A1Z5</p>
       </div>
 
       <!-- Invoice Title & Details -->
@@ -58,54 +59,89 @@ export const generateInvoicePDF = async (order) => {
         <thead>
           <tr style="background: #f3f4f6; border-bottom: 2px solid #000;">
             <th style="padding: 8px; text-align: left; font-size: 11px; font-weight: bold;">Product</th>
-            <th style="padding: 8px; text-align: center; font-size: 11px; font-weight: bold;">Size/Color</th>
+            <th style="padding: 8px; text-align: center; font-size: 11px; font-weight: bold;">Details</th>
             <th style="padding: 8px; text-align: center; font-size: 11px; font-weight: bold;">Qty</th>
-            <th style="padding: 8px; text-align: right; font-size: 11px; font-weight: bold;">Price</th>
-            <th style="padding: 8px; text-align: right; font-size: 11px; font-weight: bold;">Amount</th>
+            <th style="padding: 8px; text-align: right; font-size: 11px; font-weight: bold;">Base Rate</th>
+            <th style="padding: 8px; text-align: right; font-size: 11px; font-weight: bold;">Tax</th>
+            <th style="padding: 8px; text-align: right; font-size: 11px; font-weight: bold;">Total</th>
           </tr>
         </thead>
         <tbody>
-          ${order.items
-            .map(
-              (item, idx) => `
+          ${(() => {
+            let totalBaseValue = 0;
+            let totalCgst = 0;
+            let totalSgst = 0;
+            
+            const rows = order.items.map((item) => {
+              const cgstRate = item.cgstPercent ?? 6;
+              const sgstRate = item.sgstPercent ?? 6;
+              const taxFactor = 1 + (cgstRate + sgstRate) / 100;
+              const baseRate = item.price / taxFactor;
+              
+              const itemCgst = (baseRate * (cgstRate / 100)) * item.quantity;
+              const itemSgst = (baseRate * (sgstRate / 100)) * item.quantity;
+              const tax = itemCgst + itemSgst;
+              
+              totalBaseValue += baseRate * item.quantity;
+              totalCgst += itemCgst;
+              totalSgst += itemSgst;
+
+              return `
             <tr style="border-bottom: 1px solid #e5e7eb;">
               <td style="padding: 8px; font-size: 11px;">${item.name}</td>
-              <td style="padding: 8px; text-align: center; font-size: 11px;">${item.variantSize} / ${item.variantColor}</td>
+              <td style="padding: 8px; text-align: center; font-size: 11px;">${item.variantSize}/${item.variantColor}</td>
               <td style="padding: 8px; text-align: center; font-size: 11px;">${item.quantity}</td>
-              <td style="padding: 8px; text-align: right; font-size: 11px;">${formatPrice(item.price)}</td>
+              <td style="padding: 8px; text-align: right; font-size: 11px;">${formatPrice(baseRate)}</td>
+              <td style="padding: 8px; text-align: right; font-size: 11px;">${formatPrice(tax)}<br><span style="font-size: 9px; color: #666;">(${cgstRate+sgstRate}%)</span></td>
               <td style="padding: 8px; text-align: right; font-size: 11px;">${formatPrice(item.price * item.quantity)}</td>
             </tr>
-          `
-            )
-            .join('')}
+          `;
+            }).join('');
+            
+            window.__invoiceTotals = { totalBaseValue, totalCgst, totalSgst };
+            return rows;
+          })()}
         </tbody>
       </table>
 
       <!-- Price Summary -->
       <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
-        <div style="width: 300px;">
+        <div style="width: 320px;">
+          <div style="display: flex; justify-content: space-between; padding: 6px 0; font-size: 11px;">
+            <span>Taxable Value:</span>
+            <span>${formatPrice(window.__invoiceTotals?.totalBaseValue || 0)}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 6px 0; font-size: 11px;">
+            <span>CGST:</span>
+            <span>${formatPrice(window.__invoiceTotals?.totalCgst || 0)}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 6px 0; font-size: 11px;">
+            <span>SGST:</span>
+            <span>${formatPrice(window.__invoiceTotals?.totalSgst || 0)}</span>
+          </div>
           <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb; font-size: 11px;">
-            <span>Subtotal:</span>
-            <span>${formatPrice(order.subtotal)}</span>
+            <span><strong>Total Items Subtotal:</strong></span>
+            <span><strong>${formatPrice(order.subtotal)}</strong></span>
           </div>
           ${
             order.discount > 0
               ? `
             <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb; font-size: 11px; color: #10b981;">
-              <span>Discount:</span>
-              <span>-${formatPrice(order.discount)}</span>
+               <span>Discount:</span>
+               <span>-${formatPrice(order.discount)}</span>
             </div>
           `
               : ''
           }
           <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb; font-size: 11px;">
-            <span>Shipping:</span>
+            <span>Shipping Charge:</span>
             <span>${order.shippingCharge === 0 ? 'FREE' : formatPrice(order.shippingCharge)}</span>
           </div>
-          <div style="display: flex; justify-content: space-between; padding: 12px 0; font-weight: bold; font-size: 12px;">
-            <span>TOTAL:</span>
+          <div style="display: flex; justify-content: space-between; padding: 12px 0; font-weight: bold; font-size: 14px; color: #000;">
+            <span>GRAND TOTAL:</span>
             <span>${formatPrice(order.totalAmount)}</span>
           </div>
+          <div style="text-align: right; font-size: 9px; color: #666; margin-top: 4px;">(Inclusive of all taxes)</div>
         </div>
       </div>
 

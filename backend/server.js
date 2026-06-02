@@ -20,6 +20,7 @@ const couponRoutes = require('./src/routes/coupons');
 const notificationRoutes = require('./src/routes/notifications');
 const adRoutes = require('./src/routes/ads');
 const paymentRoutes = require('./src/routes/payments');
+const customizationRoutes = require('./src/routes/customizations');
 
 connectDB();
 
@@ -41,8 +42,23 @@ const apiLimiter = rateLimit({
   message: { success: false, message: 'Too many requests, please try again later.' },
 });
 
+const allowedOrigins = [
+  'http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176',
+  'https://mason-n1y8.onrender.com',
+  'https://owlstitch.com', 'https://www.owlstitch.com',
+  'http://owlstitch.com', 'http://www.owlstitch.com',
+  'https://owlstitch.in', 'https://www.owlstitch.in',
+  'http://owlstitch.in', 'http://www.owlstitch.in'
+];
+
 app.use(cors({
-  origin: true, // Allow all origins dynamically (reflects origin back)
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1 || origin.includes('owlstitch')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));
@@ -66,6 +82,7 @@ app.use('/api/v1/coupons', couponRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/ads', adRoutes);     // ad management (admin)
 app.use('/api/v1/payments', paymentRoutes); // Razorpay payment flow
+app.use('/api/v1/customizations', customizationRoutes);
 // Public ad redirect — Instagram/Facebook ads point to this URL:
 //   yourbackend.com/api/v1/r/:adId  → logs click → redirects to product page
 app.get('/api/v1/r/:adId', require('./src/controllers/adController').redirectAd);

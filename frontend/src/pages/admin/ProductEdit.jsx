@@ -22,6 +22,12 @@ const ProductEdit = () => {
     type: 'shirt',
     originalPrice: '',
     discount: '0',
+    taxConfig: {
+      isInclusive: true,
+      cgstPercent: 6,
+      sgstPercent: 6,
+      additionalCharges: 0,
+    },
     images: [],
     variants: [],
     tags: [],
@@ -68,6 +74,14 @@ const ProductEdit = () => {
       const product = data.product;
       if (product.isReturnable === undefined) product.isReturnable = true;
       if (product.returnWindow === undefined) product.returnWindow = 14;
+      if (!product.taxConfig) {
+        product.taxConfig = {
+          isInclusive: true,
+          cgstPercent: 6,
+          sgstPercent: 6,
+          additionalCharges: 0,
+        };
+      }
       setForm(product);
       setLoading(false);
     } catch (err) {
@@ -328,27 +342,100 @@ const ProductEdit = () => {
           </div>
 
           {/* Pricing */}
-          <div className="form-row">
-            <div className="form-group">
-              <label>Original Price *</label>
-              <input
-                type="number"
-                className="form-input"
-                value={form.originalPrice}
-                onChange={(e) => setForm({ ...form, originalPrice: e.target.value })}
-                required
-              />
+          <div style={{ marginBottom: '1.5rem', padding: '1.25rem', background: '#fafafa', border: '1px solid #e0d5ce', borderRadius: '0.5rem' }}>
+            <h4 style={{ marginBottom: '1rem', fontSize: '1rem', color: '#2d2d2d' }}>Pricing & Tax Config</h4>
+            
+            <div style={{ display: 'flex', gap: '2rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <input
+                  type="radio"
+                  name="pricingType"
+                  checked={form.taxConfig.isInclusive}
+                  onChange={() => setForm({ ...form, taxConfig: { ...form.taxConfig, isInclusive: true } })}
+                />
+                <span style={{ fontWeight: 600 }}>GST Inclusive (Customer Price)</span>
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <input
+                  type="radio"
+                  name="pricingType"
+                  checked={!form.taxConfig.isInclusive}
+                  onChange={() => setForm({ ...form, taxConfig: { ...form.taxConfig, isInclusive: false } })}
+                />
+                <span style={{ fontWeight: 600 }}>Manual Entry (Base + Tax)</span>
+              </label>
             </div>
-            <div className="form-group">
-              <label>Discount (%)</label>
-              <input
-                type="number"
-                className="form-input"
-                value={form.discount}
-                onChange={(e) => setForm({ ...form, discount: e.target.value })}
-                min="0"
-                max="100"
-              />
+
+            {form.taxConfig.isInclusive ? (
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Final Price (Includes GST) *</label>
+                  <input type="number" value={form.originalPrice} onChange={(e) => setForm({ ...form, originalPrice: e.target.value })} className="form-input" placeholder="999" required />
+                </div>
+                <div className="form-group">
+                  <label>Discount (%)</label>
+                  <input type="number" value={form.discount} onChange={(e) => setForm({ ...form, discount: e.target.value })} className="form-input" placeholder="0" />
+                </div>
+              </div>
+            ) : (
+              <div className="form-row" style={{ flexWrap: 'wrap' }}>
+                <div className="form-group" style={{ flex: '1 1 45%' }}>
+                  <label>Base Price (Before Tax) *</label>
+                  <input type="number" value={form.originalPrice} onChange={(e) => setForm({ ...form, originalPrice: e.target.value })} className="form-input" placeholder="e.g. 800" required />
+                </div>
+                <div className="form-group" style={{ flex: '1 1 20%' }}>
+                  <label>CGST (%)</label>
+                  <input type="number" value={form.taxConfig.cgstPercent} onChange={(e) => setForm({ ...form, taxConfig: { ...form.taxConfig, cgstPercent: Number(e.target.value) } })} className="form-input" />
+                </div>
+                <div className="form-group" style={{ flex: '1 1 20%' }}>
+                  <label>SGST (%)</label>
+                  <input type="number" value={form.taxConfig.sgstPercent} onChange={(e) => setForm({ ...form, taxConfig: { ...form.taxConfig, sgstPercent: Number(e.target.value) } })} className="form-input" />
+                </div>
+                <div className="form-group" style={{ flex: '1 1 45%' }}>
+                  <label>Additional Charges (Optional)</label>
+                  <input type="number" value={form.taxConfig.additionalCharges} onChange={(e) => setForm({ ...form, taxConfig: { ...form.taxConfig, additionalCharges: Number(e.target.value) } })} className="form-input" placeholder="0" />
+                </div>
+                <div className="form-group" style={{ flex: '1 1 45%' }}>
+                  <label>Discount (%)</label>
+                  <input type="number" value={form.discount} onChange={(e) => setForm({ ...form, discount: e.target.value })} className="form-input" placeholder="0" />
+                </div>
+              </div>
+            )}
+
+            {/* Preview */}
+            <div style={{ marginTop: '1rem', padding: '1rem', background: '#eef2ff', borderRadius: '0.25rem', border: '1px solid #c7d2fe', display: 'flex', justifyContent: 'space-between' }}>
+              <div>
+                <span style={{ fontSize: '0.85rem', color: '#4338ca', display: 'block' }}>Selling Price Preview</span>
+                <span style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#3730a3' }}>
+                  {(() => {
+                    if (form.taxConfig.isInclusive) {
+                      return `₹${Math.round(Number(form.originalPrice || 0) * (1 - Number(form.discount || 0)/100))}`;
+                    } else {
+                      const base = Number(form.originalPrice || 0);
+                      const cgst = Number(form.taxConfig.cgstPercent || 0);
+                      const sgst = Number(form.taxConfig.sgstPercent || 0);
+                      const add = Number(form.taxConfig.additionalCharges || 0);
+                      const priceBeforeDiscount = (base * (1 + (cgst+sgst)/100)) + add;
+                      return `₹${Math.round(priceBeforeDiscount * (1 - Number(form.discount || 0)/100))}`;
+                    }
+                  })()}
+                </span>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <span style={{ fontSize: '0.85rem', color: '#4338ca', display: 'block' }}>Base Price (For Invoice)</span>
+                <span style={{ fontSize: '1rem', fontWeight: '600', color: '#3730a3' }}>
+                  {(() => {
+                    if (form.taxConfig.isInclusive) {
+                      const final = Math.round(Number(form.originalPrice || 0) * (1 - Number(form.discount || 0)/100));
+                      const cgst = Number(form.taxConfig.cgstPercent || 6);
+                      const sgst = Number(form.taxConfig.sgstPercent || 6);
+                      return `₹${Math.round(final / (1 + (cgst+sgst)/100))}`;
+                    } else {
+                      return `₹${form.originalPrice || 0}`;
+                    }
+                  })()}
+                </span>
+              </div>
             </div>
           </div>
 

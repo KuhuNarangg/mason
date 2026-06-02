@@ -30,4 +30,13 @@ const adminOnly = (req, res, next) => {
   }
 };
 
-module.exports = { protect, adminOnly };
+const adminOrVendor = (req, res, next) => {
+  if (req.user && (req.user.role === 'admin' || req.user.role === 'vendor')) {
+    next();
+  } else {
+    res.status(403);
+    throw new Error('Access denied: Admins and Vendors only');
+  }
+};
+
+module.exports = { protect, adminOnly, adminOrVendor };

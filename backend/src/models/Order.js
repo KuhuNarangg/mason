@@ -8,6 +8,8 @@ const orderItemSchema = new mongoose.Schema({
   variantColor: String,
   quantity: { type: Number, required: true },
   price: { type: Number, required: true },
+  cgstPercent: { type: Number, default: 6 },
+  sgstPercent: { type: Number, default: 6 },
   returnStatus: {
     type: String,
     enum: ['none', 'requested', 'approved', 'rejected', 'completed'],
@@ -42,14 +44,17 @@ const orderSchema = new mongoose.Schema(
     razorpayOrderId: { type: String },     // Razorpay order_id (rzp_order_xxx)
     status: {
       type: String,
-      enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'cancel_requested', 'return_requested', 'return_rejected', 'returned'],
+      enum: ['pending', 'confirmed', 'processing', 'shipped', 'out_for_delivery', 'delivered', 'cancelled', 'cancel_requested', 'return_requested', 'return_rejected', 'returned'],
       default: 'pending',
     },
+    trackingUrl: { type: String, default: '' },
     subtotal: { type: Number, required: true },
     discount: { type: Number, default: 0 },
     shippingCharge: { type: Number, default: 0 },
     totalAmount: { type: Number, required: true },
+    customerNotes: { type: String, default: '' },
     notes: { type: String },
+    adminNotes: { type: String, default: '' },
     cancellationRequest: {
       isRequested: { type: Boolean, default: false },
       reason: String,

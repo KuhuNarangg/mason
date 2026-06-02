@@ -446,6 +446,14 @@ const Orders = () => {
                         })}
                       </div>
 
+                      {order.trackingUrl && (
+                        <div className="mt-4 mb-2">
+                          <a href={order.trackingUrl} target="_blank" rel="noopener noreferrer" className="btn-action-v2" style={{ display: 'inline-flex', background: '#C08A74', color: 'white', borderColor: '#C08A74', width: 'fit-content' }}>
+                            <Truck size={16} /> Track Live Status
+                          </a>
+                        </div>
+                      )}
+
                       <div className="address-payment-summary mt-5">
                         <div className="summary-card">
                           <div className="summary-title"><MapPin size={14}/> Shipping Address</div>
@@ -470,6 +478,16 @@ const Orders = () => {
                             )}
                           </div>
                         </div>
+
+                        {/* Order Notes */}
+                        {order.customerNotes && (
+                          <div className="summary-card mt-3" style={{ background: '#fdf8f6', border: '1px solid #fbd5c8' }}>
+                            <div className="summary-title" style={{ color: '#92400e' }}>Order Notes</div>
+                            <div className="summary-text" style={{ color: '#92400e', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
+                              {order.customerNotes}
+                            </div>
+                          </div>
+                        )}
 
                         {/* Refund Status Banner */}
                         {order.paymentStatus === 'refunded' && (

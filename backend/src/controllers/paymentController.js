@@ -2,7 +2,9 @@ const asyncHandler = require('express-async-handler');
 const crypto = require('crypto');
 const Razorpay = require('razorpay');
 const Order = require('../models/Order');
+const User = require('../models/User');
 const { createNotification } = require('../utils/notificationHelper');
+const { sendOrderConfirmation } = require('../utils/emailService');
 
 // Initialise Razorpay instance
 const razorpay = new Razorpay({
@@ -99,6 +101,17 @@ const verifyPayment = asyncHandler(async (req, res) => {
     link: `/orders/${order._id}`,
   });
 
+  const populatedUser = await User.findById(order.user);
+  if (populatedUser) {
+    await sendOrderConfirmation({
+      name: populatedUser.name,
+      email: populatedUser.email,
+      orderNumber: order.orderNumber,
+      totalAmount: order.totalAmount,
+      items: order.items
+    });
+  }
+
   res.json({ success: true, order });
 });
 
@@ -138,6 +151,17 @@ const handleWebhook = asyncHandler(async (req, res) => {
           note: `Payment captured via webhook. Payment ID: ${payload.id}`,
         });
         await order.save();
+
+        const populatedUser = await User.findById(order.user);
+        if (populatedUser) {
+          await sendOrderConfirmation({
+            name: populatedUser.name,
+            email: populatedUser.email,
+            orderNumber: order.orderNumber,
+            totalAmount: order.totalAmount,
+            items: order.items
+          });
+        }
       }
     }
   }

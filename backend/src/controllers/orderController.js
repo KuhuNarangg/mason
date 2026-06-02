@@ -3,7 +3,12 @@ const Razorpay = require('razorpay');
 const Order = require('../models/Order');
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
+const User = require('../models/User');
 const { createNotification } = require('../utils/notificationHelper');
+const { 
+  sendOrderShipped, sendOrderOutForDelivery, sendOrderDelivered, 
+  sendReturnRequest, sendReturnApproved, sendRefundProcessed 
+} = require('../utils/emailService');
 
 // Shared Razorpay instance
 const razorpay = new Razorpay({
@@ -28,7 +33,7 @@ const initiateRazorpayRefund = async (paymentId, amountRupees, reason = 'Refund'
 
 // @POST /api/v1/orders
 const createOrder = asyncHandler(async (req, res) => {
-  const { items, shippingAddress, paymentMethod, subtotal, discount, shippingCharge, totalAmount, paymentId } = req.body;
+  const { items, shippingAddress, paymentMethod, subtotal, discount, shippingCharge, totalAmount, paymentId, customerNotes } = req.body;
 
   if (!items || items.length === 0) { res.status(400); throw new Error('No items in order'); }
 
@@ -43,6 +48,7 @@ const createOrder = asyncHandler(async (req, res) => {
     discount,
     shippingCharge,
     totalAmount,
+    customerNotes,
     statusHistory: [{ status: 'pending', note: 'Order placed' }],
   });
 
@@ -63,6 +69,20 @@ const createOrder = asyncHandler(async (req, res) => {
 
   // Clear cart after order
   await Cart.findOneAndDelete({ user: req.user._id });
+
+  // If COD, it's confirmed immediately, so we can send confirmation email
+  if (paymentMethod === 'cod') {
+    const populatedUser = await User.findById(req.user._id);
+    if (populatedUser) {
+      await sendOrderConfirmation({
+        name: populatedUser.name,
+        email: populatedUser.email,
+        orderNumber: order.orderNumber,
+        totalAmount: order.totalAmount,
+        items: items
+      });
+    }
+  }
 
   res.status(201).json({ success: true, order });
 });
@@ -158,6 +178,63 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
     link: `/orders/${order._id}`
   });
 
+  // Send Email
+  const populatedUser = await User.findById(order.user);
+  if (populatedUser) {
+    if (status === 'shipped') {
+      await sendOrderShipped({ name: populatedUser.name, email: populatedUser.email, orderNumber: order.orderNumber, trackingUrl: order.trackingUrl });
+    } else if (status === 'out_for_delivery') {
+      await sendOrderOutForDelivery({ name: populatedUser.name, email: populatedUser.email, orderNumber: order.orderNumber });
+    } else if (status === 'delivered') {
+      await sendOrderDelivered({ name: populatedUser.name, email: populatedUser.email, orderNumber: order.orderNumber });
+    }
+  }
+
+  res.json({ success: true, order });
+});
+
+// @PUT /api/v1/orders/:id/tracking (admin/vendor)
+const updateTrackingUrl = asyncHandler(async (req, res) => {
+  const { trackingUrl } = req.body;
+
+  if (trackingUrl && !/^(https?:\/\/)/i.test(trackingUrl)) {
+    res.status(400); throw new Error('Invalid tracking URL. Must start with http:// or https://');
+  }
+
+  const order = await Order.findById(req.params.id).populate('user', 'name email');
+  if (!order) { res.status(404); throw new Error('Order not found'); }
+
+  order.trackingUrl = trackingUrl;
+  
+  // If order is not shipped yet, auto-ship it
+  if (trackingUrl && ['pending', 'processing', 'confirmed'].includes(order.status)) {
+    order.status = 'shipped';
+    order.statusHistory.push({ status: 'shipped', note: 'Tracking link uploaded' });
+    
+    if (order.user) {
+      await sendOrderShipped({ name: order.user.name, email: order.user.email, orderNumber: order.orderNumber, trackingUrl });
+    }
+    
+    await createNotification({
+      user: order.user._id,
+      title: 'Order Shipped',
+      message: `Your order #${order.orderNumber} has been shipped. Track it now!`,
+      link: `/orders/${order._id}`
+    });
+  }
+
+  await order.save();
+  res.json({ success: true, order });
+});
+
+// @PUT /api/v1/orders/:id/admin-notes (admin/vendor)
+const updateAdminNotes = asyncHandler(async (req, res) => {
+  const { adminNotes } = req.body;
+  const order = await Order.findById(req.params.id);
+  if (!order) { res.status(404); throw new Error('Order not found'); }
+  
+  order.adminNotes = adminNotes;
+  await order.save();
   res.json({ success: true, order });
 });
 
@@ -270,6 +347,18 @@ const returnOrder = asyncHandler(async (req, res) => {
   }
 
   await order.save();
+
+  // Send Notification
+  await createNotification({
+    user: req.user._id,
+    title: 'Return Requested',
+    message: `Return request submitted for item in order #${order.orderNumber}.`,
+    link: `/orders/${order._id}`
+  });
+
+  // Send Email
+  await sendReturnRequest({ name: req.user.name, email: req.user.email, orderNumber: order.orderNumber, itemName: item.name });
+
   res.json({ success: true, order });
 });
 
@@ -350,17 +439,21 @@ const handleItemReturn = asyncHandler(async (req, res) => {
   await order.save();
 
   // Send Notification
-  const itemRefundAmt = item.price * item.quantity;
   await createNotification({
     user: order.user,
-    title: action === 'approve'
-      ? `Return Approved — Refund of ₹${itemRefundAmt} Initiated`
-      : `Return Request Rejected: ${item.name}`,
-    message: action === 'approve'
-      ? `Your return for "${item.name}" (order #${order.orderNumber}) was approved. A refund of ₹${itemRefundAmt} has been initiated and will reflect within 5–7 business days. ${adminNote || ''}`
-      : `Your return request for "${item.name}" in order #${order.orderNumber} was rejected. ${adminNote || ''}`,
-    link: `/orders/${order._id}`,
+    title: `Return ${action === 'approve' ? 'Approved' : 'Rejected'}`,
+    message: action === 'approve' 
+      ? `Return approved for ${item.name}. Refund initiated: ₹${item.refundAmount}` 
+      : `Return rejected for ${item.name}. ${adminNote || ''}`,
+    link: `/orders/${order._id}`
   });
+
+  // Send Email
+  const populatedUser = await User.findById(order.user);
+  if (populatedUser && action === 'approve') {
+    await sendReturnApproved({ name: populatedUser.name, email: populatedUser.email, orderNumber: order.orderNumber, itemName: item.name, refundAmount: item.refundAmount });
+    await sendRefundProcessed({ name: populatedUser.name, email: populatedUser.email, orderNumber: order.orderNumber, amount: item.refundAmount });
+  }
 
   res.json({ success: true, order });
 });
@@ -477,6 +570,8 @@ module.exports = {
   getOrderById, 
   getAllOrders, 
   updateOrderStatus, 
+  updateTrackingUrl,
+  updateAdminNotes,
   getOrderStats, 
   trackOrder, 
   returnOrder,

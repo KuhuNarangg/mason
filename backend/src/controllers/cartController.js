@@ -29,7 +29,15 @@ const addToCart = asyncHandler(async (req, res) => {
   if (existIdx > -1) {
     cart.items[existIdx].quantity += quantity;
   } else {
-    cart.items.push({ product: productId, variantSize, variantColor, quantity, price: product.price });
+    cart.items.push({ 
+      product: productId, 
+      variantSize, 
+      variantColor, 
+      quantity, 
+      price: product.price,
+      cgstPercent: product.taxConfig?.cgstPercent || 6,
+      sgstPercent: product.taxConfig?.sgstPercent || 6
+    });
   }
 
   await cart.save();
