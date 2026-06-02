@@ -201,3 +201,124 @@
     font-size: 9px;
   }
 }
+
+/* ============================================================
+   CLEAN CHECKOUT — Standard Font, Proper Spacing
+   ============================================================ */
+
+.checkout-steps {
+  margin-bottom: var(--space-8) !important;
+}
+
+.checkout-card {
+  padding: var(--space-6);
+  margin-bottom: var(--space-4);
+  background: white;
+  border: 1px solid var(--champagne);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+}
+
+.checkout-card h2 {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+  color: var(--ink);
+}
+
+.checkout-card .form-group {
+  margin-bottom: var(--space-4) !important;
+}
+
+.checkout-card .form-label {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--ink-soft);
+  margin-bottom: var(--space-2);
+}
+
+.checkout-card .form-input,
+.checkout-card .form-textarea,
+.checkout-card .form-select,
+.checkout-card select {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  border: 1px solid var(--champagne);
+  border-radius: var(--radius-md);
+  background: var(--ivory);
+  padding: 12px 16px;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.25s, background 0.25s;
+}
+
+.checkout-card .form-input:focus,
+.checkout-card .form-textarea:focus,
+.checkout-card .form-select:focus {
+  border-color: var(--rose-gold);
+  background: white;
+}
+
+.checkout-card .form-textarea {
+  min-height: 100px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.checkout-card .payment-option {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  padding: var(--space-4);
+  border: 1px solid var(--champagne);
+  border-radius: var(--radius-md);
+  background: var(--ivory);
+  transition: border-color 0.25s;
+}
+
+.checkout-card .payment-option:has(input:checked) {
+  border-color: var(--rose-gold-dark);
+  background: white;
+}
+
+.summary-card {
+  padding: var(--space-5);
+  background: white;
+  border: 1px solid var(--champagne);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+}
+
+.summary-card .summary-title {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  margin-bottom: var(--space-4);
+}
+
+.summary-items-list .summary-item,
+.summary-details .summary-row {
+  font-size: 0.9rem !important;
+  font-family: var(--font-body);
+}
+
+.address-summary {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  background: var(--ivory);
+  border: 1px solid var(--champagne);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  line-height: 1.7;
+}
+
+.checkout-card .btn-primary,
+.checkout-card .btn-outline {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  border-radius: var(--radius-md);
+}
+

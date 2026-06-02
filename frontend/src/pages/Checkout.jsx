@@ -29,6 +29,7 @@ const Checkout = () => {
   });
 
   const [paymentMethod, setPaymentMethod] = useState('razorpay');
+  const [customerNotes, setCustomerNotes] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
   const [discount, setDiscount] = useState(0);
   const [coupon, setCoupon] = useState('');
@@ -138,6 +139,8 @@ const Checkout = () => {
           variantColor: item.variantColor,
           quantity: item.quantity,
           price: item.price,
+          cgstPercent: item.cgstPercent,
+          sgstPercent: item.sgstPercent,
         })),
         shippingAddress: shipping,
         paymentMethod,
@@ -145,6 +148,7 @@ const Checkout = () => {
         discount,
         shippingCharge: shipping_charge,
         totalAmount: finalAmount,
+        customerNotes,
       };
 
       // Step 1 — Create the DB order (paymentStatus: pending for Razorpay)
@@ -240,8 +244,8 @@ const Checkout = () => {
   }
 
   return (
-    <div className="container mt-4 mb-5 fade-in">
-      <h1 className="cart-title mb-4">Checkout</h1>
+    <div className="container mb-5 fade-in" style={{ paddingTop: 'var(--space-8)' }}>
+      <h1 className="cart-title" style={{ marginBottom: 'var(--space-6)' }}>Checkout</h1>
 
       <div className="cart-layout">
         <div className="checkout-main">
@@ -408,6 +412,17 @@ const Checkout = () => {
                   </div>
                 )}
 
+                <div className="form-group mb-5">
+                  <label className="form-label">Order Notes (Optional)</label>
+                  <textarea
+                    className="form-textarea"
+                    placeholder="Notes about your order, e.g. special notes for delivery, sizing requests, customization."
+                    value={customerNotes}
+                    onChange={(e) => setCustomerNotes(e.target.value)}
+                    rows={3}
+                  ></textarea>
+                </div>
+
                 <button
                   onClick={() => validateShipping() && setStep(2)}
                   className="btn btn-primary w-100 py-3"
@@ -502,6 +517,10 @@ const Checkout = () => {
                     <CreditCard size={18} className="text-primary" />
                     <span>{paymentMethod === 'razorpay' ? 'Secure Online Payment' : 'Cash on Delivery'}</span>
                   </div>
+                </div>
+
+                <div className="mb-4 text-sm" style={{ fontSize: '0.85rem', color: 'var(--ink-muted)' }}>
+                  By placing this order, you agree to our <a href="/returns" target="_blank" style={{ color: 'var(--primary)', textDecoration: 'underline' }}>Return & Refund Policy</a>.
                 </div>
 
                 <div className="d-flex gap-3 mt-5">
