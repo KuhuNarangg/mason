@@ -107,7 +107,7 @@
   /* Layout */
   --container-max: 1600px;
   --gutter: clamp(1.5rem, 5vw, 4rem);
-  --navbar-height: 68px;
+  --navbar-height: 85px;
 }
 
 /* ============================================================

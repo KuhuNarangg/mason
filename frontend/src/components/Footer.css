@@ -87,7 +87,6 @@
   align-items: center;
   gap: var(--space-6);
   padding-top: var(--space-8);
-  border-top: 1px solid var(--champagne);
 }
 
 .m-footer__copyright {

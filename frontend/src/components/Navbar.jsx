@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { ShoppingBag, Heart, User, Search, Menu, X, Bell, Package, LogOut, LayoutDashboard } from 'lucide-react';
+import { ShoppingBag, Heart, User, Search, Menu, X, Bell, Package, LogOut, LayoutDashboard, Sparkles, Scissors } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -68,10 +68,7 @@ const Navbar = () => {
               {mobileMenuOpen ? <X size={22} strokeWidth={1} /> : <Menu size={22} strokeWidth={1} />}
             </button>
             
-            {/* Logo — left side */}
-            <Link to="/" className="m-navbar__logo-wrap">
-              <img src={logoImg} alt="Mason" className="m-navbar__logo-img" />
-            </Link>
+            {/* Logo removed to keep only middle */}
 
             <nav className="m-navbar__nav desktop-only">
               <Link to="/category/all?type=dress" className="m-nav-link">Dresses</Link>
@@ -83,8 +80,11 @@ const Navbar = () => {
 
           {/* Center: Brand Name */}
           <div className="m-navbar__center">
-            <Link to="/" className="m-navbar__logo-text" style={{ textDecoration: 'none' }}>
-              MASON
+            <Link to="/" className="m-navbar__logo-text" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', whiteSpace: 'nowrap', gap: '10px' }}>
+              <img src="/owllogo%20-%20Edited.png" alt="Owl by Mason" style={{ height: '75px', width: 'auto', objectFit: 'contain' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                Owl Stitch <span style={{ fontSize: '0.45em', fontStyle: 'italic', opacity: 0.8, textTransform: 'none', fontWeight: 400 }}>by</span> Mason
+              </div>
             </Link>
           </div>
 
@@ -93,6 +93,10 @@ const Navbar = () => {
             <button className="btn-icon" onClick={() => setSearchOpen(!searchOpen)} aria-label="Search">
               <Search size={20} strokeWidth={1} />
             </button>
+            
+            <a href="/#customize" className="btn-icon desktop-only" aria-label="Customize Design" title="Customize Design">
+              <Sparkles size={20} strokeWidth={1} />
+            </a>
 
             {isAuth && (
               <div className="m-dropdown-wrap desktop-only">
@@ -168,9 +172,9 @@ const Navbar = () => {
 
         {/* Full-screen minimal search overlay */}
         <div className={`m-search-bar ${searchOpen ? 'open' : ''}`}>
-          <div className="container d-flex align-center justify-between h-100">
-            <div className="d-flex align-center gap-4 w-100">
-              <Search size={24} strokeWidth={1} className="text-muted" />
+          <div className="m-navbar__inner" style={{ display: 'flex', justifyContent: 'space-between', gap: '1.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
+              <Search size={22} strokeWidth={1} style={{ color: 'var(--ink-muted)' }} />
               <input
                 type="text"
                 placeholder="What are you looking for?"
@@ -181,8 +185,8 @@ const Navbar = () => {
                 autoFocus={searchOpen}
               />
             </div>
-            <button className="btn-icon" onClick={() => setSearchOpen(false)}>
-              <X size={28} strokeWidth={1} />
+            <button className="btn-icon" onClick={() => setSearchOpen(false)} style={{ padding: 0 }}>
+              <X size={26} strokeWidth={1} />
             </button>
           </div>
         </div>
@@ -192,7 +196,12 @@ const Navbar = () => {
       <div className={`m-mobile-veil ${mobileMenuOpen ? 'show' : ''}`} onClick={() => setMobileMenuOpen(false)} />
       <aside className={`m-mobile-menu ${mobileMenuOpen ? 'show' : ''}`}>
         <div className="m-mobile-menu__head">
-          <img src={logoImg} alt="Mason" className="m-mobile-menu__logo-img" />
+          <div style={{ fontSize: '1.2rem', fontFamily: 'var(--font-display)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <img src="/owllogo%20-%20Edited.png" alt="Owl by Mason" style={{ height: '55px', width: 'auto', objectFit: 'contain' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              Owl Stitch <span style={{ fontSize: '0.45em', fontStyle: 'italic', opacity: 0.8, textTransform: 'none', fontWeight: 400 }}>by</span> Mason
+            </div>
+          </div>
           <button className="btn-icon" onClick={() => setMobileMenuOpen(false)}>
             <X size={24} strokeWidth={1} />
           </button>

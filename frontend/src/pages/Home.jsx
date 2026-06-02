@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import api from '../utils/api';
 import ProductCard from '../components/ProductCard';
+import CustomizeSection from '../components/CustomizeSection';
 import './Home.css';
 
 const Home = () => {
@@ -138,7 +139,11 @@ const Home = () => {
         </div>
       </section>
 
-      {/* 2. NEW ARRIVALS (Horizontal Scroll) */}
+      <CustomizeSection />
+
+      {/* --- DESKTOP ONLY SECTIONS --- */}
+      <div className="desktop-only-sections">
+        {/* 2. NEW ARRIVALS (Horizontal Scroll) */}
       <section className="m-new-arrivals">
         <div className="container m-new-arrivals__header reveal-up">
           <div>
@@ -292,6 +297,66 @@ const Home = () => {
           </div>
         </div>
       </section>
+      </div> {/* End desktop-only-sections */}
+
+      {/* --- MOBILE ONLY SECTIONS --- */}
+      <div className="mobile-only-sections">
+        {/* 1. Initial Product Section (Trending) */}
+        <section className="m-trending pt-4 pb-4">
+          <div className="container m-trending__header">
+            <h2 className="m-section-title">Trending <em>Now</em></h2>
+          </div>
+          <div className="m-trending__scroll">
+            <div className="m-trending__track">
+              {loading ? (
+                <div className="m-loading-state"><div className="spinner" /></div>
+              ) : (
+                trending.map(product => (
+                  <div key={product._id} className="m-trending__item">
+                    <ProductCard product={product} />
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* 2. Full Width Banner */}
+        <div className="mobile-banner w-100">
+          <img src="/home4.jpg" alt="Campaign" style={{ width: '100%', height: 'auto', display: 'block' }} loading="lazy" />
+        </div>
+
+        {/* 3. New Arrivals Grid */}
+        <section className="mobile-new-arrivals pt-5 pb-5">
+          <div className="container text-center mb-4">
+            <span className="m-label">Just In</span>
+            <h2 className="m-section-title">New <em>Arrivals</em></h2>
+          </div>
+          <div className="container">
+            <div className="mobile-product-grid">
+              {newArrivals.slice(0, 8).map(product => (
+                <div key={product._id}>
+                  <ProductCard product={product} />
+                </div>
+              ))}
+            </div>
+            <div className="text-center mt-4 pt-3">
+              <Link to="/category/all?sort=newest" className="btn btn-outline" style={{ width: '100%' }}>
+                Show All Products
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* 4. Lifestyle Images */}
+        <section className="mobile-lifestyle-images pb-5">
+          <div className="container d-flex flex-col gap-3">
+            <img src="/home1.jpg" alt="Lifestyle" style={{ width: '100%', borderRadius: '8px' }} loading="lazy" />
+            <img src="/home2.jpg" alt="Lifestyle" style={{ width: '100%', borderRadius: '8px' }} loading="lazy" />
+            <img src="/home3.jpg" alt="Lifestyle" style={{ width: '100%', borderRadius: '8px' }} loading="lazy" />
+          </div>
+        </section>
+      </div>
 
       {/* 9. NEWSLETTER (Ultra Premium) — commented out, not needed right now */}
       {/* <section className="m-newsletter">

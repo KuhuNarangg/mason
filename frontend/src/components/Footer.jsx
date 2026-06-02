@@ -12,14 +12,14 @@ const Footer = () => {
           
           {/* Column 1: Brand */}
           <div className="m-footer__col m-footer__col--brand">
-            <Link to="/" className="m-footer__logo">
-              <img src="/logo2.png" alt="Mason" style={{ height: '65px', width: 'auto', objectFit: 'contain' }} />
+            <Link to="/" className="m-footer__logo" style={{ textDecoration: 'none', color: 'var(--ink)', fontSize: '2rem', fontFamily: 'var(--font-display)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              Owl Stitch <span style={{ fontSize: '0.45em', fontStyle: 'italic', opacity: 0.8, textTransform: 'none', fontWeight: 400 }}>by</span> Mason
             </Link>
             <p className="m-footer__desc">
               Where heritage meets contemporary grace. Uncompromising quality and elevated silhouettes designed for the modern woman.
             </p>
             <div className="m-footer__contact">
-              <span><Mail size={16} strokeWidth={1.5} /> customercare@mason.com</span>
+              <span><Mail size={16} strokeWidth={1.5} /> customercare@owlstitch.com</span>
               <span><Phone size={16} strokeWidth={1.5} /> +1 (800) 123-4567</span>
               <span><MapPin size={16} strokeWidth={1.5} /> 124 Luxury Ave, NY 10012</span>
             </div>
@@ -61,7 +61,7 @@ const Footer = () => {
 
         {/* Footer Bottom */}
         <div className="m-footer__bottom">
-          <p className="m-footer__copyright">&copy; {new Date().getFullYear()} House of Mason. All rights reserved.</p>
+          <p className="m-footer__copyright">&copy; {new Date().getFullYear()} Owl Stitch by Mason. All rights reserved.</p>
           
           <div className="m-footer__social">
             <a href="https://www.instagram.com/dimple.knp" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
@@ -77,7 +77,8 @@ const Footer = () => {
 
           <div className="m-footer__legal">
             <Link to="/privacy">Privacy Policy</Link>
-            <Link to="/terms">Terms of Service</Link>
+            <Link to="/t-and-c">Terms & Conditions</Link>
+            <Link to="/returns">Return & Refund</Link>
           </div>
         </div>
 

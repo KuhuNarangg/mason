@@ -1,7 +1,29 @@
 /* ============================================================
-   MASON — Ultra-Premium Home Page 
-   House of CB Inspired
+   MASON — Ultra-Premium Home CSS
    ============================================================ */
+
+.desktop-only-sections {
+  display: block;
+}
+
+.mobile-only-sections {
+  display: none;
+}
+
+.mobile-product-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .desktop-only-sections {
+    display: none !important;
+  }
+  .mobile-only-sections {
+    display: block !important;
+  }
+}
 
 .m-home {
   background: var(--ivory);
@@ -610,7 +632,7 @@
 .m-new-arrivals__header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: flex-start;
   margin-bottom: var(--space-10);
   padding: 0 var(--gutter);
 }
