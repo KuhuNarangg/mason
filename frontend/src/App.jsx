@@ -24,22 +24,31 @@ import TandC from './pages/policies/TandC';
 import TermsOfUse from './pages/policies/TermsOfUse';
 import TrackOrder from './pages/policies/TrackOrder';
 import Shipping from './pages/policies/Shipping';
+import Customization from './pages/Customization';
 import Returns from './pages/policies/Returns';
+import Privacy from './pages/policies/Privacy';
 import About from './pages/About';
 import SizeGuide from './pages/policies/SizeGuide';
 import GarmentCare from './pages/policies/GarmentCare';
 
 // Admin Components
-import AdminLayout from './components/AdminLayout';
-import Dashboard from './pages/admin/Dashboard';
-import ProductsManagement from './pages/admin/ProductsManagement';
-import ProductEdit from './pages/admin/ProductEdit';
-import OrdersManagement from './pages/admin/OrdersManagement';
-import CategoriesManagement from './pages/admin/CategoriesManagement';
-import UsersManagement from './pages/admin/UsersManagement';
-import UserDetail from './pages/admin/UserDetail';
-import CouponsManagement from './pages/admin/CouponsManagement';
-import AdminLogin from './pages/admin/AdminLogin';
+import { Suspense, lazy } from 'react';
+
+// Lazy load admin and vendor routes to prevent their CSS from leaking into the main app
+const AdminLayout = lazy(() => import('./components/AdminLayout'));
+const Dashboard = lazy(() => import('./pages/admin/Dashboard'));
+const ProductsManagement = lazy(() => import('./pages/admin/ProductsManagement'));
+const ProductEdit = lazy(() => import('./pages/admin/ProductEdit'));
+const OrdersManagement = lazy(() => import('./pages/admin/OrdersManagement'));
+const CategoriesManagement = lazy(() => import('./pages/admin/CategoriesManagement'));
+const UsersManagement = lazy(() => import('./pages/admin/UsersManagement'));
+const UserDetail = lazy(() => import('./pages/admin/UserDetail'));
+const CouponsManagement = lazy(() => import('./pages/admin/CouponsManagement'));
+const CustomizationsManagement = lazy(() => import('./pages/admin/CustomizationsManagement'));
+const AdminLogin = lazy(() => import('./pages/admin/AdminLogin'));
+
+const VendorLayout = lazy(() => import('./components/VendorLayout'));
+const VendorDashboard = lazy(() => import('./pages/vendor/VendorDashboard'));
 
 // Contexts
 import { CartProvider } from './context/CartContext';
@@ -66,6 +75,7 @@ const StorefrontLayout = () => {
           <Route path="/profile" element={<Profile />} />
           <Route path="/orders" element={<Orders />} />
           <Route path="/orders/:orderId" element={<Orders />} />
+          <Route path="/customisation" element={<Customization />} />
           
           {/* Policy Pages */}
           <Route path="/contact" element={<Contact />} />
@@ -75,6 +85,7 @@ const StorefrontLayout = () => {
           <Route path="/track-order" element={<TrackOrder />} />
           <Route path="/shipping" element={<Shipping />} />
           <Route path="/returns" element={<Returns />} />
+          <Route path="/privacy" element={<Privacy />} />
           <Route path="/about" element={<About />} />
           <Route path="/size-guide" element={<SizeGuide />} />
           <Route path="/care" element={<GarmentCare />} />
@@ -93,20 +104,39 @@ function App() {
         <NotificationProvider>
           <ScrollToTop />
           <Routes>
-            {/* Admin Login — outside the protected layout */}
-            <Route path="/admin/login" element={<AdminLogin />} />
+            {/* Admin Routes */}
+            <Route path="/admin/*" element={
+              <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading Admin...</div>}>
+                <Routes>
+                  <Route path="login" element={<AdminLogin />} />
+                  <Route path="" element={<AdminLayout />}>
+                    <Route index element={<Dashboard />} />
+                    <Route path="products" element={<ProductsManagement />} />
+                    <Route path="products/new" element={<ProductEdit />} />
+                    <Route path="products/edit/:id" element={<ProductEdit />} />
+                    <Route path="orders" element={<OrdersManagement />} />
+                    <Route path="categories" element={<CategoriesManagement />} />
+                    <Route path="users" element={<UsersManagement />} />
+                    <Route path="users/:id" element={<UserDetail />} />
+                    <Route path="coupons" element={<CouponsManagement />} />
+                    <Route path="customizations" element={<CustomizationsManagement />} />
+                  </Route>
+                </Routes>
+              </Suspense>
+            } />
 
-            {/* Admin Portal — requires admin role */}
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<Dashboard />} />
-              <Route path="products" element={<ProductsManagement />} />
-              <Route path="products/:id/edit" element={<ProductEdit />} />
-              <Route path="orders" element={<OrdersManagement />} />
-              <Route path="categories" element={<CategoriesManagement />} />
-              <Route path="coupons" element={<CouponsManagement />} />
-              <Route path="users" element={<UsersManagement />} />
-              <Route path="users/:id" element={<UserDetail />} />
-            </Route>
+            {/* Vendor Routes */}
+            <Route path="/vendor/*" element={
+              <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading Vendor Portal...</div>}>
+                <Routes>
+                  <Route element={<VendorLayout />}>
+                    <Route path="" element={<VendorDashboard />} />
+                    <Route path="orders" element={<OrdersManagement />} />
+                    <Route path="customizations" element={<CustomizationsManagement />} />
+                  </Route>
+                </Routes>
+              </Suspense>
+            } />
 
             {/* Main Storefront */}
             <Route path="/*" element={<StorefrontLayout />} />

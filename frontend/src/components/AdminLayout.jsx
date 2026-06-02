@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Navigate, NavLink, useLocation, Outlet } from 'react-router-dom';
 import {
   LayoutDashboard, Package, Users, ShoppingCart, LogOut,
-  Tags, Ticket, TrendingUp, Store, Menu, X,
+  Tags, Ticket, TrendingUp, Store, Menu, X, Scissors
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import '../pages/admin/admin-pages.css';
@@ -14,6 +14,7 @@ const navItems = [
   { name: 'Categories', path: '/admin/categories',  icon: Tags },
   { name: 'Coupons',    path: '/admin/coupons',      icon: Ticket },
   { name: 'Customers',  path: '/admin/users',        icon: Users },
+  { name: 'Customs',    path: '/admin/customizations', icon: Scissors },
 ];
 
 const AdminLayout = () => {
