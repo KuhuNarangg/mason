@@ -82,7 +82,7 @@ const Navbar = () => {
           <div className="m-navbar__center">
             <Link to="/" className="m-navbar__logo-text" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', whiteSpace: 'nowrap', gap: '0px' }}>
               <div style={{ width: '80px', height: '80px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
-                <img src="/owllogo%20-%20Edited.png" alt="Owl Logo" style={{ height: '100%', width: 'auto', objectFit: 'cover', objectPosition: 'left center', transform: 'scale(1.6)', transformOrigin: 'left center' }} />
+                <img src="/owlogofinal.png" alt="Owl Logo" style={{ height: '100%', width: 'auto', objectFit: 'cover', objectPosition: 'left center', transform: 'scale(1.6)', transformOrigin: 'left center' }} />
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '1.6rem', fontFamily: 'var(--font-heading)', color: 'var(--ink)', marginLeft: '-20px' }}>
                 <span style={{ fontSize: '0.45em', fontStyle: 'italic', opacity: 0.8, textTransform: 'none', fontWeight: 400, marginTop: '4px' }}>by</span> Mason
@@ -199,7 +199,7 @@ const Navbar = () => {
       <aside className={`m-mobile-menu ${mobileMenuOpen ? 'show' : ''}`}>
         <div className="m-mobile-menu__head">
           <Link to="/" onClick={() => setMobileMenuOpen(false)} style={{ textDecoration: 'none', color: 'inherit', fontSize: '1.2rem', fontFamily: 'var(--font-display)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <img src="/owllogo%20-%20Edited.png" alt="Owl Logo" style={{ height: '55px', width: 'auto', objectFit: 'contain', transform: 'scale(1.4)' }} />
+            <img src="/owlogofinal.png" alt="Owl Logo" style={{ height: '55px', width: 'auto', objectFit: 'contain', transform: 'scale(1.4)' }} />
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginLeft: '-10px' }}>
               <span style={{ fontSize: '0.45em', fontStyle: 'italic', opacity: 0.8, textTransform: 'none', fontWeight: 400 }}>by</span> Mason
             </div>
