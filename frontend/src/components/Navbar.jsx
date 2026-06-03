@@ -199,9 +199,9 @@ const Navbar = () => {
       <aside className={`m-mobile-menu ${mobileMenuOpen ? 'show' : ''}`}>
         <div className="m-mobile-menu__head">
           <div style={{ fontSize: '1.2rem', fontFamily: 'var(--font-display)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <img src="/owllogo%20-%20Edited.png" alt="Owl by Mason" style={{ height: '55px', width: 'auto', objectFit: 'contain' }} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              Owl Stitch <span style={{ fontSize: '0.45em', fontStyle: 'italic', opacity: 0.8, textTransform: 'none', fontWeight: 400 }}>by</span> Mason
+            <img src="/owllogo%20-%20Edited.png" alt="Owl Logo" style={{ height: '55px', width: 'auto', objectFit: 'contain', transform: 'scale(1.4)' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginLeft: '-10px' }}>
+              <span style={{ fontSize: '0.45em', fontStyle: 'italic', opacity: 0.8, textTransform: 'none', fontWeight: 400 }}>by</span> Mason
             </div>
           </div>
           <button className="btn-icon" onClick={() => setMobileMenuOpen(false)}>
@@ -214,6 +214,7 @@ const Navbar = () => {
           <Link to="/category/all?type=trouser" className="m-mobile-link" onClick={() => setMobileMenuOpen(false)}>Trousers</Link>
           <Link to="/category/all?type=ethnic" className="m-mobile-link" onClick={() => setMobileMenuOpen(false)}>Ethnics</Link>
           <Link to="/category/all?type=westernwear" className="m-mobile-link" onClick={() => setMobileMenuOpen(false)}>Westernwear</Link>
+          <Link to="/customization" className="m-mobile-link" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--rose-gold-dark)', fontWeight: 600 }}>Customise</Link>
         </nav>
         
         <div className="m-mobile-menu__footer">
