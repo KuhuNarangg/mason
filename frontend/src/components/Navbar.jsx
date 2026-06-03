@@ -198,12 +198,12 @@ const Navbar = () => {
       <div className={`m-mobile-veil ${mobileMenuOpen ? 'show' : ''}`} onClick={() => setMobileMenuOpen(false)} />
       <aside className={`m-mobile-menu ${mobileMenuOpen ? 'show' : ''}`}>
         <div className="m-mobile-menu__head">
-          <div style={{ fontSize: '1.2rem', fontFamily: 'var(--font-display)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <Link to="/" onClick={() => setMobileMenuOpen(false)} style={{ textDecoration: 'none', color: 'inherit', fontSize: '1.2rem', fontFamily: 'var(--font-display)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '10px' }}>
             <img src="/owllogo%20-%20Edited.png" alt="Owl Logo" style={{ height: '55px', width: 'auto', objectFit: 'contain', transform: 'scale(1.4)' }} />
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginLeft: '-10px' }}>
               <span style={{ fontSize: '0.45em', fontStyle: 'italic', opacity: 0.8, textTransform: 'none', fontWeight: 400 }}>by</span> Mason
             </div>
-          </div>
+          </Link>
           <button className="btn-icon" onClick={() => setMobileMenuOpen(false)}>
             <X size={24} strokeWidth={1} />
           </button>
