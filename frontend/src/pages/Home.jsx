@@ -139,8 +139,6 @@ const Home = () => {
         </div>
       </section>
 
-      <CustomizeSection />
-
       {/* --- DESKTOP ONLY SECTIONS --- */}
       <div className="desktop-only-sections">
         {/* 2. NEW ARRIVALS (Horizontal Scroll) */}
@@ -327,8 +325,8 @@ const Home = () => {
         </div>
 
         {/* 3. New Arrivals Grid */}
-        <section className="mobile-new-arrivals pt-5 pb-5">
-          <div className="container text-center mb-4">
+        <section className="mobile-new-arrivals" style={{ paddingTop: '4rem', paddingBottom: '4rem' }}>
+          <div className="container text-center mb-5">
             <span className="m-label">Just In</span>
             <h2 className="m-section-title">New <em>Arrivals</em></h2>
           </div>
@@ -340,7 +338,7 @@ const Home = () => {
                 </div>
               ))}
             </div>
-            <div className="text-center mt-4 pt-3">
+            <div className="text-center" style={{ marginTop: '3rem', marginBottom: '4rem' }}>
               <Link to="/category/all?sort=newest" className="btn btn-outline" style={{ width: '100%' }}>
                 Show All Products
               </Link>
@@ -349,14 +347,16 @@ const Home = () => {
         </section>
 
         {/* 4. Lifestyle Images */}
-        <section className="mobile-lifestyle-images pb-5">
-          <div className="container d-flex flex-col gap-3">
+        <section className="mobile-lifestyle-images pb-5" style={{ marginTop: '2rem' }}>
+          <div className="container" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <img src="/home1.jpg" alt="Lifestyle" style={{ width: '100%', borderRadius: '8px' }} loading="lazy" />
             <img src="/home2.jpg" alt="Lifestyle" style={{ width: '100%', borderRadius: '8px' }} loading="lazy" />
             <img src="/home3.jpg" alt="Lifestyle" style={{ width: '100%', borderRadius: '8px' }} loading="lazy" />
           </div>
         </section>
       </div>
+
+      <CustomizeSection />
 
       {/* 9. NEWSLETTER (Ultra Premium) — commented out, not needed right now */}
       {/* <section className="m-newsletter">

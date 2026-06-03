@@ -6,7 +6,7 @@
 /* ── Page Shell ── */
 .cust-page {
   min-height: calc(100vh - var(--navbar-height));
-  background: linear-gradient(160deg, #fdf6f0 0%, #fce4ec 30%, #f3e5f5 60%, #e8eaf6 100%);
+  background: var(--ivory);
   padding: var(--space-8) var(--gutter) var(--space-16);
   position: relative;
   overflow: hidden;
@@ -143,7 +143,7 @@
 }
 
 .cust-step__line--filled {
-  background: linear-gradient(90deg, var(--rose-gold), #b57edc);
+  background: var(--rose-gold);
 }
 
 /* ── Card Container ── */
@@ -230,7 +230,7 @@
 
 .cust-fabric-chip--selected {
   border-color: var(--rose-gold-dark);
-  background: linear-gradient(135deg, #fff5f0, #fce4ec);
+  background: var(--cream);
   box-shadow: 0 4px 16px rgba(192, 138, 116, 0.25);
   transform: scale(1.05);
 }
@@ -409,9 +409,8 @@
   pointer-events: none;
 }
 
-/* ── Summary Preview ── */
 .cust-summary {
-  background: linear-gradient(135deg, #fef9f5, #fce4ec88);
+  background: var(--cream);
   border: 1px dashed var(--rose-gold);
   border-radius: 16px;
   padding: 16px 20px;
@@ -466,14 +465,15 @@
 }
 
 .cust-btn--primary {
-  background: linear-gradient(135deg, var(--rose-gold), #b57edc);
+  background: var(--ink);
   color: white;
-  box-shadow: 0 4px 16px rgba(192, 138, 116, 0.35);
+  box-shadow: 0 4px 16px rgba(44, 36, 33, 0.15);
 }
 
 .cust-btn--primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(192, 138, 116, 0.45);
+  background: var(--rose-gold-dark);
+  box-shadow: 0 8px 24px rgba(192, 138, 116, 0.25);
 }
 
 .cust-btn--primary:disabled {
@@ -482,16 +482,17 @@
 }
 
 .cust-btn--submit {
-  background: linear-gradient(135deg, #2d6a4f, #40916c);
+  background: var(--ink);
   color: white;
-  box-shadow: 0 4px 16px rgba(45, 106, 79, 0.35);
+  box-shadow: 0 4px 16px rgba(44, 36, 33, 0.15);
   font-size: 1.5rem;
   padding: 14px 32px;
 }
 
 .cust-btn--submit:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(45, 106, 79, 0.45);
+  background: var(--rose-gold-dark);
+  box-shadow: 0 8px 24px rgba(192, 138, 116, 0.25);
 }
 
 .cust-btn--submit:disabled {
@@ -573,7 +574,7 @@
 }
 
 .cust-success-icon {
-  color: #2d6a4f;
+  color: var(--rose-gold-dark);
   margin-bottom: var(--space-4);
   animation: scaleIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }

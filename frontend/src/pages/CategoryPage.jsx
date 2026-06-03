@@ -13,6 +13,7 @@ const CategoryPage = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sort, setSort] = useState('newest');
+  const [showFiltersMobile, setShowFiltersMobile] = useState(false);
   
   // Filter States
   const [selectedTypes, setSelectedTypes] = useState(typeParam ? [typeParam] : []);
@@ -97,8 +98,16 @@ const CategoryPage = () => {
       </div>
 
       <div className="category-layout">
+        {/* Mobile Filter Toggle */}
+        <button 
+          className="mobile-filter-toggle" 
+          onClick={() => setShowFiltersMobile(!showFiltersMobile)}
+        >
+          {showFiltersMobile ? 'Hide Filters' : 'Show Filters'}
+        </button>
+
         {/* Sidebar Filters */}
-        <aside className="filters-sidebar reveal active">
+        <aside className={`filters-sidebar reveal active ${showFiltersMobile ? 'open-mobile' : ''}`}>
 
           <div className="filter-group mb-5">
             <h3 className="filter-title mb-3 font-heading">Sub Categories</h3>

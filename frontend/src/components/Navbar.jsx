@@ -80,10 +80,12 @@ const Navbar = () => {
 
           {/* Center: Brand Name */}
           <div className="m-navbar__center">
-            <Link to="/" className="m-navbar__logo-text" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', whiteSpace: 'nowrap', gap: '10px' }}>
-              <img src="/owllogo%20-%20Edited.png" alt="Owl by Mason" style={{ height: '75px', width: 'auto', objectFit: 'contain' }} />
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                Owl Stitch <span style={{ fontSize: '0.45em', fontStyle: 'italic', opacity: 0.8, textTransform: 'none', fontWeight: 400 }}>by</span> Mason
+            <Link to="/" className="m-navbar__logo-text" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', whiteSpace: 'nowrap', gap: '0px' }}>
+              <div style={{ width: '80px', height: '80px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
+                <img src="/owllogo%20-%20Edited.png" alt="Owl Logo" style={{ height: '100%', width: 'auto', objectFit: 'cover', objectPosition: 'left center', transform: 'scale(1.6)', transformOrigin: 'left center' }} />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '1.6rem', fontFamily: 'var(--font-heading)', color: 'var(--ink)', marginLeft: '-20px' }}>
+                <span style={{ fontSize: '0.45em', fontStyle: 'italic', opacity: 0.8, textTransform: 'none', fontWeight: 400, marginTop: '4px' }}>by</span> Mason
               </div>
             </Link>
           </div>
