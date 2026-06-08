@@ -93,18 +93,7 @@ const AdminLayout = () => {
           ))}
         </nav>
 
-        {/* Back to store */}
-        <div style={{ padding: '0 1rem 0.5rem' }}>
-          <a
-            href="/"
-            className="sidebar-nav-item"
-            style={{ textDecoration: 'none' }}
-            title="Back to Store"
-          >
-            <Store size={16} strokeWidth={1.75} />
-            <span className="nav-label">Back to Store</span>
-          </a>
-        </div>
+
 
         {/* User footer */}
         <div className="sidebar-footer">
@@ -115,7 +104,10 @@ const AdminLayout = () => {
               <div className="sidebar-user-role">{user?.role}</div>
             </div>
             <button
-              onClick={logout}
+              onClick={() => {
+                logout();
+                window.location.href = '/';
+              }}
               title="Logout"
               className="sidebar-logout-btn"
               onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}

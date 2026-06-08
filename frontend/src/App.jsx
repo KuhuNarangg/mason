@@ -45,7 +45,6 @@ const UsersManagement = lazy(() => import('./pages/admin/UsersManagement'));
 const UserDetail = lazy(() => import('./pages/admin/UserDetail'));
 const CouponsManagement = lazy(() => import('./pages/admin/CouponsManagement'));
 const CustomizationsManagement = lazy(() => import('./pages/admin/CustomizationsManagement'));
-const AdminLogin = lazy(() => import('./pages/admin/AdminLogin'));
 
 const VendorLayout = lazy(() => import('./components/VendorLayout'));
 const VendorDashboard = lazy(() => import('./pages/vendor/VendorDashboard'));
@@ -108,7 +107,6 @@ function App() {
             <Route path="/admin/*" element={
               <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading Admin...</div>}>
                 <Routes>
-                  <Route path="login" element={<AdminLogin />} />
                   <Route path="" element={<AdminLayout />}>
                     <Route index element={<Dashboard />} />
                     <Route path="products" element={<ProductsManagement />} />
@@ -132,6 +130,9 @@ function App() {
                   <Route element={<VendorLayout />}>
                     <Route path="" element={<VendorDashboard />} />
                     <Route path="orders" element={<OrdersManagement />} />
+                    <Route path="products" element={<ProductsManagement />} />
+                    <Route path="products/new" element={<ProductEdit />} />
+                    <Route path="products/edit/:id" element={<ProductEdit />} />
                     <Route path="customizations" element={<CustomizationsManagement />} />
                   </Route>
                 </Routes>

@@ -1,75 +1,145 @@
-import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Navigate, NavLink, useLocation, Outlet } from 'react-router-dom';
+import {
+  LayoutDashboard, Package, LogOut, Scissors, TrendingUp, Menu, X
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, LayoutDashboard, Package, ArrowLeft, Scissors } from 'lucide-react';
-import "../pages/admin/admin-pages.css"; // Reuse admin styling for consistency
+import '../pages/admin/admin-pages.css';
+
+const navItems = [
+  { name: 'Dashboard', path: '/vendor', icon: LayoutDashboard, end: true },
+  { name: 'Orders', path: '/vendor/orders', icon: Package },
+  { name: 'Products', path: '/vendor/products', icon: Package },
+  { name: 'Customs', path: '/vendor/customizations', icon: Scissors }
+];
 
 const VendorLayout = () => {
-  const { logout, user } = useAuth();
-  const navigate = useNavigate();
+  const { isAuth, user, logout } = useAuth();
   const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Close sidebar whenever the route changes (mobile nav)
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
+
+  // Prevent body scroll when mobile sidebar is open
+  useEffect(() => {
+    document.body.style.overflow = sidebarOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [sidebarOpen]);
+
+  if (!isAuth || user?.role !== 'vendor') {
+    return <Navigate to="/login" replace />;
+  }
+
+  const initials = user?.name
+    ? user.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
+    : 'VD';
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    window.location.href = '/';
   };
-
-  const navItems = [
-    { name: 'Dashboard', path: '/vendor', icon: <LayoutDashboard size={20} /> },
-    { name: 'Orders', path: '/vendor/orders', icon: <Package size={20} /> },
-    { name: 'Customs', path: '/vendor/customizations', icon: <Scissors size={20} /> }
-  ];
 
   return (
     <div className="admin-layout">
-      {/* Sidebar */}
-      <aside className="admin-sidebar">
-        <div className="admin-sidebar-header">
-          <h2>Vendor Portal</h2>
-          <span className="admin-role-badge">Vendor</span>
+      {/* ── Mobile overlay ── */}
+      {sidebarOpen && (
+        <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />
+      )}
+
+      {/* ── Sidebar ── */}
+      <aside className={`admin-sidebar${sidebarOpen ? ' sidebar-open' : ''}`}>
+        {/* Mobile close button */}
+        <button
+          className="sidebar-close-btn"
+          onClick={() => setSidebarOpen(false)}
+          aria-label="Close menu"
+        >
+          <X size={20} />
+        </button>
+
+        {/* Logo */}
+        <div className="sidebar-logo">
+          <div className="sidebar-logo-mark">
+            <TrendingUp size={18} color="white" strokeWidth={2} />
+          </div>
+          <div className="sidebar-logo-text-wrap">
+            <div className="sidebar-logo-text">MASON</div>
+            <div className="sidebar-logo-sub">Vendor Portal</div>
+          </div>
         </div>
 
-        <nav className="admin-nav">
-          {navItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`admin-nav-item ${location.pathname === item.path ? 'active' : ''}`}
+        {/* Section label */}
+        <div className="sidebar-section-label">Main Menu</div>
+
+        {/* Nav */}
+        <nav className="sidebar-nav">
+          {navItems.map(({ name, path, icon: Icon, end }) => (
+            <NavLink
+              key={name}
+              to={path}
+              end={end}
+              className={({ isActive }) =>
+                `sidebar-nav-item${isActive ? ' active' : ''}`
+              }
+              title={name}
             >
-              {item.icon}
-              {item.name}
-            </Link>
+              <Icon size={18} strokeWidth={1.75} />
+              <span className="nav-label">{name}</span>
+            </NavLink>
           ))}
         </nav>
 
-        <div className="admin-sidebar-footer">
-          <div className="admin-user-info">
-            <div className="admin-avatar">V</div>
-            <div className="admin-user-details">
-              <span className="admin-name">{user?.name || 'Vendor'}</span>
-              <span className="admin-email">{user?.email || 'vendor@mason.com'}</span>
+        {/* User footer */}
+        <div className="sidebar-footer">
+          <div className="sidebar-user">
+            <div className="sidebar-avatar">{initials}</div>
+            <div className="sidebar-user-info">
+              <div className="sidebar-user-name">{user?.name || 'Vendor'}</div>
+              <div className="sidebar-user-role">{user?.role}</div>
             </div>
+            <button
+              onClick={handleLogout}
+              title="Logout"
+              className="sidebar-logout-btn"
+              onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
+              onMouseLeave={e => e.currentTarget.style.color = '#475569'}
+            >
+              <LogOut size={16} />
+            </button>
           </div>
-          <button onClick={handleLogout} className="admin-logout-btn">
-            <LogOut size={18} />
-            Logout
-          </button>
         </div>
       </aside>
 
-      {/* Main Content */}
+      {/* ── Main ── */}
       <main className="admin-main">
-        <header className="admin-topbar">
-          <div className="admin-topbar-left">
-            <Link to="/" className="back-to-store">
-              <ArrowLeft size={18} /> Back to Store
-            </Link>
+        {/* Mobile topbar */}
+        <div className="admin-mobile-topbar">
+          <button
+            className="mobile-hamburger"
+            onClick={() => setSidebarOpen(true)}
+            aria-label="Open menu"
+          >
+            <Menu size={22} />
+          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{
+              width: 28, height: 28, background: 'linear-gradient(135deg,#C08A74,#A36B56)',
+              borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <TrendingUp size={14} color="white" />
+            </div>
+            <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#0f172a', letterSpacing: '1px' }}>
+              VENDOR
+            </span>
           </div>
-          <div className="admin-topbar-right">
-            <span>Welcome back, {user?.name}</span>
-          </div>
-        </header>
+          {/* right spacer to keep logo centred */}
+          <div style={{ width: 38 }} />
+        </div>
 
-        <div className="admin-content-area">
+        <div className="admin-content">
           <Outlet />
         </div>
       </main>
