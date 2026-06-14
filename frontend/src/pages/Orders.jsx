@@ -14,6 +14,8 @@ const Orders = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [orders, setOrders] = useState([]);
+  const [customRequests, setCustomRequests] = useState([]);
+  const [activeTab, setActiveTab] = useState('regular'); // 'regular' or 'custom'
   const [loading, setLoading] = useState(true);
   const [payingOrderId, setPayingOrderId] = useState(null);
   const [expandedOrderId, setExpandedOrderId] = useState(null);
@@ -50,6 +52,18 @@ const Orders = () => {
     try {
       const { data } = await api.get('/orders/my');
       setOrders(data.orders);
+
+      try {
+        const customRes = await api.get('/customizations/general/my-requests');
+        if (customRes.data.success) {
+          setCustomRequests(customRes.data.requests);
+          if (data.orders.length === 0 && customRes.data.requests.length > 0) {
+            setActiveTab('custom');
+          }
+        }
+      } catch (customErr) {
+        console.error('Failed to fetch custom requests:', customErr);
+      }
 
       if (orderId) {
         setExpandedOrderId(orderId);
@@ -236,7 +250,7 @@ const Orders = () => {
     );
   }
 
-  if (orders.length === 0) {
+  if (orders.length === 0 && customRequests.length === 0) {
     return (
       <div style={{
         minHeight: '100vh',
@@ -311,10 +325,51 @@ const Orders = () => {
           </div>
         </div>
 
-        <div className="orders-list">
-          {orders.map(order => {
-            const status = getStatusInfo(order.status);
-            const isExpanded = expandedOrderId === order._id;
+        {/* Tab Selection */}
+        <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #e0e0e0', marginBottom: '2rem', paddingBottom: '0.5rem' }}>
+          <button 
+            onClick={() => setActiveTab('regular')}
+            style={{
+              background: 'none',
+              border: 'none',
+              borderBottom: activeTab === 'regular' ? '2.5px solid var(--rose-gold-dark, #C08A74)' : '2.5px solid transparent',
+              color: activeTab === 'regular' ? 'var(--rose-gold-dark, #C08A74)' : '#666',
+              fontWeight: 700,
+              fontSize: '0.95rem',
+              padding: '0.5rem 1.25rem',
+              cursor: 'pointer',
+              textTransform: 'uppercase',
+              letterSpacing: '1px',
+              transition: 'all 0.2s'
+            }}
+          >
+            Regular Orders ({orders.length})
+          </button>
+          <button 
+            onClick={() => setActiveTab('custom')}
+            style={{
+              background: 'none',
+              border: 'none',
+              borderBottom: activeTab === 'custom' ? '2.5px solid var(--rose-gold-dark, #C08A74)' : '2.5px solid transparent',
+              color: activeTab === 'custom' ? 'var(--rose-gold-dark, #C08A74)' : '#666',
+              fontWeight: 700,
+              fontSize: '0.95rem',
+              padding: '0.5rem 1.25rem',
+              cursor: 'pointer',
+              textTransform: 'uppercase',
+              letterSpacing: '1px',
+              transition: 'all 0.2s'
+            }}
+          >
+            Custom Designs ({customRequests.length})
+          </button>
+        </div>
+
+        {activeTab === 'regular' && (
+          <div className="orders-list">
+            {orders.map(order => {
+              const status = getStatusInfo(order.status);
+              const isExpanded = expandedOrderId === order._id;
 
             return (
               <div key={order._id} className={`order-card-v2 mb-4 ${isExpanded ? 'expanded' : ''}`}>
@@ -557,6 +612,105 @@ const Orders = () => {
             );
           })}
         </div>
+        )}
+
+        {activeTab === 'custom' && (
+          <div className="custom-requests-list">
+            {customRequests.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '4rem 2rem', background: 'white', borderRadius: '16px', border: '1px dashed #ddd', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+                <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>✨</div>
+                <h3 style={{ fontFamily: 'var(--font-heading, serif)', fontWeight: 700, margin: '0 0 0.5rem 0' }}>No Bespoke Designs Yet</h3>
+                <p style={{ color: '#888', margin: '0 0 1.5rem 0', fontSize: '0.9rem' }}>Collaborate with our master tailors to design your own custom outfit.</p>
+                <Link to="/customisation" className="btn-action-v2" style={{ display: 'inline-flex', background: '#2c2c2c', color: 'white', borderColor: '#2c2c2c', padding: '12px 24px', textDecoration: 'none', borderRadius: '8px' }}>
+                  Design Dream Outfit
+                </Link>
+              </div>
+            ) : (
+              customRequests.map(req => {
+                let statusLabel = req.status;
+                let statusColor = '#f59e0b';
+                
+                if (req.status === 'pending') {
+                  statusLabel = 'Pending';
+                  statusColor = '#f59e0b';
+                } else if (req.status === 'approved') {
+                  statusLabel = 'Approved';
+                  statusColor = '#10b981';
+                } else if (req.status === 'disapproved' || req.status === 'rejected') {
+                  statusLabel = 'Disapproved';
+                  statusColor = '#ef4444';
+                } else if (req.status === 'quoted') {
+                  statusLabel = 'Quoted';
+                  statusColor = '#3b82f6';
+                } else if (req.status === 'in-progress') {
+                  statusLabel = 'In Progress';
+                  statusColor = '#8b5cf6';
+                } else if (req.status === 'completed') {
+                  statusLabel = 'Completed';
+                  statusColor = '#10b981';
+                }
+
+                return (
+                  <div key={req._id} className="order-card-v2 mb-4 p-4" style={{ border: '1px solid #eee', background: 'white' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f0f0f0', paddingBottom: '1rem', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '1rem' }}>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <span style={{ fontSize: '1.25rem' }}>✨</span>
+                          <h4 className="m-0 font-bold" style={{ fontFamily: 'var(--font-heading, serif)', fontSize: '1.15rem' }}>Bespoke Custom Dress Request</h4>
+                        </div>
+                        <span className="tiny-label" style={{ display: 'block', marginTop: '0.25rem' }}>
+                          Submitted on {new Date(req.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        </span>
+                      </div>
+                      
+                      <div className="status-pill-v2" style={{ '--status-color': statusColor }}>
+                        <span>{statusLabel.toUpperCase()}</span>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
+                      <div>
+                        <h5 className="section-title mb-2" style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px', color: '#888' }}>Design Details</h5>
+                        <div style={{ background: '#faf9f7', padding: '1rem', borderRadius: '8px', minHeight: '100px' }}>
+                          <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem' }}><strong>Fabric:</strong> {req.fabric ? req.fabric.charAt(0).toUpperCase() + req.fabric.slice(1) : '-'}</p>
+                          <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem' }}><strong>Color:</strong> {req.color}</p>
+                          <p style={{ margin: '0', color: '#555', fontStyle: 'italic', fontSize: '0.85rem', lineHeight: '1.4' }}>"{req.notes || 'No design notes provided.'}"</p>
+                        </div>
+                      </div>
+
+                      <div>
+                        <h5 className="section-title mb-2" style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px', color: '#888' }}>Measurements (Inches)</h5>
+                        <div style={{ background: '#faf9f7', padding: '1rem', borderRadius: '8px', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem', minHeight: '100px', fontSize: '0.9rem' }}>
+                          <div><strong>Bust:</strong> {req.measurements?.bust ? `${req.measurements.bust}"` : '-'}</div>
+                          <div><strong>Waist:</strong> {req.measurements?.waist ? `${req.measurements.waist}"` : '-'}</div>
+                          <div><strong>Hips:</strong> {req.measurements?.hips ? `${req.measurements.hips}"` : '-'}</div>
+                          <div><strong>Length:</strong> {req.measurements?.length ? `${req.measurements.length}"` : '-'}</div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <h5 className="section-title mb-2" style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px', color: '#888' }}>Status & Pricing</h5>
+                        <div style={{ background: '#faf9f7', padding: '1rem', borderRadius: '8px', display: 'flex', flexDirection: 'column', minHeight: '100px', fontSize: '0.9rem' }}>
+                          <p style={{ margin: '0 0 0.5rem 0' }}>
+                            <strong>Price Quote:</strong> {req.priceQuote ? formatPrice(req.priceQuote) : 'Awaiting Quote'}
+                          </p>
+                          {req.priceQuote > 0 && (
+                            <p style={{ margin: '0 0 0.5rem 0' }}>
+                              <strong>Payment Status:</strong> <span style={{ color: req.paymentStatus === 'paid' ? 'green' : '#f59e0b', fontWeight: 600 }}>{req.paymentStatus.toUpperCase()}</span>
+                            </p>
+                          )}
+                          <div style={{ fontSize: '0.75rem', color: '#555', marginTop: 'auto', background: '#eef2ff', padding: '8px', borderRadius: '6px', border: '1px solid #e0e7ff', lineHeight: 1.4 }}>
+                            💬 Our master tailors will contact you directly at your email/phone to discuss details.
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        )}
       </div>
 
       {/* Review Modal */}

@@ -18,9 +18,11 @@ const {
   getVendorCustomAnalytics,
   getAdminOverview,
   getAdminVendorPerformance,
-  resolveDispute
+  resolveDispute,
+  getAllRequests,
+  updateRequestStatus
 } = require('../controllers/customizationController');
-const { protect, adminOnly, approvedVendor } = require('../middleware/auth');
+const { protect, adminOnly, adminOrVendor, approvedVendor } = require('../middleware/auth');
 
 /* ── General Bespoke Design Routes ─────────────────────────── */
 // (used by the "Design Your Dream Outfit" customization page —
@@ -34,6 +36,12 @@ router.get('/general/my-requests', protect, getMyGeneralRequests);
 
 // Admin: list all general bespoke design requests
 router.get('/general/admin', protect, adminOnly, getAllGeneralRequests);
+
+// Get all general requests (for admin/vendor panel)
+router.get('/', protect, adminOrVendor, getAllRequests);
+
+// Update status of general request (for admin/vendor panel)
+router.put('/:id/status', protect, adminOrVendor, updateRequestStatus);
 
 
 /* ── Customer Routes ────────────────────────────────────────── */

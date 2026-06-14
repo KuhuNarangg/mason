@@ -710,6 +710,50 @@ const resolveDispute = asyncHandler(async (req, res) => {
   res.json({ success: true, message: `Dispute resolved as ${resolution}`, request });
 });
 
+// @desc    Get all general bespoke customization requests (accessible by admin and vendor)
+// @route   GET /api/v1/customizations
+// @access  Private (Admin/Vendor)
+const getAllRequests = asyncHandler(async (req, res) => {
+  const requests = await Customization.find({})
+    .populate('user', 'name email phone')
+    .sort({ createdAt: -1 });
+
+  res.json({ success: true, customizations: requests });
+});
+
+// @desc    Update a general bespoke request status/quote (accessible by admin and vendor)
+// @route   PUT /api/v1/customizations/:id/status
+// @access  Private (Admin/Vendor)
+const updateRequestStatus = asyncHandler(async (req, res) => {
+  const { status, priceQuote, paymentStatus } = req.body;
+
+  const customization = await Customization.findById(req.params.id);
+  if (!customization) {
+    res.status(404);
+    throw new Error('Customization request not found');
+  }
+
+  if (status !== undefined) customization.status = status;
+  if (priceQuote !== undefined) customization.priceQuote = priceQuote;
+  if (paymentStatus !== undefined) customization.paymentStatus = paymentStatus;
+
+  const updated = await customization.save();
+
+  // Populate user info for frontend response consistency
+  const populated = await Customization.findById(updated._id).populate('user', 'name email phone');
+
+  // Notify customer of update
+  await createNotification({
+    user: customization.user,
+    title: 'Customization Request Updated ✂️',
+    message: `Your custom design status is now "${status || customization.status}".`,
+    link: '/profile',
+    type: 'custom_order'
+  });
+
+  res.json({ success: true, customization: populated });
+});
+
 module.exports = {
   createGeneralRequest,
   getMyGeneralRequests,
@@ -728,5 +772,7 @@ module.exports = {
   getVendorCustomAnalytics,
   getAdminOverview,
   getAdminVendorPerformance,
-  resolveDispute
+  resolveDispute,
+  getAllRequests,
+  updateRequestStatus
 };

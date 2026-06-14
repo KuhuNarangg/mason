@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import './CustomizationsManagement.css'; // We'll just reuse standard admin table styles or make a simple one
 
 const CustomizationsManagement = () => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -14,7 +14,7 @@ const CustomizationsManagement = () => {
   const fetchRequests = async () => {
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/customizations`, {
-        headers: { Authorization: `Bearer ${user.token}` }
+        headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
       if (data.success) {
@@ -44,7 +44,7 @@ const CustomizationsManagement = () => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${user.token}`
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify(payload)
       });
@@ -142,6 +142,8 @@ const CustomizationsManagement = () => {
                       style={{ padding: '4px', fontSize: '12px' }}
                     >
                       <option value="pending">Pending</option>
+                      <option value="approved">Approved</option>
+                      <option value="disapproved">Disapproved</option>
                       <option value="quoted">Quoted (Awaiting Payment)</option>
                       <option value="in-progress">In Progress</option>
                       <option value="completed">Completed</option>

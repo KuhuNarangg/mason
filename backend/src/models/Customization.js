@@ -26,7 +26,7 @@ const customizationSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'quoted', 'in-progress', 'completed', 'rejected'],
+    enum: ['pending', 'approved', 'disapproved', 'quoted', 'in-progress', 'completed', 'rejected'],
     default: 'pending'
   },
   priceQuote: {
