@@ -51,8 +51,28 @@ const allowedOrigins = [
   'https://owlstitch.com', 'https://www.owlstitch.com',
   'http://owlstitch.com', 'http://www.owlstitch.com',
   'https://owlstitch.in', 'https://www.owlstitch.in',
-  'http://owlstitch.in', 'http://www.owlstitch.in'
+  'http://owlstitch.in', 'http://www.owlstitch.in',
+  'https://mason-jade.vercel.app',
+  'https://mason-iota-orcin.vercel.app'
 ];
+
+if (process.env.FRONTEND_URL) {
+  process.env.FRONTEND_URL.split(',').forEach(url => {
+    const trimmed = url.trim();
+    if (trimmed && !allowedOrigins.includes(trimmed)) {
+      allowedOrigins.push(trimmed);
+    }
+  });
+}
+
+if (process.env.ADMIN_URL) {
+  process.env.ADMIN_URL.split(',').forEach(url => {
+    const trimmed = url.trim();
+    if (trimmed && !allowedOrigins.includes(trimmed)) {
+      allowedOrigins.push(trimmed);
+    }
+  });
+}
 
 app.use(cors({
   origin: function (origin, callback) {
