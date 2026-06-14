@@ -29,7 +29,7 @@ const Login = () => {
         navigate('/admin');
       } else if (data.user.role === 'vendor') {
         setAuthUser(data.token, data.user);
-        navigate('/vendor');
+        navigate(data.user.vendorStatus === 'approved' ? '/vendor' : '/vendor-pending');
       } else {
         setAuthUser(data.token, data.user);
         navigate('/');
@@ -115,6 +115,9 @@ const Login = () => {
           <p className="auth-footer">
             Don't have an account? <Link to="/register">Create an account</Link>
           </p>
+          {/* <p className="auth-footer">
+            Want to sell on Mason? <Link to="/vendor-register">Register as a vendor</Link>
+          </p> */}
         </div>
       </div>
     </div>

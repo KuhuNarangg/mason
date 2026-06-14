@@ -27,7 +27,7 @@ const colorPalette = [
 ];
 
 const Customization = () => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const navigate = useNavigate();
 
   const [currentStep, setCurrentStep] = useState(0);
@@ -85,20 +85,23 @@ const Customization = () => {
         notes: formData.notes
       };
 
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/customizations`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/customizations/general`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${user.token}`
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify(payload)
       });
       const data = await res.json();
       if (data.success) {
         setSuccess(true);
+      } else {
+        alert(data.message || 'Something went wrong. Please try again.');
       }
     } catch (error) {
       console.error(error);
+      alert('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }

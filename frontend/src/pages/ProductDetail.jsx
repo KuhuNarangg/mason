@@ -185,7 +185,7 @@ const ProductDetail = () => {
             ))}
           </div>
           <div className="main-image-wrap">
-            <img src={displayImages[activeImage] || displayImages[0] || 'https://via.placeholder.com/400?text=No+Image'} alt={product.name} className="main-image" />
+            <img src={displayImages[activeImage] || displayImages[0] || 'https://placehold.co/400?text=No+Image'} alt={product.name} className="main-image" />
           </div>
         </div>
 

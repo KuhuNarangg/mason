@@ -91,7 +91,7 @@ const Wishlist = () => {
           return (
             <div key={product._id} className="wishlist-card">
               <Link to={`/product/${product.slug}`}>
-                <img src={product.images?.[0] || 'https://via.placeholder.com/200?text=No+Image'} alt={product.name} className="wishlist-card-img" />
+                <img src={product.images?.[0] || 'https://placehold.co/200?text=No+Image'} alt={product.name} className="wishlist-card-img" />
               </Link>
               <div className="wishlist-card-info">
                 <span className="wishlist-brand">{product.brand}</span>

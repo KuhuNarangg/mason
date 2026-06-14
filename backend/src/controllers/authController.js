@@ -1,8 +1,9 @@
 const asyncHandler = require('express-async-handler');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
-const { sendWelcomeEmail, sendAdminLockoutAlert } = require('../utils/emailService');
+const { sendWelcomeEmail, sendAdminLockoutAlert, sendVendorRegistrationReceived } = require('../utils/emailService');
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -18,6 +19,8 @@ const CODE_LOCK_MINUTES    = 2;
 const safeUser = (u) => ({
   _id: u._id, name: u.name, email: u.email,
   role: u.role, avatar: u.avatar,
+  vendorStatus: u.vendorStatus,
+  vendorProfile: u.role === 'vendor' ? u.vendorProfile : undefined,
 });
 
 /* ── @POST /api/v1/auth/register ──────────────────── */
@@ -258,7 +261,56 @@ const adminRegister = asyncHandler(async (req, res) => {
   res.status(201).json({ success: true, token, user: safeUser(user) });
 });
 
+/* ── @POST /api/v1/auth/vendor-register ───────────── */
+const vendorRegister = asyncHandler(async (req, res) => {
+  res.status(403);
+  throw new Error('Vendor self-registration is currently disabled. Please contact the administrator.');
+});
+
+
+/* ── @GET /api/v1/auth/vendor-set-password/:token ──── */
+const vendorCheckSetupToken = asyncHandler(async (req, res) => {
+  const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+  const user = await User.findOne({
+    vendorSetupToken: hashedToken,
+    vendorSetupExpires: { $gt: Date.now() },
+  }).select('+vendorSetupToken +vendorSetupExpires');
+
+  if (!user) { res.status(400); throw new Error('This link is invalid or has expired'); }
+
+  res.json({ success: true, name: user.name, businessName: user.vendorProfile?.businessName });
+});
+
+/* ── @POST /api/v1/auth/vendor-set-password ────────── */
+const vendorSetPassword = asyncHandler(async (req, res) => {
+  const { token, password } = req.body;
+  if (!token || !password || password.length < 6) {
+    res.status(400); throw new Error('A valid token and a password of at least 6 characters are required');
+  }
+
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+  const user = await User.findOne({
+    vendorSetupToken: hashedToken,
+    vendorSetupExpires: { $gt: Date.now() },
+  }).select('+vendorSetupToken +vendorSetupExpires');
+
+  if (!user) { res.status(400); throw new Error('This link is invalid or has expired'); }
+
+  user.password = password;
+  user.vendorSetupToken = undefined;
+  user.vendorSetupExpires = undefined;
+  await user.save();
+
+  res.json({
+    success: true,
+    message: 'Password set successfully',
+    token: generateToken(user._id),
+    user: safeUser(user),
+  });
+});
+
 module.exports = {
   register, login, adminRegister, adminVerifyCode, googleAuth,
   getMe, updateProfile, addAddress, deleteAddress, changePassword,
+  vendorRegister, vendorCheckSetupToken, vendorSetPassword,
 };

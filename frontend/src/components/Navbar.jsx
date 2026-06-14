@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { ShoppingBag, Heart, User, Search, Menu, X, Bell, Package, LogOut, LayoutDashboard, Sparkles, Scissors } from 'lucide-react';
+import { ShoppingBag, Heart, User, Search, Menu, X, Bell, Package, LogOut, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -75,6 +75,7 @@ const Navbar = () => {
               <Link to="/category/all?type=top" className="m-nav-link">Tops</Link>
               <Link to="/category/all?type=trouser" className="m-nav-link">Trousers</Link>
               <Link to="/category/all?type=ethnic" className="m-nav-link">Ethnics</Link>
+              <a href="/#customize" className="m-nav-link">Customize</a>
             </nav>
           </div>
 
@@ -96,10 +97,6 @@ const Navbar = () => {
               <Search size={20} strokeWidth={1} />
             </button>
             
-            <a href="/#customize" className="btn-icon desktop-only" aria-label="Customize Design" title="Customize Design">
-              <Sparkles size={20} strokeWidth={1} />
-            </a>
-
             {isAuth && (
               <div className="m-dropdown-wrap desktop-only">
                 <button className="btn-icon">
@@ -150,6 +147,14 @@ const Navbar = () => {
                       <>
                         <Link to="/admin" className="m-dropdown__link" style={{ color: '#C08A74', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <LayoutDashboard size={14} /> Admin Panel
+                        </Link>
+                        <div className="m-dropdown__divider" />
+                      </>
+                    )}
+                    {user?.role === 'vendor' && (
+                      <>
+                        <Link to="/vendor" className="m-dropdown__link" style={{ color: '#C08A74', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <LayoutDashboard size={14} /> Vendor Panel
                         </Link>
                         <div className="m-dropdown__divider" />
                       </>
@@ -223,6 +228,11 @@ const Navbar = () => {
               {user?.role === 'admin' && (
                 <Link to="/admin" className="m-mobile-action" onClick={() => setMobileMenuOpen(false)} style={{ color: '#C08A74', fontWeight: 700 }}>
                   <LayoutDashboard size={16} strokeWidth={1} /> Admin Panel
+                </Link>
+              )}
+              {user?.role === 'vendor' && (
+                <Link to="/vendor" className="m-mobile-action" onClick={() => setMobileMenuOpen(false)} style={{ color: '#C08A74', fontWeight: 700 }}>
+                  <LayoutDashboard size={16} strokeWidth={1} /> Vendor Panel
                 </Link>
               )}
               <Link to="/orders" className="m-mobile-action" onClick={() => setMobileMenuOpen(false)}>

@@ -3,12 +3,17 @@ const router  = express.Router();
 const {
   getAllUsers, getUserDetail, deleteUser, getDashboardStats,
   getFailedPayments, manualConfirmOrder,
+  createVendor, getVendors, getVendorById, approveVendor, rejectVendor, suspendVendor, reinstateVendor, setVendorCommission, deleteVendor,
+  getReturns, getReviews, deleteReview, getAnalytics,
+  getSettlementsOverview, getVendorSettlementDetail, settleVendorPayout,
+  getSettings, updateSettings,
 } = require('../controllers/adminController');
 const { protect, adminOnly } = require('../middleware/auth');
 
 router.use(protect, adminOnly);
 
 router.get('/dashboard',                   getDashboardStats);
+router.get('/analytics',                   getAnalytics);
 router.get('/users',                       getAllUsers);
 router.get('/users/:id',                   getUserDetail);
 router.delete('/users/:id',                deleteUser);
@@ -16,5 +21,32 @@ router.delete('/users/:id',                deleteUser);
 /* ── Payment management ── */
 router.get('/failed-payments',             getFailedPayments);
 router.post('/orders/:id/manual-confirm',  manualConfirmOrder);
+
+/* ── Vendor management ── */
+router.post('/vendors',                    createVendor);
+router.get('/vendors',                     getVendors);
+router.get('/vendors/:id',                 getVendorById);
+router.put('/vendors/:id/approve',         approveVendor);
+router.put('/vendors/:id/reject',          rejectVendor);
+router.put('/vendors/:id/suspend',         suspendVendor);
+router.put('/vendors/:id/reinstate',       reinstateVendor);
+router.put('/vendors/:id/commission',      setVendorCommission);
+router.delete('/vendors/:id',              deleteVendor);
+
+/* ── Returns management ── */
+router.get('/returns',                     getReturns);
+
+/* ── Reviews moderation ── */
+router.get('/reviews',                     getReviews);
+router.delete('/reviews/:productId/:reviewId', deleteReview);
+
+/* ── Vendor settlements ── */
+router.get('/settlements/overview',           getSettlementsOverview);
+router.get('/settlements/vendor/:id',         getVendorSettlementDetail);
+router.post('/settlements/vendor/:id/settle', settleVendorPayout);
+
+/* ── Platform settings ── */
+router.get('/settings',                    getSettings);
+router.put('/settings',                    updateSettings);
 
 module.exports = router;

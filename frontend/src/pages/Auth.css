@@ -115,6 +115,17 @@
   gap: var(--space-4);
 }
 
+.form-section-heading {
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-primary);
+  font-weight: 600;
+  margin: var(--space-2) 0 0;
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border-color, #e5e0d8);
+}
+
 /* Minimalist Inputs */
 .form-group {
   display: flex;

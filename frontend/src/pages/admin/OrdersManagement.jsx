@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
-import { Search, ChevronDown, ChevronUp, Check, X, Package, Download } from 'lucide-react';
+import { Search, Check, X, Package, Download, Eye } from 'lucide-react';
 import { generateInvoicePDF } from '../../utils/generateInvoice';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
@@ -45,6 +46,23 @@ const FILTER_TABS = [
   { label: 'Return Req.',    value: 'return_requested' },
 ];
 
+const MONTHS = [
+  { value: '0', label: 'January' },
+  { value: '1', label: 'February' },
+  { value: '2', label: 'March' },
+  { value: '3', label: 'April' },
+  { value: '4', label: 'May' },
+  { value: '5', label: 'June' },
+  { value: '6', label: 'July' },
+  { value: '7', label: 'August' },
+  { value: '8', label: 'September' },
+  { value: '9', label: 'October' },
+  { value: '10', label: 'November' },
+  { value: '11', label: 'December' },
+];
+
+const availableDates = Array.from({ length: 31 }, (_, i) => i + 1);
+
 /* ── Return Item Badge ─────────────────────────────────── */
 const returnBadgeClass = {
   requested: 'badge-return_requested',
@@ -58,7 +76,7 @@ const NoteModal = ({ title, onConfirm, onClose }) => {
   const [note, setNote] = useState('');
   return (
     <div
-      style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.45)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:9999, padding:'1rem' }}
+      style={{ position:'fixed', inset:0, background:'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:9999, padding:'1rem' }}
       onClick={onClose}
     >
       <div
@@ -96,7 +114,7 @@ const CancellationModal = ({ order, onApprove, onReject, onClose }) => {
   if (!order) return null;
   return (
     <div
-      style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.45)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:9999, padding:'1rem' }}
+      style={{ position:'fixed', inset:0, background:'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:9999, padding:'1rem' }}
       onClick={onClose}
     >
       <div
@@ -184,6 +202,11 @@ const OrdersManagement = () => {
   const [noteModal, setNoteModal]     = useState(null); // { title, onConfirm }
   const [cancelModal, setCancelModal] = useState(null); // order object
 
+  // Date selectors states
+  const [filterYear, setFilterYear] = useState('');
+  const [filterMonth, setFilterMonth] = useState('');
+  const [filterDate, setFilterDate] = useState('');
+
   useEffect(() => { fetchOrders(); }, [filter]);
 
   const fetchOrders = async () => {
@@ -198,16 +221,39 @@ const OrdersManagement = () => {
     }
   };
 
-  /* filtered by search */
+  // Extract unique years dynamically from order timestamps
+  const availableYears = useMemo(() => {
+    const years = orders.map(o => new Date(o.createdAt).getFullYear());
+    return [...new Set(years)].sort((a, b) => b - a);
+  }, [orders]);
+
+  /* filtered by search & date (Year, Month, Date) */
   const displayed = useMemo(() => {
-    if (!search.trim()) return orders;
-    const q = search.toLowerCase();
-    return orders.filter(o =>
-      o.orderNumber?.toLowerCase().includes(q) ||
-      o.user?.name?.toLowerCase().includes(q) ||
-      o.user?.email?.toLowerCase().includes(q)
-    );
-  }, [orders, search]);
+    let result = orders;
+
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter(o =>
+        o.orderNumber?.toLowerCase().includes(q) ||
+        o.user?.name?.toLowerCase().includes(q) ||
+        o.user?.email?.toLowerCase().includes(q)
+      );
+    }
+
+    if (filterYear) {
+      result = result.filter(o => new Date(o.createdAt).getFullYear() === Number(filterYear));
+    }
+
+    if (filterMonth) {
+      result = result.filter(o => new Date(o.createdAt).getMonth() === Number(filterMonth));
+    }
+
+    if (filterDate) {
+      result = result.filter(o => new Date(o.createdAt).getDate() === Number(filterDate));
+    }
+
+    return result;
+  }, [orders, search, filterYear, filterMonth, filterDate]);
 
   /* ── Actions ── */
   const promptNote = (title, onConfirm) => setNoteModal({ title, onConfirm });
@@ -234,7 +280,6 @@ const OrdersManagement = () => {
   const handleUpdateTracking = async (orderId, url) => {
     if (url && !/^(https?:\/\/)/i.test(url)) {
       toast.error('Invalid URL. Must start with http:// or https://');
-      // Refetch to reset the input value in UI
       fetchOrders();
       return;
     }
@@ -259,7 +304,6 @@ const OrdersManagement = () => {
   };
 
   const handleCancellation = async (orderId, action, preNote) => {
-    // If called from CancellationModal, preNote is already provided — skip NoteModal
     if (preNote !== undefined) {
       try {
         await api.put(`/orders/${orderId}/cancel-handle`, { action, adminNote: preNote || `Cancellation ${action}d` });
@@ -296,12 +340,67 @@ const OrdersManagement = () => {
   };
 
   return (
-    <div>
+    <div className="animate-fade-in-up">
       {/* Page header */}
-      <div className="page-header">
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div className="page-header-left">
           <h1 className="admin-page-title">Orders</h1>
-          <p className="admin-page-subtitle">{orders.length} orders found</p>
+          <p className="admin-page-subtitle">{displayed.length} order{displayed.length !== 1 ? 's' : ''} found</p>
+        </div>
+
+        {/* Date Filters Selectors */}
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '0.72rem', fontWeight: 750, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Filter Date:</span>
+          
+          {/* Year */}
+          <select 
+            className="form-select" 
+            value={filterYear} 
+            onChange={e => setFilterYear(e.target.value)} 
+            style={{ padding: '0.45rem 1.75rem 0.45rem 0.75rem', fontSize: '0.8rem', width: 'auto', backgroundPosition: 'right 0.5rem center', height: '36px', borderRadius: '8px' }}
+          >
+            <option value="">All Years</option>
+            {availableYears.map(yr => (
+              <option key={yr} value={yr}>{yr}</option>
+            ))}
+          </select>
+
+          {/* Month */}
+          <select 
+            className="form-select" 
+            value={filterMonth} 
+            onChange={e => setFilterMonth(e.target.value)} 
+            style={{ padding: '0.45rem 1.75rem 0.45rem 0.75rem', fontSize: '0.8rem', width: 'auto', backgroundPosition: 'right 0.5rem center', height: '36px', borderRadius: '8px' }}
+          >
+            <option value="">All Months</option>
+            {MONTHS.map(m => (
+              <option key={m.value} value={m.value}>{m.label}</option>
+            ))}
+          </select>
+
+          {/* Date */}
+          <select 
+            className="form-select" 
+            value={filterDate} 
+            onChange={e => setFilterDate(e.target.value)} 
+            style={{ padding: '0.45rem 1.75rem 0.45rem 0.75rem', fontSize: '0.8rem', width: 'auto', backgroundPosition: 'right 0.5rem center', height: '36px', borderRadius: '8px' }}
+          >
+            <option value="">All Days</option>
+            {availableDates.map(d => (
+              <option key={d} value={d}>{d}</option>
+            ))}
+          </select>
+          
+          {(filterYear || filterMonth || filterDate) && (
+            <button 
+              onClick={() => { setFilterYear(''); setFilterMonth(''); setFilterDate(''); }}
+              className="btn-icon-sm delete"
+              title="Clear date filter"
+              style={{ width: 36, height: 36, borderRadius: '8px', border: '1px solid #fecaca', background: 'white' }}
+            >
+              <X size={14} />
+            </button>
+          )}
         </div>
       </div>
 
@@ -342,7 +441,7 @@ const OrdersManagement = () => {
           <table className="admin-table">
             <thead>
               <tr>
-                <th style={{ width:40 }}></th>
+                <th style={{ width: 60, paddingLeft: '1.25rem' }}>S.No</th>
                 <th>Order</th>
                 <th>Customer</th>
                 <th>Date</th>
@@ -358,7 +457,7 @@ const OrdersManagement = () => {
                   <td colSpan="8" className="no-data">No orders found</td>
                 </tr>
               ) : (
-                displayed.map(order => {
+                displayed.map((order, idx) => {
                   const isExpanded = expandedId === order._id;
                   const allowed = ALLOWED_TRANSITIONS[order.status] || [];
                   const isTerminal = allowed.length === 0;
@@ -366,14 +465,8 @@ const OrdersManagement = () => {
                   return [
                     /* Main Row */
                     <tr key={order._id} className={isExpanded ? 'expanded' : ''}>
-                      <td style={{ padding:'0.75rem 0.75rem' }}>
-                        <button
-                          className="btn-icon-sm"
-                          onClick={() => setExpandedId(isExpanded ? null : order._id)}
-                          title={isExpanded ? 'Collapse' : 'Expand'}
-                        >
-                          {isExpanded ? <ChevronUp size={15}/> : <ChevronDown size={15}/>}
-                        </button>
+                      <td style={{ fontSize: '0.85rem', fontWeight: 650, color: '#64748b', paddingLeft: '1.25rem' }}>
+                        {idx + 1}
                       </td>
                       <td>
                         <div className="table-cell-primary" style={{ fontSize:'0.85rem', color:'#C08A74' }}>
@@ -413,34 +506,53 @@ const OrdersManagement = () => {
                         </span>
                       </td>
                       <td>
-                        {order.status === 'cancel_requested' ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          {/* 1. Add view option in Action column (eye icon) to toggle expansion */}
                           <button
-                            onClick={() => setCancelModal(order)}
-                            style={{ display:'flex', alignItems:'center', gap:'0.25rem', padding:'0.35rem 0.85rem', background:'#f97316', color:'white', border:'none', borderRadius:'6px', fontSize:'0.72rem', fontWeight:700, cursor:'pointer', whiteSpace:'nowrap' }}
-                          >
-                            <ChevronDown size={12}/> View & Act
-                          </button>
-                        ) : order.status === 'return_requested' ? (
-                          <button
+                            className="btn-icon-sm view"
                             onClick={() => setExpandedId(isExpanded ? null : order._id)}
-                            style={{ display:'flex', alignItems:'center', gap:'0.25rem', padding:'0.35rem 0.85rem', background:'#f97316', color:'white', border:'none', borderRadius:'6px', fontSize:'0.72rem', fontWeight:700, cursor:'pointer', whiteSpace:'nowrap' }}
+                            title={isExpanded ? 'Collapse details' : 'View details'}
+                            style={{
+                              background: isExpanded ? '#f0fdf4' : 'transparent',
+                              borderColor: isExpanded ? '#bbf7d0' : 'transparent',
+                              color: isExpanded ? '#16a34a' : '#64748b',
+                              width: '32px',
+                              height: '32px',
+                              borderRadius: '6px'
+                            }}
                           >
-                            <ChevronDown size={12}/> Review
+                            <Eye size={15} />
                           </button>
-                        ) : isTerminal ? (
-                          <span style={{ fontSize:'0.75rem', color:'#94a3b8' }}>—</span>
-                        ) : (
-                          <select
-                            className="status-select"
-                            value={order.status}
-                            onChange={e => updateStatus(order._id, order.status, e.target.value)}
-                          >
-                            <option value={order.status}>{STATUS_LABELS[order.status]}</option>
-                            {allowed.map(s => (
-                              <option key={s} value={s}>{STATUS_LABELS[s]}</option>
-                            ))}
-                          </select>
-                        )}
+
+                          {order.status === 'cancel_requested' ? (
+                            <button
+                              onClick={() => setCancelModal(order)}
+                              style={{ display:'flex', alignItems:'center', gap:'0.25rem', padding:'0.35rem 0.85rem', background:'#f97316', color:'white', border:'none', borderRadius:'6px', fontSize:'0.72rem', fontWeight:700, cursor:'pointer', whiteSpace:'nowrap' }}
+                            >
+                              View &amp; Act
+                            </button>
+                          ) : order.status === 'return_requested' ? (
+                            <button
+                              onClick={() => setExpandedId(isExpanded ? null : order._id)}
+                              style={{ display:'flex', alignItems:'center', gap:'0.25rem', padding:'0.35rem 0.85rem', background:'#f97316', color:'white', border:'none', borderRadius:'6px', fontSize:'0.72rem', fontWeight:700, cursor:'pointer', whiteSpace:'nowrap' }}
+                            >
+                              Review
+                            </button>
+                          ) : isTerminal ? (
+                            <span style={{ fontSize:'0.75rem', color:'#94a3b8' }}>—</span>
+                          ) : (
+                            <select
+                              className="status-select"
+                              value={order.status}
+                              onChange={e => updateStatus(order._id, order.status, e.target.value)}
+                            >
+                              <option value={order.status}>{STATUS_LABELS[order.status]}</option>
+                              {allowed.map(s => (
+                                <option key={s} value={s}>{STATUS_LABELS[s]}</option>
+                              ))}
+                            </select>
+                          )}
+                        </div>
                       </td>
                     </tr>,
 
@@ -746,7 +858,7 @@ const OrdersManagement = () => {
       )}
 
       {/* Cancellation Detail Modal */}
-      {cancelModal && (
+      {cancelModal && createPortal(
         <CancellationModal
           order={cancelModal}
           onApprove={(note) => {
@@ -758,16 +870,18 @@ const OrdersManagement = () => {
             handleCancellation(cancelModal._id, 'reject', note);
           }}
           onClose={() => setCancelModal(null)}
-        />
+        />,
+        document.body
       )}
 
       {/* Note Modal */}
-      {noteModal && (
+      {noteModal && createPortal(
         <NoteModal
           title={noteModal.title}
           onConfirm={noteModal.onConfirm}
           onClose={() => setNoteModal(null)}
-        />
+        />,
+        document.body
       )}
     </div>
   );

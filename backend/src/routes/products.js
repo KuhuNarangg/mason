@@ -1,13 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const {
-  getProducts, getProductById, getProductBySlug,
+  getProducts, getFilterOptions, getProductById, getProductBySlug,
   createProduct, updateProduct, deleteProduct,
   addReview, toggleWishlist, getWishlistProducts, getRelatedProducts
 } = require('../controllers/productController');
 const { protect, adminOnly, adminOrVendor } = require('../middleware/auth');
 
 router.get('/', getProducts);
+router.get('/filters/options', getFilterOptions);
 router.get('/wishlist/details', protect, getWishlistProducts);
 router.get('/slug/:slug', getProductBySlug);
 router.get('/:id/related', getRelatedProducts);

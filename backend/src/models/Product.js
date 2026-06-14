@@ -26,9 +26,19 @@ const productSchema = new mongoose.Schema(
     description: { type: String, required: true },
     brand: { type: String, default: 'Unbranded' },
 
+    // Vendor who owns/manages this product (null = platform/admin product)
+    vendor: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    lowStockThreshold: { type: Number, default: 5 },
+
     // Category hierarchy
     gender: { type: String, enum: ['men', 'women', 'kids'], required: true },
     subGender: { type: String, enum: ['boys', 'girls', 'unisex', 'none'], default: 'none' },
+
+    // New marketplace category structure. Vendors must pick from Admin-managed
+    // Category collection — category = top-level (e.g. Women), subcategory = child (e.g. Dresses).
+    category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', default: null },
+    subcategory: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', default: null },
+
     type: {
       type: String,
       enum: ['shirt', 'tshirt', 'jeans', 'lowers', 'trousers', 'trouser', 'kurta', 'dress', 'top', 'skirt', 'jacket', 'shorts', 'hoodie', 'sweater', 'ethnic', 'indo-western', 'party-wear', 'westernwear', 'plus-size', 'other'],

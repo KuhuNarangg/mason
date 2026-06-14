@@ -6,8 +6,11 @@ const categorySchema = new mongoose.Schema(
     slug: { type: String, unique: true },
     gender: { type: String, enum: ['men', 'women', 'kids', 'all'], required: true },
     subGender: { type: String, enum: ['boys', 'girls', 'unisex', 'none'], default: 'none' },
+    // Self-reference for subcategories. Top-level categories have parent = null.
+    parent: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', default: null },
     image: { type: String, default: '' },
     description: { type: String, default: '' },
+    sortOrder: { type: Number, default: 0 },
     isActive: { type: Boolean, default: true },
   },
   { timestamps: true }

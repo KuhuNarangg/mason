@@ -39,4 +39,27 @@ const adminOrVendor = (req, res, next) => {
   }
 };
 
-module.exports = { protect, adminOnly, adminOrVendor };
+/* Vendor must hold the 'vendor' role */
+const vendorOnly = (req, res, next) => {
+  if (req.user && req.user.role === 'vendor') {
+    next();
+  } else {
+    res.status(403);
+    throw new Error('Access denied: Vendors only');
+  }
+};
+
+/* Vendor must hold the 'vendor' role AND be approved by admin */
+const approvedVendor = (req, res, next) => {
+  if (!req.user || req.user.role !== 'vendor') {
+    res.status(403);
+    throw new Error('Access denied: Vendors only');
+  }
+  if (req.user.vendorStatus !== 'approved') {
+    res.status(403);
+    throw new Error(`Your vendor account is ${req.user.vendorStatus}. Wait for admin approval to access this feature.`);
+  }
+  next();
+};
+
+module.exports = { protect, adminOnly, adminOrVendor, vendorOnly, approvedVendor };

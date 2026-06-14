@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Navigate, NavLink, useLocation, Outlet } from 'react-router-dom';
 import {
-  LayoutDashboard, Package, LogOut, Scissors, TrendingUp, Menu, X
+  LayoutDashboard, Package, LogOut, Scissors, TrendingUp, Menu, X, Boxes, Wallet, UserCog
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import '../pages/admin/admin-pages.css';
@@ -10,7 +10,10 @@ const navItems = [
   { name: 'Dashboard', path: '/vendor', icon: LayoutDashboard, end: true },
   { name: 'Orders', path: '/vendor/orders', icon: Package },
   { name: 'Products', path: '/vendor/products', icon: Package },
-  { name: 'Customs', path: '/vendor/customizations', icon: Scissors }
+  { name: 'Inventory', path: '/vendor/inventory', icon: Boxes },
+  { name: 'Earnings', path: '/vendor/earnings', icon: Wallet },
+  { name: 'Customs', path: '/vendor/customizations', icon: Scissors },
+  { name: 'Profile', path: '/vendor/profile', icon: UserCog }
 ];
 
 const VendorLayout = () => {
@@ -31,6 +34,10 @@ const VendorLayout = () => {
 
   if (!isAuth || user?.role !== 'vendor') {
     return <Navigate to="/login" replace />;
+  }
+
+  if (user?.vendorStatus !== 'approved' && location.pathname !== '/vendor/profile') {
+    return <Navigate to="/vendor-pending" replace />;
   }
 
   const initials = user?.name

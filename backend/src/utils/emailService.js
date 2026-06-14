@@ -225,8 +225,85 @@ const sendRefundProcessed = async ({ name, email, orderNumber, amount }) => {
   });
 };
 
-module.exports = { 
+/* ── Vendor Registration Received ──────────────────── */
+const sendVendorRegistrationReceived = async ({ name, email, businessName }) => {
+  await sendEmail({
+    to: email,
+    subject: 'Mason — Vendor Application Received',
+    html: `
+      <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb;">
+        <div style="background:#0f172a;padding:24px 32px;text-align:center;">
+          <h1 style="color:#C08A74;margin:0;font-size:1.8rem;letter-spacing:4px;">MASON</h1>
+          <p style="color:#9ca3af;margin:4px 0 0;font-size:0.8rem;letter-spacing:2px;text-transform:uppercase;">Seller Partner Program</p>
+        </div>
+        <div style="padding:32px;">
+          <h2 style="color:#0f172a;margin:0 0 12px;">Thanks for applying, ${name}! 🌸</h2>
+          <p style="color:#6b7280;line-height:1.7;margin:0 0 12px;">We've received your application to sell as <strong>${businessName}</strong> on Mason.</p>
+          <p style="color:#6b7280;line-height:1.7;margin:0;">Our team will review your details and we'll let you know soon. This usually takes 1-2 business days.</p>
+        </div>
+        <div style="background:#f9fafb;padding:16px 32px;font-size:0.75rem;color:#9ca3af;text-align:center;">
+          © ${new Date().getFullYear()} House of Mason. All rights reserved.
+        </div>
+      </div>`,
+  });
+};
+
+/* ── Vendor Approved (set password) ────────────────── */
+const sendVendorApproved = async ({ name, email, businessName, setupUrl }) => {
+  await sendEmail({
+    to: email,
+    subject: 'Congratulations! Your Mason Vendor Account is Approved 🎉',
+    html: `
+      <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb;">
+        <div style="background:#0f172a;padding:24px 32px;text-align:center;">
+          <h1 style="color:#C08A74;margin:0;font-size:1.8rem;letter-spacing:4px;">MASON</h1>
+          <p style="color:#9ca3af;margin:4px 0 0;font-size:0.8rem;letter-spacing:2px;text-transform:uppercase;">Seller Partner Program</p>
+        </div>
+        <div style="padding:32px;text-align:center;">
+          <h2 style="color:#0f172a;margin:0 0 12px;">Congratulations, ${name}! 🎉</h2>
+          <p style="color:#6b7280;line-height:1.7;margin:0 0 24px;">Your vendor application for <strong>${businessName}</strong> has been approved. Please set your password to activate your account and log in to your vendor panel.</p>
+          <a href="${setupUrl}"
+            style="display:inline-block;padding:12px 28px;background:#0f172a;color:#fff;text-decoration:none;border-radius:6px;font-size:0.85rem;letter-spacing:1.5px;text-transform:uppercase;">
+            Set Password & Login →
+          </a>
+          <p style="color:#9ca3af;line-height:1.6;margin:24px 0 0;font-size:0.8rem;">This link will expire in 48 hours. If it expires, you can request a new one from the login page.</p>
+        </div>
+        <div style="background:#f9fafb;padding:16px 32px;font-size:0.75rem;color:#9ca3af;text-align:center;">
+          © ${new Date().getFullYear()} House of Mason. All rights reserved.
+        </div>
+      </div>`,
+  });
+};
+
+/* ── Vendor Rejected ────────────────────────────────── */
+const sendVendorRejected = async ({ name, email, businessName, reason }) => {
+  await sendEmail({
+    to: email,
+    subject: 'Mason — Update on Your Vendor Application',
+    html: `
+      <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb;">
+        <div style="background:#0f172a;padding:24px 32px;text-align:center;">
+          <h1 style="color:#C08A74;margin:0;font-size:1.8rem;letter-spacing:4px;">MASON</h1>
+          <p style="color:#9ca3af;margin:4px 0 0;font-size:0.8rem;letter-spacing:2px;text-transform:uppercase;">Seller Partner Program</p>
+        </div>
+        <div style="padding:32px;">
+          <h2 style="color:#0f172a;margin:0 0 12px;">Hi ${name},</h2>
+          <p style="color:#6b7280;line-height:1.7;margin:0 0 16px;">Unfortunately, we're unable to approve your vendor application for <strong>${businessName}</strong> at this time.</p>
+          <div style="background:#f9fafb;border-left:3px solid #dc2626;padding:12px 16px;border-radius:4px;margin:0 0 16px;">
+            <p style="margin:0;color:#374151;font-size:0.9rem;"><strong>Reason:</strong> ${reason}</p>
+          </div>
+          <p style="color:#6b7280;line-height:1.7;margin:0;">If you believe this was a mistake or would like to address the issue and re-apply, please contact our support team.</p>
+        </div>
+        <div style="background:#f9fafb;padding:16px 32px;font-size:0.75rem;color:#9ca3af;text-align:center;">
+          © ${new Date().getFullYear()} House of Mason. All rights reserved.
+        </div>
+      </div>`,
+  });
+};
+
+module.exports = {
   sendEmail, sendAdminLockoutAlert, sendWelcomeEmail, sendOrderConfirmation,
   sendOrderShipped, sendOrderOutForDelivery, sendOrderDelivered,
-  sendReturnRequest, sendReturnApproved, sendRefundProcessed
+  sendReturnRequest, sendReturnApproved, sendRefundProcessed,
+  sendVendorRegistrationReceived, sendVendorApproved, sendVendorRejected,
 };

@@ -216,7 +216,7 @@ const ProductEdit = () => {
         </button>
       </div>
 
-      <div className="form-container" style={{ maxHeight: '85vh', overflowY: 'auto', marginBottom: '2rem' }}>
+      <div className="form-container" style={{ maxHeight: '85vh', overflowY: 'auto', marginBottom: '2rem', padding: '1.5rem' }}>
         <h2 style={{ marginBottom: '1.5rem', color: '#2d2d2d' }}>Edit Product</h2>
         
         <form onSubmit={handleSubmit}>
@@ -225,65 +225,140 @@ const ProductEdit = () => {
             <label>Product Images * (Upload multiple images or paste URLs)</label>
             
             {/* Toggle between Upload and URL */}
-            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', borderBottom: '1px solid #ddd' }}>
+            <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '1.25rem', padding: '0.25rem', background: '#f1f5f9', borderRadius: '10px', width: 'fit-content' }}>
               <button
                 type="button"
                 onClick={() => setImageUploadMode('file')}
                 style={{
-                  padding: '0.5rem 1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  padding: '0.5rem 1.25rem',
                   border: 'none',
-                  background: imageUploadMode === 'file' ? '#2563eb' : '#e5e7eb',
-                  color: imageUploadMode === 'file' ? 'white' : '#666',
-                  borderRadius: '0.25rem',
+                  background: imageUploadMode === 'file' ? 'white' : 'transparent',
+                  color: imageUploadMode === 'file' ? '#0f172a' : '#64748b',
+                  borderRadius: '8px',
                   cursor: 'pointer',
-                  fontWeight: imageUploadMode === 'file' ? 600 : 400,
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  boxShadow: imageUploadMode === 'file' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                  transition: 'all 0.2s',
                 }}
               >
-                <Upload size={16} style={{ display: 'inline', marginRight: '0.5rem' }} /> Upload File
+                <Upload size={14} /> Upload File
               </button>
               <button
                 type="button"
                 onClick={() => setImageUploadMode('url')}
                 style={{
-                  padding: '0.5rem 1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  padding: '0.5rem 1.25rem',
                   border: 'none',
-                  background: imageUploadMode === 'url' ? '#2563eb' : '#e5e7eb',
-                  color: imageUploadMode === 'url' ? 'white' : '#666',
-                  borderRadius: '0.25rem',
+                  background: imageUploadMode === 'url' ? 'white' : 'transparent',
+                  color: imageUploadMode === 'url' ? '#0f172a' : '#64748b',
+                  borderRadius: '8px',
                   cursor: 'pointer',
-                  fontWeight: imageUploadMode === 'url' ? 600 : 400,
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  boxShadow: imageUploadMode === 'url' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                  transition: 'all 0.2s',
                 }}
               >
-                <LinkIcon size={16} style={{ display: 'inline', marginRight: '0.5rem' }} /> Paste URL
+                <LinkIcon size={14} /> Paste URL
               </button>
             </div>
 
+            {/* File Upload */}
             {imageUploadMode === 'file' && (
-              <input
-                type="file"
-                multiple
-                onChange={handleImageUpload}
-                disabled={uploadingImage}
-                accept="image/*"
-                style={{ marginBottom: '1rem' }}
-              />
+              <div style={{ position: 'relative', marginBottom: '1rem' }}>
+                <input
+                  id="product-image-upload"
+                  type="file"
+                  multiple
+                  onChange={handleImageUpload}
+                  disabled={uploadingImage}
+                  style={{ display: 'none' }}
+                  accept="image/*"
+                />
+                <label
+                  htmlFor="product-image-upload"
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '2.5rem 1.5rem',
+                    border: '2px dashed #C08A74',
+                    borderRadius: '12px',
+                    background: 'rgba(192, 138, 116, 0.02)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.background = 'rgba(192, 138, 116, 0.06)';
+                    e.currentTarget.style.borderColor = '#A36B56';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.background = 'rgba(192, 138, 116, 0.02)';
+                    e.currentTarget.style.borderColor = '#C08A74';
+                  }}
+                >
+                  <Upload size={28} style={{ color: '#C08A74', marginBottom: '0.75rem' }} />
+                  <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#0f172a' }}>
+                    {uploadingImage ? 'Uploading assets...' : 'Drag & drop files or click to browse'}
+                  </span>
+                  <span style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '4px' }}>
+                    Supports PNG, JPG, JPEG, WEBP files
+                  </span>
+                </label>
+              </div>
             )}
 
+            {/* URL Input */}
             {imageUploadMode === 'url' && (
               <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
                 <input
-                  type="text"
+                  type="url"
+                  placeholder="https://example.com/image.jpg"
                   value={imageUrl}
                   onChange={(e) => setImageUrl(e.target.value)}
-                  placeholder="Paste image URL and click Add"
                   className="form-input"
                   style={{ flex: 1 }}
                 />
                 <button
                   type="button"
-                  onClick={handleImageUrlAdd}
-                  className="btn-primary"
-                  style={{ padding: '0.5rem 1rem' }}
+                  onClick={() => {
+                    if (!imageUrl.trim()) {
+                      toast.error('Please enter a valid URL');
+                      return;
+                    }
+                    try {
+                      new URL(imageUrl); // Validate URL
+                      setForm({ ...form, images: [...form.images, imageUrl] });
+                      setImageUrl('');
+                      toast.success('Image URL added');
+                    } catch {
+                      toast.error('Please enter a valid image URL');
+                    }
+                  }}
+                  style={{
+                    padding: '0.75rem 1.5rem',
+                    background: '#C08A74',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.background = '#A36B56';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.background = '#C08A74';
+                  }}
                 >
                   Add
                 </button>

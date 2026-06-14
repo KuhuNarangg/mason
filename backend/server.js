@@ -12,6 +12,7 @@ const { errorHandler, notFound } = require('./src/middleware/errorHandler');
 const authRoutes = require('./src/routes/auth');
 const productRoutes = require('./src/routes/products');
 const categoryRoutes = require('./src/routes/categories');
+const brandRoutes = require('./src/routes/brands');
 const cartRoutes = require('./src/routes/cart');
 const orderRoutes = require('./src/routes/orders');
 const adminRoutes = require('./src/routes/admin');
@@ -21,6 +22,8 @@ const notificationRoutes = require('./src/routes/notifications');
 const adRoutes = require('./src/routes/ads');
 const paymentRoutes = require('./src/routes/payments');
 const customizationRoutes = require('./src/routes/customizations');
+const vendorRoutes = require('./src/routes/vendor');
+const shiprocketRoutes = require('./src/routes/shiprocket');
 
 connectDB();
 
@@ -74,6 +77,7 @@ app.use('/api/v1/auth', authLimiter, authRoutes);
 app.use('/api/v1', apiLimiter);
 app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/categories', categoryRoutes);
+app.use('/api/v1/brands', brandRoutes);
 app.use('/api/v1/cart', cartRoutes);
 app.use('/api/v1/orders', orderRoutes);
 app.use('/api/v1/admin', adminRoutes);
@@ -83,6 +87,8 @@ app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/ads', adRoutes);     // ad management (admin)
 app.use('/api/v1/payments', paymentRoutes); // Razorpay payment flow
 app.use('/api/v1/customizations', customizationRoutes);
+app.use('/api/v1/vendor', vendorRoutes);
+app.use('/api/v1/shiprocket', shiprocketRoutes);
 // Public ad redirect — Instagram/Facebook ads point to this URL:
 //   yourbackend.com/api/v1/r/:adId  → logs click → redirects to product page
 app.get('/api/v1/r/:adId', require('./src/controllers/adController').redirectAd);

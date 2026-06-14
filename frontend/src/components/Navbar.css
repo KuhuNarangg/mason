@@ -382,7 +382,7 @@
   display: block;
   padding: var(--space-3) var(--gutter);
   font-family: var(--font-display);
-  font-size: var(--text-xl);
+  font-size: var(--text-base);
   color: var(--ink);
   transition: padding-left 0.6s var(--ease-expo), color 0.4s;
 }

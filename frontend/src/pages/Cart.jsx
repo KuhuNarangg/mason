@@ -56,7 +56,7 @@ const Cart = () => {
             return (
             <div key={item._id} className="cart-item">
               <Link to={`/product/${item.product.slug}`} className="cart-item-img">
-                <img src={item.product.images?.[0] || item.product.thumbnail || 'https://via.placeholder.com/150?text=No+Image'} alt={item.product.name} />
+                <img src={item.product.images?.[0] || item.product.thumbnail || 'https://placehold.co/150?text=No+Image'} alt={item.product.name} />
               </Link>
               
               <div className="cart-item-details">

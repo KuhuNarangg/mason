@@ -12,6 +12,31 @@ const addressSchema = new mongoose.Schema({
   isDefault: { type: Boolean, default: false },
 });
 
+const vendorProfileSchema = new mongoose.Schema({
+  businessName:   { type: String, default: '' },
+  storeSlug:      { type: String, unique: true, sparse: true },
+  storeBanner:    { type: String, default: '' },
+  storeDescription: { type: String, default: '' },
+  gstNumber:      { type: String, default: '' },
+  panNumber:      { type: String, default: '' },
+  address: {
+    line1:   { type: String, default: '' },
+    line2:   { type: String, default: '' },
+    city:    { type: String, default: '' },
+    state:   { type: String, default: '' },
+    pincode: { type: String, default: '' },
+  },
+  bankDetails: {
+    accountHolder: { type: String, default: '' },
+    accountNumber: { type: String, default: '' },
+    ifsc:          { type: String, default: '' },
+    bankName:      { type: String, default: '' },
+  },
+  commissionPercent: { type: Number, default: 10 }, // platform commission %
+  rejectionReason:   { type: String, default: '' },
+  approvedAt:        { type: Date },
+});
+
 const userSchema = new mongoose.Schema(
   {
     name:     { type: String, required: true, trim: true },
@@ -24,6 +49,14 @@ const userSchema = new mongoose.Schema(
     addresses: [addressSchema],
     wishlist:  [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
 
+    /* ── Vendor-specific fields ── */
+    vendorStatus: {
+      type: String,
+      enum: ['none', 'pending', 'approved', 'rejected', 'suspended'],
+      default: 'none',
+    },
+    vendorProfile: { type: vendorProfileSchema, default: () => ({}) },
+
     /* ── Regular login brute-force protection ── */
     loginAttempts:  { type: Number, default: 0 },
     loginLockUntil: { type: Date },
@@ -31,6 +64,10 @@ const userSchema = new mongoose.Schema(
     /* ── Admin access-code brute-force protection ── */
     adminCodeAttempts:  { type: Number, default: 0 },
     adminCodeLockUntil: { type: Date },
+
+    /* ── Vendor "set password" token (sent after admin approval) ── */
+    vendorSetupToken:   { type: String, select: false },
+    vendorSetupExpires: { type: Date, select: false },
   },
   { timestamps: true }
 );
@@ -39,6 +76,25 @@ const userSchema = new mongoose.Schema(
 userSchema.pre('save', async function () {
   if (!this.password || !this.isModified('password')) return;
   this.password = await bcrypt.hash(this.password, 12);
+});
+
+/* Generate a unique store slug for vendors from their business name (or display name) */
+userSchema.pre('save', async function () {
+  if (this.role !== 'vendor') return;
+  if (this.vendorProfile?.storeSlug) return;
+
+  const base = (this.vendorProfile?.businessName || this.name || 'store')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '') || 'store';
+
+  let slug = base;
+  let counter = 1;
+  const Model = this.constructor;
+  while (await Model.exists({ 'vendorProfile.storeSlug': slug, _id: { $ne: this._id } })) {
+    slug = `${base}-${counter++}`;
+  }
+  this.vendorProfile.storeSlug = slug;
 });
 
 userSchema.methods.matchPassword = async function (entered) {

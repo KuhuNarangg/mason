@@ -1,56 +1,92 @@
 const express = require('express');
 const router = express.Router();
-const Customization = require('../models/Customization');
-const { protect, adminOrVendor } = require('../middleware/auth');
-const asyncHandler = require('express-async-handler');
+const {
+  createGeneralRequest,
+  getMyGeneralRequests,
+  getAllGeneralRequests,
+  createRequest,
+  updateRequest,
+  submitRequest,
+  getCustomerRequests,
+  getRequestDetail,
+  respondToQuote,
+  initiatePayment,
+  verifyPayment,
+  getVendorRequests,
+  respondToRequest,
+  updateProductionStatus,
+  getVendorCustomAnalytics,
+  getAdminOverview,
+  getAdminVendorPerformance,
+  resolveDispute
+} = require('../controllers/customizationController');
+const { protect, adminOnly, approvedVendor } = require('../middleware/auth');
 
-// @route   POST /api/v1/customizations
-// @desc    Submit a new customization request
-// @access  Private (User)
-router.post('/', protect, asyncHandler(async (req, res) => {
-  const { fabric, color, measurements, notes } = req.body;
+/* ── General Bespoke Design Routes ─────────────────────────── */
+// (used by the "Design Your Dream Outfit" customization page —
+// simple requests not tied to a specific vendor/product)
 
-  const customization = new Customization({
-    user: req.user._id,
-    fabric,
-    color,
-    measurements,
-    notes
-  });
+// Create a general bespoke design request
+router.post('/general', protect, createGeneralRequest);
 
-  const createdRequest = await customization.save();
-  res.status(201).json({ success: true, customization: createdRequest });
-}));
+// List logged-in customer's general bespoke design requests
+router.get('/general/my-requests', protect, getMyGeneralRequests);
 
-// @route   GET /api/v1/customizations
-// @desc    Get all customization requests
-// @access  Private (Admin/Vendor)
-router.get('/', protect, adminOrVendor, asyncHandler(async (req, res) => {
-  const requests = await Customization.find({})
-    .populate('user', 'name email phone')
-    .sort({ createdAt: -1 });
-    
-  res.json({ success: true, customizations: requests });
-}));
+// Admin: list all general bespoke design requests
+router.get('/general/admin', protect, adminOnly, getAllGeneralRequests);
 
-// @route   PUT /api/v1/customizations/:id/status
-// @desc    Update customization status
-// @access  Private (Admin/Vendor)
-router.put('/:id/status', protect, adminOrVendor, asyncHandler(async (req, res) => {
-  const { status, priceQuote, paymentStatus } = req.body;
-  const request = await Customization.findById(req.params.id);
 
-  if (request) {
-    if (status !== undefined) request.status = status;
-    if (priceQuote !== undefined) request.priceQuote = priceQuote;
-    if (paymentStatus !== undefined) request.paymentStatus = paymentStatus;
-    
-    const updatedRequest = await request.save();
-    res.json({ success: true, customization: updatedRequest });
-  } else {
-    res.status(404);
-    throw new Error('Customization request not found');
-  }
-}));
+/* ── Customer Routes ────────────────────────────────────────── */
+
+// Create request (draft or submitted)
+router.post('/', protect, createRequest);
+
+// List logged-in customer's customization requests
+router.get('/my-requests', protect, getCustomerRequests);
+
+// Get single request details (checked internally for ownership)
+router.get('/:id', protect, getRequestDetail);
+
+// Update draft customization details
+router.put('/:id', protect, updateRequest);
+
+// Submit a draft customization request
+router.put('/:id/submit', protect, submitRequest);
+
+// Customer respond to quotation (accept, reject, change request)
+router.put('/:id/respond-quote', protect, respondToQuote);
+
+// Initiate Razorpay payment for quote
+router.post('/:id/pay', protect, initiatePayment);
+
+// Verify Razorpay signature and start production
+router.post('/:id/verify-payment', protect, verifyPayment);
+
+
+/* ── Vendor Routes ──────────────────────────────────────────── */
+
+// List customization requests assigned to the approved vendor
+router.get('/vendor/requests', protect, approvedVendor, getVendorRequests);
+
+// Get vendor customization dashboard analytics
+router.get('/vendor/analytics', protect, approvedVendor, getVendorCustomAnalytics);
+
+// Vendor responds to customization request (approve, reject, quote)
+router.put('/:id/vendor-respond', protect, approvedVendor, respondToRequest);
+
+// Vendor updates production status
+router.put('/:id/vendor-status', protect, approvedVendor, updateProductionStatus);
+
+
+/* ── Admin Routes ───────────────────────────────────────────── */
+
+// General custom requests stats overview for admin
+router.get('/admin/overview', protect, adminOnly, getAdminOverview);
+
+// Get vendors monitoring/ratings for custom orders
+router.get('/admin/vendors', protect, adminOnly, getAdminVendorPerformance);
+
+// Admin resolves a dispute (refund, replace, reject)
+router.put('/:id/admin-dispute', protect, adminOnly, resolveDispute);
 
 module.exports = router;

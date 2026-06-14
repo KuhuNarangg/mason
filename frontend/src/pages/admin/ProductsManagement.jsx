@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trash2, Edit, Plus, X, Upload, Link as LinkIcon, Eye, Star } from 'lucide-react';
+import { Trash2, Edit, Plus, X, Upload, Link as LinkIcon, Eye, Star, Search, List, LayoutGrid } from 'lucide-react';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
 import './admin-pages.css';
@@ -15,6 +15,14 @@ const ProductsManagement = () => {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imageUploadMode, setImageUploadMode] = useState('file');
   const [imageUrl, setImageUrl] = useState('');
+
+  // Toolbar / filter state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [priceFilter, setPriceFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('default');
+  const [selectedIds, setSelectedIds] = useState([]);
   
   const [form, setForm] = useState({
     name: '',
@@ -200,6 +208,66 @@ const ProductsManagement = () => {
     navigate(`/admin/products/${product._id}/edit`);
   };
 
+  const toggleActive = async (product) => {
+    try {
+      await api.put(`/products/${product._id}`, { ...product, isActive: !product.isActive });
+      setProducts(prev => prev.map(p => p._id === product._id ? { ...p, isActive: !product.isActive } : p));
+      toast.success(product.isActive ? 'Product hidden' : 'Product activated');
+    } catch {
+      toast.error('Failed to update status');
+    }
+  };
+
+  const toggleSelectAll = (checked) => {
+    setSelectedIds(checked ? filteredProducts.map(p => p._id) : []);
+  };
+
+  const toggleSelectOne = (id) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const getTotalStock = (p) => (p.variants || []).reduce((sum, v) => sum + (v.stock || 0), 0);
+
+  const filteredProducts = useMemo(() => {
+    let list = [...products];
+
+    if (searchTerm.trim()) {
+      const term = searchTerm.trim().toLowerCase();
+      list = list.filter(p =>
+        p.name?.toLowerCase().includes(term) ||
+        p.brand?.toLowerCase().includes(term) ||
+        p._id?.toLowerCase().includes(term)
+      );
+    }
+
+    if (categoryFilter !== 'all') {
+      list = list.filter(p => p.gender === categoryFilter);
+    }
+
+    if (priceFilter !== 'all') {
+      const [min, max] = priceFilter.split('-').map(Number);
+      list = list.filter(p => {
+        const price = Number(p.originalPrice || 0);
+        return price >= min && (max ? price <= max : true);
+      });
+    }
+
+    if (statusFilter !== 'all') {
+      list = list.filter(p => statusFilter === 'active' ? p.isActive !== false : p.isActive === false);
+    }
+
+    switch (sortBy) {
+      case 'price-asc':  list.sort((a, b) => (a.originalPrice || 0) - (b.originalPrice || 0)); break;
+      case 'price-desc': list.sort((a, b) => (b.originalPrice || 0) - (a.originalPrice || 0)); break;
+      case 'stock-asc':  list.sort((a, b) => getTotalStock(a) - getTotalStock(b)); break;
+      case 'stock-desc': list.sort((a, b) => getTotalStock(b) - getTotalStock(a)); break;
+      case 'name-asc':   list.sort((a, b) => (a.name || '').localeCompare(b.name || '')); break;
+      default: break;
+    }
+
+    return list;
+  }, [products, searchTerm, categoryFilter, priceFilter, statusFilter, sortBy]);
+
   const resetForm = () => {
     setForm({
       name: '',
@@ -234,65 +302,167 @@ const ProductsManagement = () => {
   return (
     <div>
       <div className="page-header">
-        <h1 className="admin-page-title">Products Management</h1>
+        <div className="page-header-left">
+          <h1 className="admin-page-title">Products Management</h1>
+          <p className="admin-page-subtitle">{filteredProducts.length} of {products.length} products</p>
+        </div>
         <button className="btn-primary" onClick={() => setShowForm(!showForm)}>
           <Plus size={20} /> Add Product
         </button>
       </div>
 
+      {/* Toolbar */}
+      <div className="products-toolbar">
+        <div className="view-toggle">
+          <button className="active" title="List view"><List size={16} /></button>
+          <button title="Grid view"><LayoutGrid size={16} /></button>
+        </div>
+        <div className="toolbar-search">
+          <Search size={16} />
+          <input
+            type="text"
+            placeholder="Search products..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <select className="toolbar-select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+          <option value="default">Sort by: Default</option>
+          <option value="name-asc">Name (A-Z)</option>
+          <option value="price-asc">Price: Low to High</option>
+          <option value="price-desc">Price: High to Low</option>
+          <option value="stock-asc">Stock: Low to High</option>
+          <option value="stock-desc">Stock: High to Low</option>
+        </select>
+      </div>
+
+      {/* Filter row */}
+      <div className="product-filter-row">
+        <div className="filter-field">
+          <label>Category</label>
+          <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className={categoryFilter !== 'all' ? 'filter-active' : ''}>
+            <option value="all">All Collection</option>
+            <option value="men">Men</option>
+            <option value="women">Women</option>
+            <option value="kids">Kids</option>
+          </select>
+        </div>
+        <div className="filter-field">
+          <label>Price</label>
+          <select value={priceFilter} onChange={(e) => setPriceFilter(e.target.value)} className={priceFilter !== 'all' ? 'filter-active' : ''}>
+            <option value="all">All Prices</option>
+            <option value="0-500">₹0 - ₹500</option>
+            <option value="500-1000">₹500 - ₹1000</option>
+            <option value="1000-2500">₹1000 - ₹2500</option>
+            <option value="2500-0">₹2500+</option>
+          </select>
+        </div>
+        <div className="filter-field">
+          <label>Status</label>
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className={statusFilter !== 'all' ? 'filter-active' : ''}>
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">No Active</option>
+          </select>
+        </div>
+      </div>
+
       {showForm && (
-        <div className="form-container" style={{ maxHeight: '85vh', overflowY: 'auto', marginBottom: '2rem' }}>
+        <div className="form-container" style={{ maxHeight: '85vh', overflowY: 'auto', marginBottom: '2rem', padding: '1.5rem' }}>
           <form onSubmit={handleSubmit}>
             {/* Images Upload */}
             <div className="form-group">
               <label>Product Images * (Upload multiple images or paste URLs)</label>
               
               {/* Toggle between Upload and URL */}
-              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', borderBottom: '1px solid #ddd' }}>
+              <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '1.25rem', padding: '0.25rem', background: '#f1f5f9', borderRadius: '10px', width: 'fit-content' }}>
                 <button
                   type="button"
                   onClick={() => setImageUploadMode('file')}
                   style={{
-                    padding: '0.5rem 1rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    padding: '0.5rem 1.25rem',
                     border: 'none',
-                    background: imageUploadMode === 'file' ? '#2563eb' : '#e5e7eb',
-                    color: imageUploadMode === 'file' ? 'white' : '#666',
-                    borderRadius: '0.25rem',
+                    background: imageUploadMode === 'file' ? 'white' : 'transparent',
+                    color: imageUploadMode === 'file' ? '#0f172a' : '#64748b',
+                    borderRadius: '8px',
                     cursor: 'pointer',
-                    fontWeight: imageUploadMode === 'file' ? 600 : 400,
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    boxShadow: imageUploadMode === 'file' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                    transition: 'all 0.2s',
                   }}
                 >
-                  <Upload size={16} style={{ display: 'inline', marginRight: '0.5rem' }} /> Upload File
+                  <Upload size={14} /> Upload File
                 </button>
                 <button
                   type="button"
                   onClick={() => setImageUploadMode('url')}
                   style={{
-                    padding: '0.5rem 1rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    padding: '0.5rem 1.25rem',
                     border: 'none',
-                    background: imageUploadMode === 'url' ? '#2563eb' : '#e5e7eb',
-                    color: imageUploadMode === 'url' ? 'white' : '#666',
-                    borderRadius: '0.25rem',
+                    background: imageUploadMode === 'url' ? 'white' : 'transparent',
+                    color: imageUploadMode === 'url' ? '#0f172a' : '#64748b',
+                    borderRadius: '8px',
                     cursor: 'pointer',
-                    fontWeight: imageUploadMode === 'url' ? 600 : 400,
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    boxShadow: imageUploadMode === 'url' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                    transition: 'all 0.2s',
                   }}
                 >
-                  <LinkIcon size={16} style={{ display: 'inline', marginRight: '0.5rem' }} /> Paste URL
+                  <LinkIcon size={14} /> Paste URL
                 </button>
               </div>
 
               {/* File Upload */}
               {imageUploadMode === 'file' && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', border: '2px dashed #ddd', borderRadius: '0.5rem', background: '#f9fafb' }}>
+                <div style={{ position: 'relative' }}>
                   <input
+                    id="product-image-upload"
                     type="file"
                     multiple
                     onChange={handleImageUpload}
                     disabled={uploadingImage}
-                    style={{ flex: 1 }}
+                    style={{ display: 'none' }}
                     accept="image/*"
                   />
-                  {uploadingImage && <span style={{ color: '#2563eb', fontWeight: 600 }}>Uploading...</span>}
+                  <label
+                    htmlFor="product-image-upload"
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '2.5rem 1.5rem',
+                      border: '2px dashed #C08A74',
+                      borderRadius: '12px',
+                      background: 'rgba(192, 138, 116, 0.02)',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.background = 'rgba(192, 138, 116, 0.06)';
+                      e.currentTarget.style.borderColor = '#A36B56';
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.background = 'rgba(192, 138, 116, 0.02)';
+                      e.currentTarget.style.borderColor = '#C08A74';
+                    }}
+                  >
+                    <Upload size={28} style={{ color: '#C08A74', marginBottom: '0.75rem' }} />
+                    <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#0f172a' }}>
+                      {uploadingImage ? 'Uploading assets...' : 'Drag & drop files or click to browse'}
+                    </span>
+                    <span style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '4px' }}>
+                      Supports PNG, JPG, JPEG, WEBP files
+                    </span>
+                  </label>
                 </div>
               )}
 
@@ -325,12 +495,19 @@ const ProductsManagement = () => {
                     }}
                     style={{
                       padding: '0.75rem 1.5rem',
-                      background: '#2563eb',
+                      background: '#C08A74',
                       color: 'white',
                       border: 'none',
-                      borderRadius: '0.5rem',
+                      borderRadius: '8px',
                       cursor: 'pointer',
                       fontWeight: 600,
+                      transition: 'all 0.2s',
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.background = '#A36B56';
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.background = '#C08A74';
                     }}
                   >
                     Add
@@ -344,7 +521,7 @@ const ProductsManagement = () => {
                   <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                     {form.images.map((img, i) => (
                       <div key={i} className="image-preview">
-                        <img src={img} alt="preview" onError={(e) => e.target.src = 'https://via.placeholder.com/90?text=Invalid'} />
+                        <img src={img} alt="preview" onError={(e) => e.target.src = 'https://placehold.co/90?text=Invalid'} />
                         <button
                           type="button"
                           onClick={() => setForm({ ...form, images: form.images.filter((_, idx) => idx !== i) })}
@@ -748,125 +925,136 @@ const ProductsManagement = () => {
         <table className="admin-table">
           <thead>
             <tr>
-              <th>Image</th>
-              <th>Name</th>
-              <th>Brand</th>
-              <th>Category</th>
+              <th style={{ width: '36px' }}>
+                <input
+                  type="checkbox"
+                  className="row-checkbox"
+                  checked={filteredProducts.length > 0 && selectedIds.length === filteredProducts.length}
+                  onChange={(e) => toggleSelectAll(e.target.checked)}
+                />
+              </th>
+              <th>Product Info</th>
               <th>Price</th>
-              <th>Discount</th>
+              <th>Stock</th>
               <th>Variants</th>
+              <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {products.length === 0 ? (
+            {filteredProducts.length === 0 ? (
               <tr>
-                <td colSpan="8" className="no-data">No products yet. Create one to get started!</td>
+                <td colSpan="7" className="no-data">
+                  {products.length === 0 ? 'No products yet. Create one to get started!' : 'No products match your filters.'}
+                </td>
               </tr>
             ) : (
-              products.map((p) => (
-                <tr key={p._id}>
-                  <td>
-                    {p.images && p.images.length > 0 ? (
-                      <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
-                        <img
-                          src={p.images[0]}
-                          alt={p.name}
-                          style={{
-                            width: '50px',
-                            height: '50px',
-                            objectFit: 'cover',
-                            borderRadius: '0.25rem',
-                            border: '1px solid #e0d5ce',
-                          }}
-                          onError={(e) => e.target.src = 'https://via.placeholder.com/50?text=No+Image'}
-                          title={`${p.images.length} image(s)`}
-                        />
-                        {p.images.length > 1 && (
-                          <div style={{
-                            width: '40px',
-                            height: '50px',
-                            background: '#f5f0ed',
-                            borderRadius: '0.25rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '0.85rem',
-                            fontWeight: 600,
-                            color: '#a98478',
-                          }}>
-                            +{p.images.length - 1}
+              filteredProducts.map((p) => {
+                const totalStock = getTotalStock(p);
+                const maxStock = 1000;
+                const pct = Math.min(100, Math.round((totalStock / maxStock) * 100));
+                const level = pct >= 60 ? 'high' : pct >= 30 ? 'medium' : 'low';
+                return (
+                  <tr key={p._id}>
+                    <td>
+                      <input
+                        type="checkbox"
+                        className="row-checkbox"
+                        checked={selectedIds.includes(p._id)}
+                        onChange={() => toggleSelectOne(p._id)}
+                      />
+                    </td>
+                    <td>
+                      <div className="product-info-cell">
+                        {p.images && p.images.length > 0 ? (
+                          <img
+                            src={p.images[0]}
+                            alt={p.name}
+                            className="product-info-thumb"
+                            onError={(e) => e.target.src = 'https://placehold.co/44?text=No+Image'}
+                          />
+                        ) : (
+                          <div className="product-info-thumb" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', color: '#a98478' }}>
+                            No Image
                           </div>
                         )}
+                        <div className="product-info-text">
+                          <div className="product-info-name" title={p.name}>{p.name}</div>
+                          <div className="product-info-id">ID: {p._id.slice(-8).toUpperCase()} · {p.gender}/{p.type}</div>
+                        </div>
                       </div>
-                    ) : (
-                      <div style={{
-                        width: '50px',
-                        height: '50px',
-                        background: '#f5f0ed',
-                        borderRadius: '0.25rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '0.75rem',
-                        color: '#888',
-                      }}>
-                        No Image
+                    </td>
+                    <td>
+                      ₹{p.originalPrice}
+                      {Number(p.discount) > 0 && (
+                        <div style={{ fontSize: '0.7rem', color: '#22c55e', fontWeight: 600 }}>-{p.discount}%</div>
+                      )}
+                    </td>
+                    <td className="stock-cell">
+                      <div className="stock-cell-value">{totalStock}</div>
+                      <div className="stock-progress-track">
+                        <div className={`stock-progress-bar ${level}`} style={{ width: `${pct}%` }} />
                       </div>
-                    )}
-                  </td>
-                  <td>{p.name.substring(0, 30)}</td>
-                  <td>{p.brand}</td>
-                  <td>{p.gender}/{p.type}</td>
-                  <td>₹{p.originalPrice}</td>
-                  <td>{p.discount}%</td>
-                  <td>
-                    <button 
-                      onClick={() => { setSelectedProductStock(p); setShowStockModal(true); }}
-                      style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '0.4rem', 
-                        background: 'none', 
-                        border: 'none', 
-                        color: '#2563eb', 
-                        cursor: 'pointer',
-                        fontSize: '0.85rem',
-                        fontWeight: 600,
-                        padding: '0.25rem 0.5rem',
-                        borderRadius: '4px',
-                        transition: 'background 0.2s'
-                      }}
-                      onMouseOver={(e) => e.target.style.background = '#eff6ff'}
-                      onMouseOut={(e) => e.target.style.background = 'none'}
-                    >
-                      <Eye size={14} /> {p.variants?.length || 0} variants
-                    </button>
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <div className="stock-progress-label">{totalStock}/{maxStock}</div>
+                    </td>
+                    <td>
                       <button
-                        onClick={() => toggleFeatured(p)}
-                        className="btn-small"
-                        title={p.isFeatured ? 'Remove from Featured' : 'Mark as Featured'}
+                        onClick={() => { setSelectedProductStock(p); setShowStockModal(true); }}
                         style={{
-                          background: p.isFeatured ? '#fff3e0' : undefined,
-                          color: p.isFeatured ? '#e65100' : undefined,
-                          border: p.isFeatured ? '1px solid #ffb74d' : undefined,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.4rem',
+                          background: 'none',
+                          border: 'none',
+                          color: '#A36B56',
+                          cursor: 'pointer',
+                          fontSize: '0.85rem',
+                          fontWeight: 600,
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: '4px',
+                          transition: 'background 0.2s'
                         }}
+                        onMouseOver={(e) => e.target.style.background = '#f5f0ed'}
+                        onMouseOut={(e) => e.target.style.background = 'none'}
                       >
-                        <Star size={18} fill={p.isFeatured ? 'currentColor' : 'none'} />
+                        <Eye size={14} /> {p.variants?.length || 0} variants
                       </button>
-                      <button onClick={() => handleEdit(p)} className="btn-small" title="Edit">
-                        <Edit size={18} />
-                      </button>
-                      <button onClick={() => handleDelete(p._id)} className="btn-small btn-danger" title="Delete">
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
+                    </td>
+                    <td>
+                      <label className="toggle-switch" title={p.isActive === false ? 'Inactive — click to activate' : 'Active — click to deactivate'}>
+                        <input
+                          type="checkbox"
+                          checked={p.isActive !== false}
+                          onChange={() => toggleActive(p)}
+                        />
+                        <span className="toggle-switch-slider" />
+                      </label>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button
+                          onClick={() => toggleFeatured(p)}
+                          className="btn-small"
+                          title={p.isFeatured ? 'Remove from Featured' : 'Mark as Featured'}
+                          style={{
+                            background: p.isFeatured ? '#fff3e0' : undefined,
+                            color: p.isFeatured ? '#e65100' : undefined,
+                            border: p.isFeatured ? '1px solid #ffb74d' : undefined,
+                          }}
+                        >
+                          <Star size={18} fill={p.isFeatured ? 'currentColor' : 'none'} />
+                        </button>
+                        <button onClick={() => handleEdit(p)} className="btn-small" title="Edit">
+                          <Edit size={18} />
+                        </button>
+                        <button onClick={() => handleDelete(p._id)} className="btn-small btn-danger" title="Delete">
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>

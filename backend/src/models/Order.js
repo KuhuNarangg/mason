@@ -20,6 +20,33 @@ const orderItemSchema = new mongoose.Schema({
   returnAdminNote: { type: String },
   refundId:     { type: String },   // Razorpay refund ID for this item
   refundAmount: { type: Number },   // Actual refunded amount for this item
+
+  /* ── Vendor fulfilment fields ── */
+  vendor: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  itemStatus: {
+    type: String,
+    enum: ['pending', 'confirmed', 'packed', 'shipped', 'delivered', 'cancelled'],
+    default: 'pending',
+  },
+  itemStatusHistory: [
+    {
+      status: String,
+      timestamp: { type: Date, default: Date.now },
+      note: String,
+    },
+  ],
+  trackingNumber: { type: String, default: '' },
+  shippingCarrier: { type: String, default: '' },
+  shippingLabelUrl: { type: String, default: '' },
+  shiprocketOrderId: { type: String, default: '' },
+  shiprocketShipmentId: { type: String, default: '' },
+  shippingStatus: { type: String, default: '' },
+  returnTrackingNumber: { type: String, default: '' },
+  returnShipmentId: { type: String, default: '' },
+  commissionPercent: { type: Number, default: 10 },
+  commissionAmount: { type: Number, default: 0 },
+  vendorEarning: { type: Number, default: 0 },
+  payoutStatus: { type: String, enum: ['pending', 'paid'], default: 'pending' },
 });
 
 const shippingSchema = new mongoose.Schema({
@@ -48,6 +75,7 @@ const orderSchema = new mongoose.Schema(
       default: 'pending',
     },
     trackingUrl: { type: String, default: '' },
+    billUrl: { type: String, default: '' },
     subtotal: { type: Number, required: true },
     discount: { type: Number, default: 0 },
     shippingCharge: { type: Number, default: 0 },
@@ -79,6 +107,7 @@ const orderSchema = new mongoose.Schema(
 orderSchema.index({ createdAt: -1 });
 orderSchema.index({ paymentStatus: 1 });
 orderSchema.index({ status: 1 });
+orderSchema.index({ 'items.vendor': 1 });
 
 // Auto-generate order number
 orderSchema.pre('save', function () {

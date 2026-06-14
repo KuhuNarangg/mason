@@ -5,9 +5,9 @@ const Cart = require('../models/Cart');
 const Product = require('../models/Product');
 const User = require('../models/User');
 const { createNotification } = require('../utils/notificationHelper');
-const { 
-  sendOrderShipped, sendOrderOutForDelivery, sendOrderDelivered, 
-  sendReturnRequest, sendReturnApproved, sendRefundProcessed 
+const {
+  sendOrderConfirmation, sendOrderShipped, sendOrderOutForDelivery, sendOrderDelivered,
+  sendReturnRequest, sendReturnApproved, sendRefundProcessed
 } = require('../utils/emailService');
 
 // Shared Razorpay instance
@@ -37,9 +37,35 @@ const createOrder = asyncHandler(async (req, res) => {
 
   if (!items || items.length === 0) { res.status(400); throw new Error('No items in order'); }
 
+  // Attach vendor + commission info to each item based on the product it references
+  const productDocs = await Product.find({ _id: { $in: items.map((i) => i.product) } })
+    .select('vendor')
+    .populate('vendor', 'vendorProfile')
+    .lean();
+  const productMap = new Map(productDocs.map((p) => [p._id.toString(), p]));
+
+  const itemsWithVendor = items.map((item) => {
+    const product = productMap.get(item.product.toString());
+    const vendor = product?.vendor || null;
+    const commissionPercent = vendor?.vendorProfile?.commissionPercent ?? 10;
+    const lineTotal = item.price * item.quantity;
+    const commissionAmount = vendor ? Math.round((lineTotal * commissionPercent) / 100) : 0;
+    const vendorEarning = vendor ? lineTotal - commissionAmount : 0;
+
+    return {
+      ...item,
+      vendor: vendor?._id || null,
+      commissionPercent,
+      commissionAmount,
+      vendorEarning,
+      itemStatus: 'pending',
+      itemStatusHistory: [{ status: 'pending', note: 'Order placed' }],
+    };
+  });
+
   const order = await Order.create({
     user: req.user._id,
-    items,
+    items: itemsWithVendor,
     shippingAddress,
     paymentMethod,
     paymentStatus: paymentId ? 'paid' : 'pending',
@@ -69,6 +95,19 @@ const createOrder = asyncHandler(async (req, res) => {
 
   // Clear cart after order
   await Cart.findOneAndDelete({ user: req.user._id });
+
+  // Notify each vendor whose product(s) are part of this order
+  const vendorIds = [...new Set(itemsWithVendor.filter((i) => i.vendor).map((i) => i.vendor.toString()))];
+  await Promise.all(
+    vendorIds.map((vId) =>
+      createNotification({
+        user: vId,
+        title: 'New Order Received',
+        message: `You have received a new order #${order.orderNumber}. Please confirm and prepare it for shipping.`,
+        link: `/vendor/orders/${order._id}`,
+      })
+    )
+  );
 
   // If COD, it's confirmed immediately, so we can send confirmation email
   if (paymentMethod === 'cod') {

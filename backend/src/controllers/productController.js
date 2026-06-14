@@ -1,10 +1,15 @@
 const asyncHandler = require('express-async-handler');
+const mongoose = require('mongoose');
 const Product = require('../models/Product');
 const Order = require('../models/Order');
 
 // @GET /api/v1/products
 const getProducts = asyncHandler(async (req, res) => {
-  const { gender, subGender, type, brand, minPrice, maxPrice, size, color, search, sort, page = 1, limit = 20, featured, trending } = req.query;
+  const {
+    gender, subGender, type, brand, category, subcategory, vendor,
+    minPrice, maxPrice, minDiscount, maxDiscount, rating, inStock,
+    size, color, search, sort, page = 1, limit = 20, featured, trending,
+  } = req.query;
 
   const query = { isActive: true };
 
@@ -12,6 +17,9 @@ const getProducts = asyncHandler(async (req, res) => {
   if (subGender) query.subGender = subGender;
   if (type) query.type = { $in: type.split(',') };
   if (brand) query.brand = { $in: brand.split(',') };
+  if (category) query.category = { $in: category.split(',') };
+  if (subcategory) query.subcategory = { $in: subcategory.split(',') };
+  if (vendor) query.vendor = vendor;
   if (featured === 'true') query.isFeatured = true;
   if (trending === 'true') query.isTrending = true;
   if (search) {
@@ -22,8 +30,15 @@ const getProducts = asyncHandler(async (req, res) => {
     if (minPrice) query.price.$gte = Number(minPrice);
     if (maxPrice) query.price.$lte = Number(maxPrice);
   }
+  if (minDiscount || maxDiscount) {
+    query.discount = {};
+    if (minDiscount) query.discount.$gte = Number(minDiscount);
+    if (maxDiscount) query.discount.$lte = Number(maxDiscount);
+  }
+  if (rating) query.rating = { $gte: Number(rating) };
   if (size) query['variants.size'] = { $in: size.split(',') };
   if (color) query['variants.color'] = { $in: color.split(',') };
+  if (inStock === 'true') query['variants.stock'] = { $gt: 0 };
 
   const sortOptions = {
     newest: { _id: -1 },
@@ -31,6 +46,7 @@ const getProducts = asyncHandler(async (req, res) => {
     priceHigh: { price: -1 },
     rating: { rating: -1 },
     popular: { numReviews: -1 },
+    discount: { discount: -1 },
   };
   const sortBy = sortOptions[sort] || { createdAt: -1 };
 
@@ -41,6 +57,36 @@ const getProducts = asyncHandler(async (req, res) => {
   ]);
 
   res.json({ success: true, total, page: Number(page), pages: Math.ceil(total / limit), products });
+});
+
+// @GET /api/v1/products/filters/options
+// Returns distinct filter values (brands, colors, sizes, price range) for a given
+// category/subcategory/gender/type scope — used to populate the filter sidebar dynamically.
+const getFilterOptions = asyncHandler(async (req, res) => {
+  const { gender, category, subcategory, type } = req.query;
+  const match = { isActive: true };
+  if (gender && gender !== 'all') match.gender = gender;
+  if (category && mongoose.Types.ObjectId.isValid(category)) match.category = new mongoose.Types.ObjectId(category);
+  if (subcategory && mongoose.Types.ObjectId.isValid(subcategory)) match.subcategory = new mongoose.Types.ObjectId(subcategory);
+  if (type) match.type = { $in: type.split(',') };
+
+  const [brands, colors, sizes, priceStats] = await Promise.all([
+    Product.distinct('brand', match),
+    Product.distinct('variants.color', match),
+    Product.distinct('variants.size', match),
+    Product.aggregate([
+      { $match: match },
+      { $group: { _id: null, minPrice: { $min: '$price' }, maxPrice: { $max: '$price' } } },
+    ]),
+  ]);
+
+  res.json({
+    success: true,
+    brands: brands.filter(Boolean).sort(),
+    colors: colors.filter(Boolean).sort(),
+    sizes: sizes.filter(Boolean),
+    priceRange: priceStats[0] ? { minPrice: priceStats[0].minPrice, maxPrice: priceStats[0].maxPrice } : { minPrice: 0, maxPrice: 0 },
+  });
 });
 
 // @GET /api/v1/products/:id
@@ -186,8 +232,9 @@ const getRelatedProducts = asyncHandler(async (req, res) => {
   res.json({ success: true, products: related });
 });
 
-module.exports = { 
-  getProducts, 
+module.exports = {
+  getProducts,
+  getFilterOptions,
   getProductById, 
   getProductBySlug, 
   createProduct, 

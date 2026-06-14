@@ -1,0 +1,98 @@
+/* ============================================================
+   MASON — Vendor Store Page
+   ============================================================ */
+
+.store-banner {
+  width: 100%;
+  height: 220px;
+  background: linear-gradient(135deg, var(--champagne), var(--cream));
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+.store-banner__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.15) 100%);
+}
+
+.store-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  margin-top: -48px;
+  margin-bottom: var(--space-8);
+  padding: var(--space-6);
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  position: relative;
+}
+
+.store-header__avatar {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: var(--cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading);
+  font-size: var(--font-size-2xl);
+  color: var(--rose-gold-dark);
+  flex-shrink: 0;
+  overflow: hidden;
+  border: 3px solid white;
+}
+
+.store-header__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.store-header__name {
+  font-size: var(--font-size-2xl);
+  font-weight: 500;
+  margin: 0 0 var(--space-2);
+}
+
+.store-header__desc {
+  margin: 0 0 var(--space-3);
+  max-width: 60ch;
+}
+
+.store-header__meta {
+  display: flex;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.store-meta-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  .store-banner {
+    height: 140px;
+  }
+
+  .store-header {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    margin-top: -32px;
+    gap: var(--space-3);
+  }
+
+  .store-header__avatar {
+    width: 64px;
+    height: 64px;
+    font-size: var(--font-size-xl);
+  }
+}

@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
 
 // Common Components
@@ -11,7 +11,9 @@ import ScrollToTop from './components/ScrollToTop';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import VendorRegister from './pages/VendorRegister';
 import CategoryPage from './pages/CategoryPage';
+import StorePage from './pages/StorePage';
 import ProductDetail from './pages/ProductDetail';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
@@ -43,11 +45,28 @@ const OrdersManagement = lazy(() => import('./pages/admin/OrdersManagement'));
 const CategoriesManagement = lazy(() => import('./pages/admin/CategoriesManagement'));
 const UsersManagement = lazy(() => import('./pages/admin/UsersManagement'));
 const UserDetail = lazy(() => import('./pages/admin/UserDetail'));
+const VendorsManagement = lazy(() => import('./pages/admin/VendorsManagement'));
+const VendorDetail = lazy(() => import('./pages/admin/VendorDetail'));
 const CouponsManagement = lazy(() => import('./pages/admin/CouponsManagement'));
 const CustomizationsManagement = lazy(() => import('./pages/admin/CustomizationsManagement'));
+const BrandsManagement = lazy(() => import('./pages/admin/BrandsManagement'));
+const ReturnsManagement = lazy(() => import('./pages/admin/ReturnsManagement'));
+const ReviewsManagement = lazy(() => import('./pages/admin/ReviewsManagement'));
+const AdminAnalytics = lazy(() => import('./pages/admin/AdminAnalytics'));
+const VendorSettlements = lazy(() => import('./pages/admin/VendorSettlements'));
+const PlatformSettings = lazy(() => import('./pages/admin/PlatformSettings'));
 
 const VendorLayout = lazy(() => import('./components/VendorLayout'));
 const VendorDashboard = lazy(() => import('./pages/vendor/VendorDashboard'));
+const VendorPending = lazy(() => import('./pages/vendor/VendorPending'));
+const VendorSetPassword = lazy(() => import('./pages/vendor/VendorSetPassword'));
+const VendorProducts = lazy(() => import('./pages/vendor/VendorProducts'));
+const VendorProductForm = lazy(() => import('./pages/vendor/VendorProductForm'));
+const VendorInventory = lazy(() => import('./pages/vendor/VendorInventory'));
+const VendorOrders = lazy(() => import('./pages/vendor/VendorOrders'));
+const VendorOrderDetail = lazy(() => import('./pages/vendor/VendorOrderDetail'));
+const VendorEarnings = lazy(() => import('./pages/vendor/VendorEarnings'));
+const VendorProfile = lazy(() => import('./pages/vendor/VendorProfile'));
 
 // Contexts
 import { CartProvider } from './context/CartContext';
@@ -66,7 +85,19 @@ const StorefrontLayout = () => {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/vendor-register" element={<VendorRegister />} />
+          <Route path="/vendor-pending" element={
+            <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}>
+              <VendorPending />
+            </Suspense>
+          } />
+          <Route path="/vendor-set-password/:token" element={
+            <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}>
+              <VendorSetPassword />
+            </Suspense>
+          } />
           <Route path="/category/:gender" element={<CategoryPage />} />
+          <Route path="/store/:slug" element={<StorePage />} />
           <Route path="/product/:slug" element={<ProductDetail />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
@@ -116,8 +147,16 @@ function App() {
                     <Route path="categories" element={<CategoriesManagement />} />
                     <Route path="users" element={<UsersManagement />} />
                     <Route path="users/:id" element={<UserDetail />} />
+                    <Route path="vendors" element={<VendorsManagement />} />
+                    <Route path="vendors/:id" element={<VendorDetail />} />
                     <Route path="coupons" element={<CouponsManagement />} />
                     <Route path="customizations" element={<CustomizationsManagement />} />
+                    <Route path="brands" element={<BrandsManagement />} />
+                    <Route path="returns" element={<ReturnsManagement />} />
+                    <Route path="reviews" element={<ReviewsManagement />} />
+                    <Route path="analytics" element={<AdminAnalytics />} />
+                    <Route path="settlements" element={<VendorSettlements />} />
+                    <Route path="settings" element={<PlatformSettings />} />
                   </Route>
                 </Routes>
               </Suspense>
@@ -125,15 +164,19 @@ function App() {
 
             {/* Vendor Routes */}
             <Route path="/vendor/*" element={
-              <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading Vendor Portal...</div>}>
+              <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading Vendor...</div>}>
                 <Routes>
-                  <Route element={<VendorLayout />}>
-                    <Route path="" element={<VendorDashboard />} />
-                    <Route path="orders" element={<OrdersManagement />} />
-                    <Route path="products" element={<ProductsManagement />} />
-                    <Route path="products/new" element={<ProductEdit />} />
-                    <Route path="products/edit/:id" element={<ProductEdit />} />
+                  <Route path="" element={<VendorLayout />}>
+                    <Route index element={<VendorDashboard />} />
+                    <Route path="products" element={<VendorProducts />} />
+                    <Route path="products/new" element={<VendorProductForm />} />
+                    <Route path="products/edit/:id" element={<VendorProductForm />} />
+                    <Route path="orders" element={<VendorOrders />} />
+                    <Route path="orders/:id" element={<VendorOrderDetail />} />
+                    <Route path="inventory" element={<VendorInventory />} />
                     <Route path="customizations" element={<CustomizationsManagement />} />
+                    <Route path="earnings" element={<VendorEarnings />} />
+                    <Route path="profile" element={<VendorProfile />} />
                   </Route>
                 </Routes>
               </Suspense>

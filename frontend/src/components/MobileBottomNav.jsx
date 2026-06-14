@@ -44,8 +44,8 @@ const MobileBottomNav = () => {
     return location.pathname.startsWith(path);
   };
 
-  // Don't show on checkout/login/register
-  const hiddenPaths = ['/checkout', '/login', '/register', '/admin'];
+  // Don't show on checkout/login/register/admin/vendor
+  const hiddenPaths = ['/checkout', '/login', '/register', '/admin', '/vendor'];
   if (hiddenPaths.some(p => location.pathname.startsWith(p))) return null;
 
   return (
