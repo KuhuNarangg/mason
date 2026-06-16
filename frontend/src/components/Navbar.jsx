@@ -81,8 +81,9 @@ const Navbar = () => {
 
           {/* Center: Brand Name */}
           <div className="m-navbar__center" style={{ overflow: 'visible' }}>
-            <Link to="/" className="m-navbar__logo-text" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-              <img src="/logo11.png" alt="Mason Logo" style={{ height: '80px', width: 'auto', objectFit: 'contain' }} />
+            <Link to="/" className="m-navbar__logo-text" style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0px' }}>
+              <img src="/logo-new.png" alt="Mason Logo" style={{ height: '72px', width: 'auto', objectFit: 'contain' }} />
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: '0.55rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--ink)', opacity: 0.75, marginTop: '-4px', whiteSpace: 'nowrap' }}>Owl Stitch by Mason</span>
             </Link>
           </div>
 
