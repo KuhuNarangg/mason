@@ -12,8 +12,9 @@ const Footer = () => {
           
           {/* Column 1: Brand */}
           <div className="m-footer__col m-footer__col--brand">
-            <Link to="/" className="m-footer__logo" style={{ textDecoration: 'none', color: 'var(--ink)', fontSize: '2rem', fontFamily: 'var(--font-display)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              Owl Stitch <span style={{ fontSize: '0.45em', fontStyle: 'italic', opacity: 0.8, textTransform: 'none', fontWeight: 400 }}>by</span> Mason
+            <Link to="/" className="m-footer__logo" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1rem' }}>
+              <img src="/logo11.png" alt="Mason Logo" style={{ height: '120px', width: 'auto', objectFit: 'contain' }} />
+              <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '2.2rem', fontWeight: 300, fontStyle: 'italic', color: 'var(--ink)', lineHeight: 1, letterSpacing: '0.04em' }}>by Mason</span>
             </Link>
             <p className="m-footer__desc">
               Where heritage meets contemporary grace. Uncompromising quality and elevated silhouettes designed for the modern woman.
