@@ -308,8 +308,8 @@ const changePassword = asyncHandler(async (req, res) => {
   if (!(await user.matchPassword(oldPassword))) {
     res.status(401); throw new Error('Current password is incorrect');
   }
-  user.password = newPassword;
-  await user.save();
+  const hashedPassword = await bcrypt.hash(newPassword, 12);
+  await User.updateOne({ _id: req.user._id }, { password: hashedPassword });
   res.json({ success: true, message: 'Password changed successfully' });
 });
 
@@ -324,13 +324,14 @@ const changeEmail = asyncHandler(async (req, res) => {
   if (!(await user.matchPassword(currentPassword))) {
     res.status(401); throw new Error('Current password is incorrect');
   }
-  const taken = await User.findOne({ email: newEmail.toLowerCase().trim() });
+  const cleanEmail = newEmail.toLowerCase().trim();
+  const taken = await User.findOne({ email: cleanEmail });
   if (taken && taken._id.toString() !== user._id.toString()) {
     res.status(400); throw new Error('That email is already registered to another account');
   }
-  user.email = newEmail.toLowerCase().trim();
-  await user.save();
-  res.json({ success: true, message: 'Email updated successfully', user: safeUser(user) });
+  await User.updateOne({ _id: req.user._id }, { email: cleanEmail });
+  const updated = await User.findById(req.user._id);
+  res.json({ success: true, message: 'Email updated successfully', user: safeUser(updated) });
 });
 
 /* ── @PUT /api/v1/auth/change-access-code ─────────── */
@@ -349,8 +350,8 @@ const changeAccessCode = asyncHandler(async (req, res) => {
   if (!(await user.matchPassword(currentPassword))) {
     res.status(401); throw new Error('Current password is incorrect');
   }
-  user.accessCode = await bcrypt.hash(String(newCode), 12);
-  await user.save();
+  const hashedCode = await bcrypt.hash(String(newCode), 12);
+  await User.updateOne({ _id: req.user._id }, { accessCode: hashedCode });
   res.json({ success: true, message: 'Access code updated successfully' });
 });
 
