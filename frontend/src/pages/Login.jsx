@@ -53,15 +53,27 @@ const Login = () => {
     e.preventDefault();
     setError('');
 
-    if ((detectedRole === 'admin' || detectedRole === 'vendor') && !code.trim()) {
-      setError(`Please enter your ${detectedRole} verification code.`);
+    // If email was auto-filled (browser autocomplete), check-role may not have fired yet
+    let role = detectedRole;
+    if (!role && email) {
+      try {
+        const { data } = await api.get(`/auth/check-role?email=${encodeURIComponent(email)}`);
+        role = data.role === 'admin' || data.role === 'vendor' ? data.role : null;
+        setDetectedRole(role);
+      } catch {
+        role = null;
+      }
+    }
+
+    if ((role === 'admin' || role === 'vendor') && !code.trim()) {
+      setError(`Please enter your ${role} verification code.`);
       return;
     }
 
     setLoading(true);
     try {
       const payload = { email, password };
-      if (detectedRole === 'admin' || detectedRole === 'vendor') payload.code = code.trim();
+      if (role === 'admin' || role === 'vendor') payload.code = code.trim();
 
       const { data } = await api.post('/auth/login', payload);
       setAuthUser(data.token, data.user);
@@ -131,6 +143,7 @@ const Login = () => {
                 className="auth-input"
                 value={email}
                 onChange={handleEmailChange}
+                onBlur={() => checkRole(email)}
                 required
                 placeholder="Enter your email"
               />
