@@ -1,5 +1,6 @@
 const asyncHandler = require('express-async-handler');
 const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const Product = require('../models/Product');
 const Order = require('../models/Order');
@@ -161,11 +162,11 @@ const manualConfirmOrder = asyncHandler(async (req, res) => {
 
 // @POST /api/v1/admin/vendors
 const createVendor = asyncHandler(async (req, res) => {
-  const { name, email, password, businessName, gstNumber, panNumber, phone, commissionPercent } = req.body;
+  const { name, email, password, accessCode, businessName, gstNumber, panNumber, phone, commissionPercent } = req.body;
 
-  if (!name || !email || !password || !businessName) {
+  if (!name || !email || !password || !accessCode || !businessName) {
     res.status(400);
-    throw new Error('Name, email, password, and business name are required');
+    throw new Error('Name, email, password, access code, and business name are required');
   }
 
   if (password.length < 6) {
@@ -173,11 +174,9 @@ const createVendor = asyncHandler(async (req, res) => {
     throw new Error('Password must be at least 6 characters');
   }
 
-  // Enforce single-vendor limit
-  const vendorCount = await User.countDocuments({ role: 'vendor' });
-  if (vendorCount >= 1) {
+  if (String(accessCode).length < 4) {
     res.status(400);
-    throw new Error('Only a single vendor is allowed on this platform. A vendor already exists.');
+    throw new Error('Access code must be at least 4 characters');
   }
 
   const exists = await User.findOne({ email });
@@ -201,6 +200,10 @@ const createVendor = asyncHandler(async (req, res) => {
       approvedAt: new Date(),
     },
   });
+
+  // Hash and store access code separately to avoid double-hashing by pre-save hook
+  const hashedCode = await bcrypt.hash(String(accessCode), 12);
+  await User.updateOne({ _id: vendor._id }, { accessCode: hashedCode });
 
   res.status(201).json({
     success: true,

@@ -35,6 +35,7 @@ const VendorsManagement = () => {
     name: '',
     email: '',
     password: '',
+    accessCode: '',
     businessName: '',
     gstNumber: '',
     panNumber: '',
@@ -53,6 +54,7 @@ const VendorsManagement = () => {
         name: '',
         email: '',
         password: '',
+        accessCode: '',
         businessName: '',
         gstNumber: '',
         panNumber: '',
@@ -187,15 +189,9 @@ const VendorsManagement = () => {
           <p className="admin-page-subtitle">{vendors.length} vendor{vendors.length !== 1 ? 's' : ''}</p>
         </div>
         <div>
-          {vendors.length > 0 ? (
-            <span style={{ fontSize: '0.85rem', color: '#64748b', fontStyle: 'italic', background: '#f1f5f9', padding: '0.5rem 0.75rem', borderRadius: '6px' }}>
-              Single vendor limit reached. Delete existing vendor to create a new one.
-            </span>
-          ) : (
-            <button className="btn-submit" style={{ background: '#C08A74', border: 'none', color: '#fff', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.375rem', fontWeight: 500 }} onClick={() => setShowCreateModal(true)}>
-              Create Vendor
-            </button>
-          )}
+          <button className="btn-submit" style={{ background: '#C08A74', border: 'none', color: '#fff', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.375rem', fontWeight: 500 }} onClick={() => setShowCreateModal(true)}>
+            Create Vendor
+          </button>
         </div>
       </div>
 
@@ -357,6 +353,22 @@ const VendorsManagement = () => {
                   onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
                   style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }}
                 />
+              </div>
+              <div className="form-group" style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.375rem', fontWeight: 500, fontSize: '0.875rem' }}>Access Code *</label>
+                <input
+                  type="password"
+                  className="form-input"
+                  required
+                  placeholder="Vendor login code (min 4 chars)"
+                  value={createForm.accessCode}
+                  onChange={(e) => setCreateForm({ ...createForm, accessCode: e.target.value })}
+                  style={{ width: '100%', padding: '0.5rem', border: '1px solid #cbd5e1', borderRadius: '4px' }}
+                  autoComplete="off"
+                />
+                <span style={{ fontSize: '0.72rem', color: '#64748b', display: 'block', marginTop: '0.25rem' }}>
+                  The vendor will enter this code alongside their password to log in.
+                </span>
               </div>
               <div className="form-group" style={{ marginBottom: '1rem' }}>
                 <label style={{ display: 'block', marginBottom: '0.375rem', fontWeight: 500, fontSize: '0.875rem' }}>Business Name *</label>
