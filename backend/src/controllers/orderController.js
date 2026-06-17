@@ -7,7 +7,8 @@ const User = require('../models/User');
 const { createNotification } = require('../utils/notificationHelper');
 const {
   sendOrderConfirmation, sendOrderShipped, sendOrderOutForDelivery, sendOrderDelivered,
-  sendReturnRequest, sendReturnApproved, sendRefundProcessed
+  sendReturnRequest, sendReturnApproved, sendRefundProcessed,
+  sendAdminNewOrder, sendAdminReturnRequest, sendAdminCancellationRequest,
 } = require('../utils/emailService');
 
 // Shared Razorpay instance
@@ -109,18 +110,25 @@ const createOrder = asyncHandler(async (req, res) => {
     )
   );
 
-  // If COD, it's confirmed immediately, so we can send confirmation email
-  if (paymentMethod === 'cod') {
-    const populatedUser = await User.findById(req.user._id);
-    if (populatedUser) {
-      await sendOrderConfirmation({
-        name: populatedUser.name,
-        email: populatedUser.email,
-        orderNumber: order.orderNumber,
-        totalAmount: order.totalAmount,
-        items: items
-      });
-    }
+  // Send customer confirmation + admin new-order alert for every order
+  const populatedUser = await User.findById(req.user._id);
+  if (populatedUser) {
+    sendOrderConfirmation({
+      name: populatedUser.name,
+      email: populatedUser.email,
+      orderNumber: order.orderNumber,
+      totalAmount: order.totalAmount,
+      items,
+    }).catch(() => {});
+
+    sendAdminNewOrder({
+      orderNumber: order.orderNumber,
+      customerName: populatedUser.name,
+      customerEmail: populatedUser.email,
+      totalAmount: order.totalAmount,
+      paymentMethod,
+      items,
+    }).catch(() => {});
   }
 
   res.status(201).json({ success: true, order });
@@ -395,8 +403,9 @@ const returnOrder = asyncHandler(async (req, res) => {
     link: `/orders/${order._id}`
   });
 
-  // Send Email
-  await sendReturnRequest({ name: req.user.name, email: req.user.email, orderNumber: order.orderNumber, itemName: item.name });
+  // Send Emails — customer acknowledgement + admin alert
+  sendReturnRequest({ name: req.user.name, email: req.user.email, orderNumber: order.orderNumber, itemName: item.name }).catch(() => {});
+  sendAdminReturnRequest({ orderNumber: order.orderNumber, customerName: req.user.name, customerEmail: req.user.email, itemName: item.name, reason: reason || 'No reason provided' }).catch(() => {});
 
   res.json({ success: true, order });
 });
@@ -525,6 +534,13 @@ const requestOrderCancellation = asyncHandler(async (req, res) => {
   });
   
   await order.save();
+
+  // Notify admin about the cancellation request
+  const cancelUser = await User.findById(req.user._id).select('name email');
+  if (cancelUser) {
+    sendAdminCancellationRequest({ orderNumber: order.orderNumber, customerName: cancelUser.name, customerEmail: cancelUser.email, reason }).catch(() => {});
+  }
+
   res.json({ success: true, order });
 });
 

@@ -1,6 +1,7 @@
 const asyncHandler = require('express-async-handler');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
 const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
 const { sendWelcomeEmail, sendAdminLockoutAlert, sendVendorRegistrationReceived } = require('../utils/emailService');
@@ -43,48 +44,113 @@ const register = asyncHandler(async (req, res) => {
 
 /* ── @POST /api/v1/auth/login ─────────────────────── */
 const login = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
-  const user = await User.findOne({ email });
+  const { email, password, code } = req.body;
+  const user = await User.findOne({ email }).select('+accessCode');
 
   /* Unknown email — don't reveal info */
-  if (!user) { res.status(401); throw new Error('Invalid email or password'); }
+  if (!user) { res.status(401); throw new Error('ID or password or code is wrong, please try again'); }
 
-  /* Locked? */
-  if (user.isLoginLocked()) {
-    const secsLeft = Math.ceil((user.loginLockUntil - Date.now()) / 1000);
-    res.status(429);
-    throw new Error(`Account locked. Try again in ${Math.ceil(secsLeft / 60)} min.`);
-  }
-
-  const match = await user.matchPassword(password);
-
-  if (!match) {
-    user.loginAttempts += 1;
-    if (user.loginAttempts >= MAX_LOGIN_ATTEMPTS) {
-      user.loginLockUntil = new Date(Date.now() + LOGIN_LOCK_MINUTES * 60 * 1000);
-      user.loginAttempts = 0;
+  /* ── Role-specific lockout check ── */
+  if (user.role === 'admin') {
+    if (user.isAdminCodeLocked()) {
+      res.status(429);
+      throw new Error('Please try after 2 minutes');
     }
-    await user.save();
-    const remaining = MAX_LOGIN_ATTEMPTS - user.loginAttempts;
-    res.status(401);
-    throw new Error(
-      user.loginLockUntil
-        ? `Too many attempts. Account locked for ${LOGIN_LOCK_MINUTES} min.`
-        : `Invalid email or password. ${remaining > 0 ? `${remaining} attempt(s) left.` : ''}`
-    );
+  } else if (user.role === 'vendor') {
+    if (user.isVendorCodeLocked()) {
+      res.status(429);
+      throw new Error('Please try after 2 minutes');
+    }
+  } else {
+    if (user.isLoginLocked()) {
+      res.status(429);
+      throw new Error('Please try after 2 minutes');
+    }
   }
 
-  /* Successful login — reset counters */
-  user.loginAttempts = 0;
-  user.loginLockUntil = undefined;
+  /* ── Require verification code for admin / vendor ── */
+  if (user.role === 'admin' && !code) {
+    res.status(400); throw new Error('Admin verification code is required');
+  }
+  if (user.role === 'vendor' && !code) {
+    res.status(400); throw new Error('Vendor verification code is required');
+  }
+
+  /* ── Validate credentials ── */
+  const passwordMatch = await user.matchPassword(password);
+
+  let codeMatch = true;
+  if (user.role === 'admin') {
+    const dbResult = await user.matchAccessCode(code);
+    if (dbResult === null) {
+      codeMatch = String(code) === (process.env.ADMIN_ACCESS_CODE || '31082005');
+    } else {
+      codeMatch = dbResult;
+    }
+  } else if (user.role === 'vendor') {
+    const dbResult = await user.matchAccessCode(code);
+    if (dbResult === null) {
+      codeMatch = String(code) === (process.env.VENDOR_ACCESS_CODE || '20050831');
+    } else {
+      codeMatch = dbResult;
+    }
+  }
+
+  if (!passwordMatch || !codeMatch) {
+    /* ── Track failed attempts per role ── */
+    if (user.role === 'admin') {
+      user.adminCodeAttempts += 1;
+      if (user.adminCodeAttempts >= MAX_CODE_ATTEMPTS) {
+        user.adminCodeLockUntil = new Date(Date.now() + CODE_LOCK_MINUTES * 60 * 1000);
+        user.adminCodeAttempts = 0;
+        sendAdminLockoutAlert({
+          adminEmail: user.email, ipAddress: req.ip,
+          attempts: MAX_CODE_ATTEMPTS, lockUntil: user.adminCodeLockUntil,
+        }).catch(() => {});
+      }
+      await user.save();
+      res.status(401);
+      throw new Error('ID or password or code is wrong, please try again');
+
+    } else if (user.role === 'vendor') {
+      user.vendorCodeAttempts += 1;
+      if (user.vendorCodeAttempts >= MAX_CODE_ATTEMPTS) {
+        user.vendorCodeLockUntil = new Date(Date.now() + CODE_LOCK_MINUTES * 60 * 1000);
+        user.vendorCodeAttempts = 0;
+      }
+      await user.save();
+      res.status(401);
+      throw new Error('ID or password or code is wrong, please try again');
+
+    } else {
+      user.loginAttempts += 1;
+      if (user.loginAttempts >= MAX_LOGIN_ATTEMPTS) {
+        user.loginLockUntil = new Date(Date.now() + LOGIN_LOCK_MINUTES * 60 * 1000);
+        user.loginAttempts = 0;
+      }
+      await user.save();
+      res.status(401);
+      throw new Error('ID or password is wrong, please try again');
+    }
+  }
+
+  /* ── Successful login — reset counters ── */
+  if (user.role === 'admin') {
+    user.adminCodeAttempts = 0;
+    user.adminCodeLockUntil = undefined;
+  } else if (user.role === 'vendor') {
+    user.vendorCodeAttempts = 0;
+    user.vendorCodeLockUntil = undefined;
+  } else {
+    user.loginAttempts = 0;
+    user.loginLockUntil = undefined;
+  }
   await user.save();
 
-  /* If role is admin, ensure the email matches the designated ADMIN_EMAIL */
-  if (user.role === 'admin' && process.env.ADMIN_EMAIL) {
-    if (user.email.toLowerCase() !== process.env.ADMIN_EMAIL.toLowerCase()) {
-      res.status(403);
-      throw new Error('Admin access not permitted for this account.');
-    }
+  /* Admin gets a short-lived token marked as verified */
+  if (user.role === 'admin') {
+    const token = jwt.sign({ id: user._id, adminVerified: true }, process.env.JWT_SECRET, { expiresIn: '8h' });
+    return res.json({ success: true, token, user: safeUser(user) });
   }
 
   res.json({
@@ -92,6 +158,14 @@ const login = asyncHandler(async (req, res) => {
     token: generateToken(user._id),
     user: safeUser(user),
   });
+});
+
+/* ── @GET /api/v1/auth/check-role ─────────────────── */
+const checkRole = asyncHandler(async (req, res) => {
+  const { email } = req.query;
+  if (!email) return res.json({ role: null });
+  const user = await User.findOne({ email: email.toLowerCase().trim() }).select('role');
+  res.json({ role: user?.role || null });
 });
 
 /* ── @POST /api/v1/auth/admin-verify-code ─────────── */
@@ -240,6 +314,46 @@ const changePassword = asyncHandler(async (req, res) => {
 });
 
 
+/* ── @PUT /api/v1/auth/change-email ──────────────── */
+const changeEmail = asyncHandler(async (req, res) => {
+  const { newEmail, currentPassword } = req.body;
+  if (!newEmail || !currentPassword) {
+    res.status(400); throw new Error('New email and current password are required');
+  }
+  const user = await User.findById(req.user._id);
+  if (!(await user.matchPassword(currentPassword))) {
+    res.status(401); throw new Error('Current password is incorrect');
+  }
+  const taken = await User.findOne({ email: newEmail.toLowerCase().trim() });
+  if (taken && taken._id.toString() !== user._id.toString()) {
+    res.status(400); throw new Error('That email is already registered to another account');
+  }
+  user.email = newEmail.toLowerCase().trim();
+  await user.save();
+  res.json({ success: true, message: 'Email updated successfully', user: safeUser(user) });
+});
+
+/* ── @PUT /api/v1/auth/change-access-code ─────────── */
+const changeAccessCode = asyncHandler(async (req, res) => {
+  const { newCode, currentPassword } = req.body;
+  if (!newCode || !currentPassword) {
+    res.status(400); throw new Error('New code and current password are required');
+  }
+  if (!['admin', 'vendor'].includes(req.user.role)) {
+    res.status(403); throw new Error('Not authorised');
+  }
+  if (String(newCode).length < 4) {
+    res.status(400); throw new Error('Access code must be at least 4 characters');
+  }
+  const user = await User.findById(req.user._id);
+  if (!(await user.matchPassword(currentPassword))) {
+    res.status(401); throw new Error('Current password is incorrect');
+  }
+  user.accessCode = await bcrypt.hash(String(newCode), 12);
+  await user.save();
+  res.json({ success: true, message: 'Access code updated successfully' });
+});
+
 /* ── @POST /api/v1/auth/admin-register ───────────── */
 const adminRegister = asyncHandler(async (req, res) => {
   const { name, email, password, code } = req.body;
@@ -310,7 +424,8 @@ const vendorSetPassword = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
-  register, login, adminRegister, adminVerifyCode, googleAuth,
+  register, login, checkRole, adminRegister, adminVerifyCode, googleAuth,
   getMe, updateProfile, addAddress, deleteAddress, changePassword,
+  changeEmail, changeAccessCode,
   vendorRegister, vendorCheckSetupToken, vendorSetPassword,
 };

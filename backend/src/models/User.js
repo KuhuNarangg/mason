@@ -65,6 +65,13 @@ const userSchema = new mongoose.Schema(
     adminCodeAttempts:  { type: Number, default: 0 },
     adminCodeLockUntil: { type: Date },
 
+    /* ── Vendor access-code brute-force protection ── */
+    vendorCodeAttempts:  { type: Number, default: 0 },
+    vendorCodeLockUntil: { type: Date },
+
+    /* ── Custom access code (set from panel; overrides .env code) ── */
+    accessCode: { type: String, select: false },
+
     /* ── Vendor "set password" token (sent after admin approval) ── */
     vendorSetupToken:   { type: String, select: false },
     vendorSetupExpires: { type: Date, select: false },
@@ -102,6 +109,12 @@ userSchema.methods.matchPassword = async function (entered) {
   return bcrypt.compare(entered, this.password);
 };
 
+/* Returns true/false if a custom code is set, null if no custom code (fall back to env) */
+userSchema.methods.matchAccessCode = async function (entered) {
+  if (!this.accessCode) return null;
+  return bcrypt.compare(String(entered), this.accessCode);
+};
+
 /* Returns true if account is currently locked */
 userSchema.methods.isLoginLocked = function () {
   return !!(this.loginLockUntil && this.loginLockUntil > Date.now());
@@ -109,6 +122,10 @@ userSchema.methods.isLoginLocked = function () {
 
 userSchema.methods.isAdminCodeLocked = function () {
   return !!(this.adminCodeLockUntil && this.adminCodeLockUntil > Date.now());
+};
+
+userSchema.methods.isVendorCodeLocked = function () {
+  return !!(this.vendorCodeLockUntil && this.vendorCodeLockUntil > Date.now());
 };
 
 module.exports = mongoose.model('User', userSchema);
