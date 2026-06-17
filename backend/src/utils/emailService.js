@@ -3,25 +3,25 @@ const EmailLog = require('../models/EmailLog');
 
 const createTransporter = () =>
   nodemailer.createTransport({
-    host: 'smtp-relay.brevo.com',
-    port: 587,
-    secure: false,          // STARTTLS
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT) || 465,
+    secure: process.env.SMTP_SECURE !== 'false',
     auth: {
-      user: process.env.BREVO_SMTP_USER,   // your Brevo account email
-      pass: process.env.BREVO_SMTP_KEY,    // Brevo SMTP key (not account password)
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
     },
   });
 
 /* ── Generic send ──────────────────────────────────── */
 const sendEmail = async ({ to, subject, html }) => {
-  if (!process.env.BREVO_SMTP_USER || !process.env.BREVO_SMTP_KEY) {
-    console.warn('[Email] BREVO_SMTP_USER or BREVO_SMTP_KEY not set — skipping email send');
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    console.warn('[Email] SMTP_USER or SMTP_PASS not set — skipping email send');
     return;
   }
   try {
     const transporter = createTransporter();
     await transporter.sendMail({
-      from: `"Mason Store" <${process.env.BREVO_SENDER_EMAIL || process.env.BREVO_SMTP_USER}>`,
+      from: `"Owl Stitch by Mason" <${process.env.SMTP_USER}>`,
       to,
       subject,
       html,

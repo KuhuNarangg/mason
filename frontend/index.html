@@ -29,7 +29,7 @@
     ═══════════════════════════════════════ -->
     <meta property="og:type"        content="website" />
     <meta property="og:site_name"   content="Mason" />
-    <meta property="og:url"         content="https://mason-jade.vercel.app" />
+    <meta property="og:url"         content="https://www.owlstitch.com" />
     <meta property="og:title"       content="Mason — The Art of Femininity" />
     <meta property="og:description" content="Premium women's ethnic, party & western wear. Curated collections crafted for the modern woman." />
     <meta property="og:image"       content="https://mason-jade.vercel.app/og-image.jpeg" />
@@ -52,6 +52,75 @@
     <meta name="twitter:title"       content="Mason — The Art of Femininity" />
     <meta name="twitter:description" content="Premium women's ethnic, party & western wear." />
     <meta name="twitter:image"       content="https://mason-jade.vercel.app/og-image.jpeg" />
+
+    <!-- ═══════════════════════════════════════
+         CANONICAL & ALTERNATE DOMAINS
+    ═══════════════════════════════════════ -->
+    <link rel="canonical" href="https://www.owlstitch.com/" />
+    <link rel="alternate" href="https://www.owlstitch.in/" hreflang="en-in" />
+    <link rel="alternate" href="https://www.owlstitch.com/" hreflang="x-default" />
+
+    <!-- ═══════════════════════════════════════
+         STRUCTURED DATA (JSON-LD)
+    ═══════════════════════════════════════ -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://www.owlstitch.com/#organization",
+          "name": "Owl Stitch by Mason",
+          "url": "https://www.owlstitch.com",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://www.owlstitch.com/logo-new.png"
+          },
+          "sameAs": [
+            "https://www.instagram.com/dimple.knp"
+          ],
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "customercare@owlstitch.com",
+            "contactType": "customer service",
+            "areaServed": "IN",
+            "availableLanguage": "English"
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://www.owlstitch.com/#website",
+          "url": "https://www.owlstitch.com",
+          "name": "Owl Stitch by Mason",
+          "description": "Premium women's ethnic, party & western wear. Curated collections crafted for the modern woman.",
+          "publisher": { "@id": "https://www.owlstitch.com/#organization" },
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://www.owlstitch.com/category/all?search={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "ClothingStore",
+          "@id": "https://www.owlstitch.com/#store",
+          "name": "Owl Stitch by Mason",
+          "url": "https://www.owlstitch.com",
+          "image": "https://www.owlstitch.com/og-image.jpeg",
+          "description": "Premium women's ethnic, party & western wear crafted for the modern woman.",
+          "priceRange": "₹₹",
+          "currenciesAccepted": "INR",
+          "paymentAccepted": "Cash, Credit Card, Debit Card, UPI",
+          "areaServed": {
+            "@type": "Country",
+            "name": "India"
+          }
+        }
+      ]
+    }
+    </script>
 
     <!-- ═══════════════════════════════════════
          FONTS

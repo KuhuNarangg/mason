@@ -12,9 +12,12 @@ const Footer = () => {
           
           {/* Column 1: Brand */}
           <div className="m-footer__col m-footer__col--brand">
-            <Link to="/" className="m-footer__logo" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1rem' }}>
-              <img src="/logo11.png" alt="Mason Logo" style={{ height: '120px', width: 'auto', objectFit: 'contain' }} />
-              <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '2.2rem', fontWeight: 300, fontStyle: 'italic', color: 'var(--ink)', lineHeight: 1, letterSpacing: '0.04em' }}>by Mason</span>
+            <Link to="/" className="m-footer__logo" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem' }}>
+              <img src="/logo-new.png" alt="Mason Logo" style={{ height: '68px', width: 'auto', objectFit: 'contain' }} />
+              <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', lineHeight: 1.2 }}>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--ink)', textTransform: 'uppercase' }}>Owl Stitch</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.75rem', fontWeight: 400, fontStyle: 'italic', color: 'var(--ink)', opacity: 0.75, letterSpacing: '0.04em' }}>— by Mason</span>
+              </div>
             </Link>
             <p className="m-footer__desc">
               Where heritage meets contemporary grace. Uncompromising quality and elevated silhouettes designed for the modern woman.

@@ -1,0 +1,35 @@
+User-agent: *
+Allow: /
+
+# Block private/admin areas
+Disallow: /admin/
+Disallow: /vendor/
+Disallow: /cart
+Disallow: /checkout
+Disallow: /orders
+Disallow: /profile
+Disallow: /wishlist
+Disallow: /login
+Disallow: /register
+Disallow: /vendor-register
+Disallow: /vendor-pending
+Disallow: /vendor-set-password/
+
+# Allow crawlers full access to public content
+Allow: /category/
+Allow: /product/
+Allow: /store/
+Allow: /about
+Allow: /contact
+Allow: /faq
+Allow: /shipping
+Allow: /returns
+Allow: /size-guide
+Allow: /care
+Allow: /customisation
+Allow: /privacy
+Allow: /t-and-c
+Allow: /terms-of-use
+
+# Sitemap
+Sitemap: https://www.owlstitch.com/sitemap.xml
