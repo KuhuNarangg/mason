@@ -158,11 +158,11 @@
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 2px solid rgba(192, 138, 116, 0.25);
+  border: 2px solid rgba(192, 138, 116,0.25);
   border-radius: 20px;
   padding: var(--space-5) var(--space-5) var(--space-4);
   box-shadow:
-    0 8px 32px rgba(192, 138, 116, 0.12),
+    0 8px 32px rgba(192, 138, 116,0.12),
     0 2px 8px rgba(0,0,0,0.04);
 }
 
@@ -225,13 +225,13 @@
 .cust-fabric-chip:hover {
   transform: translateY(-4px) scale(1.03);
   border-color: var(--rose-gold);
-  box-shadow: 0 8px 20px rgba(192, 138, 116, 0.15);
+  box-shadow: 0 8px 20px rgba(192, 138, 116,0.15);
 }
 
 .cust-fabric-chip--selected {
   border-color: var(--rose-gold-dark);
   background: var(--cream);
-  box-shadow: 0 4px 16px rgba(192, 138, 116, 0.25);
+  box-shadow: 0 4px 16px rgba(192, 138, 116,0.25);
   transform: scale(1.05);
 }
 
@@ -286,7 +286,7 @@
 
 .cust-color-swatch--selected .cust-color-swatch__inner {
   border-color: var(--ink);
-  box-shadow: 0 0 0 4px rgba(192, 138, 116, 0.4), 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 0 0 4px rgba(192, 138, 116,0.4), 0 4px 12px rgba(0,0,0,0.15);
   transform: scale(1.1);
 }
 
@@ -322,7 +322,7 @@
 .cust-measure-card:focus-within {
   border-color: var(--rose-gold);
   transform: translateY(-3px);
-  box-shadow: 0 6px 16px rgba(192, 138, 116, 0.15);
+  box-shadow: 0 6px 16px rgba(192, 138, 116,0.15);
 }
 
 .cust-measure-card__emoji {
@@ -391,7 +391,7 @@
 
 .cust-notes-textarea:focus {
   border-color: var(--rose-gold);
-  box-shadow: 0 4px 20px rgba(192, 138, 116, 0.12);
+  box-shadow: 0 4px 20px rgba(192, 138, 116,0.12);
 }
 
 .cust-notes-textarea::placeholder {
@@ -473,7 +473,7 @@
 .cust-btn--primary:hover:not(:disabled) {
   transform: translateY(-2px);
   background: var(--rose-gold-dark);
-  box-shadow: 0 8px 24px rgba(192, 138, 116, 0.25);
+  box-shadow: 0 8px 24px rgba(192, 138, 116,0.25);
 }
 
 .cust-btn--primary:disabled {
@@ -492,7 +492,7 @@
 .cust-btn--submit:hover:not(:disabled) {
   transform: translateY(-2px);
   background: var(--rose-gold-dark);
-  box-shadow: 0 8px 24px rgba(192, 138, 116, 0.25);
+  box-shadow: 0 8px 24px rgba(192, 138, 116,0.25);
 }
 
 .cust-btn--submit:disabled {
@@ -564,7 +564,7 @@
   text-align: center;
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(16px);
-  border: 2px solid rgba(192, 138, 116, 0.2);
+  border: 2px solid rgba(192, 138, 116,0.2);
   border-radius: 24px;
   padding: var(--space-8) var(--space-6);
   max-width: 420px;

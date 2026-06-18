@@ -83,9 +83,10 @@ const Navbar = () => {
           <div className="m-navbar__center" style={{ overflow: 'visible' }}>
             <Link to="/" className="m-navbar__logo-text" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <img src="/logo-new.png" alt="Mason Logo" style={{ height: '68px', width: 'auto', objectFit: 'contain' }} />
-              <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', lineHeight: 1.2 }}>
-                <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--ink)', textTransform: 'uppercase' }}>Owl Stitch</span>
-                <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.75rem', fontWeight: 400, fontStyle: 'italic', color: 'var(--ink)', opacity: 0.75, letterSpacing: '0.04em' }}>— by Mason</span>
+              <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', lineHeight: 1.1 }}>
+                <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.65rem', fontWeight: 600, letterSpacing: '0.18em', color: 'var(--ink)', textTransform: 'uppercase', display: 'block' }}>Owl</span>
+                <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.1rem', fontWeight: 600, letterSpacing: '0.18em', color: 'var(--ink)', textTransform: 'uppercase', display: 'block' }}>Stitch</span>
+                <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '0.65rem', fontWeight: 300, fontStyle: 'italic', color: 'var(--ink)', opacity: 0.55, letterSpacing: '0.18em', display: 'block', marginTop: '2px' }}>by Mason</span>
               </div>
             </Link>
           </div>
@@ -204,9 +205,10 @@ const Navbar = () => {
         <div className="m-mobile-menu__head">
           <Link to="/" onClick={() => setMobileMenuOpen(false)} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <img src="/logo-new.png" alt="Mason Logo" style={{ height: '68px', width: 'auto', objectFit: 'contain' }} />
-            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', lineHeight: 1.2 }}>
-              <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--ink)', textTransform: 'uppercase' }}>Owl Stitch</span>
-              <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.75rem', fontWeight: 400, fontStyle: 'italic', color: 'var(--ink)', opacity: 0.75, letterSpacing: '0.04em' }}>— by Mason</span>
+            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', lineHeight: 1.1 }}>
+              <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.65rem', fontWeight: 600, letterSpacing: '0.18em', color: 'var(--ink)', textTransform: 'uppercase', display: 'block' }}>Owl</span>
+              <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.1rem', fontWeight: 600, letterSpacing: '0.18em', color: 'var(--ink)', textTransform: 'uppercase', display: 'block' }}>Stitch</span>
+              <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '0.65rem', fontWeight: 300, fontStyle: 'italic', color: 'var(--ink)', opacity: 0.55, letterSpacing: '0.18em', display: 'block', marginTop: '2px' }}>by Mason</span>
             </div>
           </Link>
           <button className="btn-icon" onClick={() => setMobileMenuOpen(false)}>
