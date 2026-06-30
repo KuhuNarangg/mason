@@ -371,36 +371,23 @@ const VendorProductForm = () => {
             </div>
           </div>
 
-          {/* Marketplace Category / Subcategory */}
+          {/* Marketplace Category */}
           <div className="form-row">
-            <div className="form-group">
+            <div className="form-group" style={{ width: '100%' }}>
               <label>Category *</label>
               <select
                 className="form-select"
                 value={form.category || ''}
-                onChange={(e) => setForm({ ...form, category: e.target.value, subcategory: '' })}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
                 required
               >
                 <option value="">Select a category…</option>
                 {categoryTree.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
               </select>
             </div>
-            <div className="form-group">
-              <label>Subcategory *</label>
-              <select
-                className="form-select"
-                value={form.subcategory || ''}
-                onChange={(e) => setForm({ ...form, subcategory: e.target.value })}
-                required
-                disabled={!form.category}
-              >
-                <option value="">Select a subcategory…</option>
-                {subcategoryOptions.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
-              </select>
-            </div>
           </div>
           <p style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '-0.5rem', marginBottom: '1.25rem' }}>
-            Categories and subcategories are managed by the platform admin. If you need a new one added, contact support.
+            Categories are managed by the platform admin or through your catalogue tab.
           </p>
 
           <div className="form-group">

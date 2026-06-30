@@ -26,12 +26,12 @@ router.use(approvedVendor);
 
 /* Products */
 router.get('/products',                     getMyProducts);
+router.put('/products/bulk-category',       bulkAssignCategory);
 router.get('/products/:id',                 getMyProductById);
 router.post('/products',                    createProduct);
 router.put('/products/:id',                 updateProduct);
 router.delete('/products/:id',              deleteProduct);
 router.put('/products/:id/toggle-active',   toggleProductActive);
-router.put('/products/bulk-category',       bulkAssignCategory);
 
 /* Inventory */
 router.get('/inventory',                                  getInventory);

@@ -256,7 +256,7 @@ const seed = async () => {
       const categoryName = TYPE_TO_CATEGORY[p.type];
       const categoryObj = createdCats.find(c => c.name === categoryName && c.gender === p.gender) || createdCats.find(c => c.name === categoryName);
       const categoryId = categoryObj ? categoryObj._id : null;
-      return Product.create({ ...p, category: categoryId, slug: null });
+      return Product.create({ ...p, category: categoryId, slug: null, vendor: vendor._id });
     }));
     console.log(`👕 ${createdProducts.length} products seeded`);
 

@@ -17,7 +17,38 @@ const getProducts = asyncHandler(async (req, res) => {
   if (subGender) query.subGender = subGender;
   if (type) query.type = { $in: type.split(',') };
   if (brand) query.brand = { $in: brand.split(',') };
-  if (category) query.category = { $in: category.split(',') };
+  if (category) {
+    const categoryIds = category.split(',').filter(id => mongoose.Types.ObjectId.isValid(id));
+    const Category = require('../models/Category');
+    const categoriesDb = await Category.find({ _id: { $in: categoryIds } });
+    
+    const orConditions = [
+      { category: { $in: categoryIds } },
+      { subcategory: { $in: categoryIds } }
+    ];
+    
+    for (const cat of categoriesDb) {
+      const catSlug = String(cat.slug || '').toLowerCase();
+      const typeMatches = [];
+      
+      if (catSlug === 'dresses' || catSlug === 'dress') typeMatches.push('dress');
+      if (catSlug === 'tops' || catSlug === 'top') typeMatches.push('top');
+      if (catSlug === 'trousers' || catSlug === 'trouser') typeMatches.push('trouser', 'trousers');
+      if (catSlug === 'ethnics' || catSlug === 'ethnic') typeMatches.push('ethnic');
+      if (catSlug === 'joggers' || catSlug === 'jogger') typeMatches.push('jogger', 'joggers');
+      
+      const normalized = catSlug.replace(/s$/, '');
+      if (normalized && !typeMatches.includes(normalized)) {
+        typeMatches.push(normalized);
+      }
+      
+      if (typeMatches.length > 0) {
+        orConditions.push({ type: { $in: typeMatches } });
+      }
+    }
+    
+    query.$or = orConditions;
+  }
   if (subcategory) query.subcategory = { $in: subcategory.split(',') };
   if (vendor) query.vendor = vendor;
   if (featured === 'true') query.isFeatured = true;

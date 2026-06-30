@@ -49,6 +49,10 @@ const CategoryPage = () => {
   ];
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [slug, gender]);
+
+  useEffect(() => {
     setSelectedTypes(typeParam ? [typeParam] : []);
   }, [typeParam]);
 

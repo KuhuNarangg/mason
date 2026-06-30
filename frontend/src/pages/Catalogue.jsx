@@ -64,12 +64,34 @@ const Catalogue = () => {
   }, []);
 
   // Helpers to get item counts
+  const isProductInCategory = (p, cat) => {
+    if (!cat) return false;
+    const pCatId = p.category?._id || p.category;
+    const pSubCatId = p.subcategory?._id || p.subcategory;
+    if (String(pCatId) === String(cat._id) || String(pSubCatId) === String(cat._id)) {
+      return true;
+    }
+    
+    const catSlug = String(cat.slug || '').toLowerCase();
+    const pType = String(p.type || '').toLowerCase();
+    const normalizedSlug = catSlug.replace(/s$/, '');
+    const normalizedType = pType.replace(/s$/, '');
+    
+    if (normalizedType === normalizedSlug) return true;
+    if (pType === 'dress' && catSlug === 'dresses') return true;
+    if (pType === 'trouser' && catSlug === 'trousers') return true;
+    
+    return false;
+  };
+
   const getCategoryCount = (catId) => {
-    return products.filter(p => p.category === catId || p.subcategory === catId).length;
+    const cat = categories.find(c => String(c._id) === String(catId));
+    return products.filter(p => isProductInCategory(p, cat)).length;
   };
 
   const getCategoryProductImage = (catId) => {
-    const productWithImg = products.find(p => (p.category === catId || p.subcategory === catId) && p.images && p.images.length > 0);
+    const cat = categories.find(c => String(c._id) === String(catId));
+    const productWithImg = products.find(p => isProductInCategory(p, cat) && p.images && p.images.length > 0);
     return productWithImg ? productWithImg.images[0] : null;
   };
 
@@ -137,7 +159,7 @@ const Catalogue = () => {
       const typeMatch = p.type?.toLowerCase().includes(searchLower);
       
       // Category Name Match
-      const matchedCat = categories.find(c => c._id === p.category || c._id === p.subcategory);
+      const matchedCat = categories.find(c => isProductInCategory(p, c));
       const categoryMatch = matchedCat?.name?.toLowerCase().includes(searchLower);
 
       if (!nameMatch && !brandMatch && !typeMatch && !categoryMatch) {
@@ -148,7 +170,7 @@ const Catalogue = () => {
     // 2. Category Filter
     if (activeCategoryParam) {
       const activeCat = getCategoryBySlugOrId(activeCategoryParam);
-      if (activeCat && p.category !== activeCat._id && p.subcategory !== activeCat._id) {
+      if (activeCat && !isProductInCategory(p, activeCat)) {
         return false;
       }
     }
@@ -202,8 +224,13 @@ const Catalogue = () => {
         {/* Category Cards */}
         <h2 className="section-title">Shop by Category</h2>
         <div className="category-grid">
-          {categories.map(cat => {
-            const imageUrl = getCategoryProductImage(cat._id);
+          {categories
+            .sort((a, b) => {
+              const order = { 'Dresses': 1, 'Ethnics': 2, 'Tops': 3, 'Trousers': 4 };
+              return (order[a.name] || 5) - (order[b.name] || 5);
+            })
+            .map(cat => {
+            const imageUrl = cat.image || getCategoryProductImage(cat._id);
             const icon = CATEGORY_ICONS[cat.name] || '🛍️';
             return (
               <div

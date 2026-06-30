@@ -15,6 +15,6 @@ router.get('/tree', getCategoryTree);
 router.get('/:slug', getCategoryBySlug);
 router.post('/', protect, adminOrVendor, createCategory);
 router.put('/:id', protect, adminOnly, updateCategory);
-router.delete('/:id', protect, adminOnly, deleteCategory);
+router.delete('/:id', protect, adminOrVendor, deleteCategory);
 
 module.exports = router;

@@ -21,6 +21,7 @@ const VendorProducts = () => {
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newCategoryGender, setNewCategoryGender] = useState('women');
   const [newCategoryDesc, setNewCategoryDesc] = useState('');
+  const [newCategoryCover, setNewCategoryCover] = useState(null);
   const [showCreateCategoryModal, setShowCreateCategoryModal] = useState(false);
   const [categorySubmitting, setCategorySubmitting] = useState(false);
 
@@ -29,20 +30,43 @@ const VendorProducts = () => {
     if (!newCategoryName.trim()) return toast.error('Category name is required');
     setCategorySubmitting(true);
     try {
+      let uploadedImageUrl = '';
+      if (newCategoryCover) {
+        const formData = new FormData();
+        formData.append('file', newCategoryCover);
+        const { data: uploadData } = await api.post('/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        uploadedImageUrl = uploadData.url;
+      }
+
       await api.post('/categories', {
         name: newCategoryName.trim(),
         gender: newCategoryGender,
-        description: newCategoryDesc.trim()
+        description: newCategoryDesc.trim(),
+        image: uploadedImageUrl
       });
       toast.success('Category created successfully!');
       setShowCreateCategoryModal(false);
       setNewCategoryName('');
       setNewCategoryDesc('');
+      setNewCategoryCover(null);
       fetchCategories(); // Refresh categories dropdown!
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to create category');
     } finally {
       setCategorySubmitting(false);
+    }
+  };
+
+  const handleDeleteCategory = async (id) => {
+    if (!confirm('Are you sure you want to delete this category? Products in this category will become uncategorized.')) return;
+    try {
+      await api.delete(`/categories/${id}`);
+      toast.success('Category deleted successfully');
+      fetchCategories(); // Refresh categories dropdown!
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete category');
     }
   };
 
@@ -137,6 +161,24 @@ const VendorProducts = () => {
     }
   };
 
+  const handleBulkRemoveCategory = async () => {
+    if (!confirm('Are you sure you want to remove the assigned category from these products?')) return;
+    setBulkSubmitting(true);
+    try {
+      const { data } = await api.put('/vendor/products/bulk-category', {
+        productIds: selectedIds,
+        categoryId: 'remove',
+      });
+      toast.success(data.message || 'Category removed successfully!');
+      setSelectedIds([]);
+      fetchProducts();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Bulk removal failed');
+    } finally {
+      setBulkSubmitting(false);
+    }
+  };
+
   const filtered = products.filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase())
   );
@@ -219,6 +261,14 @@ const VendorProducts = () => {
               onClick={handleBulkAssignCategory}
             >
               {bulkSubmitting ? 'Assigning...' : 'Assign Category'}
+            </button>
+            <button
+              className="btn-small"
+              style={{ padding: '0.45rem 1.2rem', fontSize: '0.85rem', color: '#ef4444', border: '1px solid #fca5a5', background: '#fef2f2' }}
+              disabled={bulkSubmitting}
+              onClick={handleBulkRemoveCategory}
+            >
+              Remove from Category
             </button>
             <button
               className="btn-small"
@@ -442,6 +492,20 @@ const VendorProducts = () => {
                   <option value="all">All / Unisex</option>
                 </select>
               </div>
+              <div style={{ marginBottom: '1.25rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#475569', marginBottom: '0.5rem' }}>Cover Image (Optional)</label>
+                <input
+                  type="file"
+                  accept="image/png, image/jpeg, image/jpg"
+                  onChange={(e) => setNewCategoryCover(e.target.files[0])}
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem',
+                    fontSize: '0.85rem',
+                    color: '#64748b'
+                  }}
+                />
+              </div>
               <div style={{ marginBottom: '1.5rem' }}>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#475569', marginBottom: '0.5rem' }}>Description</label>
                 <textarea
@@ -483,6 +547,28 @@ const VendorProducts = () => {
                 </button>
               </div>
             </form>
+
+            <h4 style={{ fontSize: '0.9rem', fontWeight: 600, color: '#475569', marginTop: '1.5rem', marginBottom: '0.75rem', borderTop: '1px solid #e2e8f0', paddingTop: '1rem' }}>
+              Existing Categories
+            </h4>
+            <div style={{ maxHeight: '180px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {categories.map(cat => (
+                <div key={cat._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', background: '#F8FAFC', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--ink)' }}>{cat.name}</span>
+                    <span style={{ fontSize: '0.7rem', color: '#64748b', marginLeft: '6px' }}>({cat.gender})</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteCategory(cat._id)}
+                    style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    title="Delete Category"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}

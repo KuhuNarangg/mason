@@ -193,6 +193,9 @@ const updateProduct = asyncHandler(async (req, res) => {
   const body = { ...req.body };
   delete body.vendor; // vendor cannot reassign ownership
 
+  if (body.category === '') body.category = null;
+  if (body.subcategory === '') body.subcategory = null;
+
   Object.assign(product, body);
   product.slug = null; // regenerate slug
   const updated = await product.save();
@@ -480,14 +483,18 @@ const bulkAssignCategory = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error('Please select at least one product.');
   }
-  if (!categoryId) {
+  if (categoryId === undefined) {
     res.status(400);
-    throw new Error('Please select a category.');
+    throw new Error('Please select a category or specify removal.');
   }
+
+  const updateOp = categoryId === 'remove' || categoryId === null 
+    ? { $set: { category: null } } 
+    : { $set: { category: categoryId } };
 
   const result = await Product.updateMany(
     { _id: { $in: productIds }, vendor: req.user._id },
-    { $set: { category: categoryId } }
+    updateOp
   );
 
   res.json({
