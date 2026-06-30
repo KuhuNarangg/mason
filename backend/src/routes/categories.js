@@ -8,12 +8,12 @@ const {
   updateCategory,
   deleteCategory,
 } = require('../controllers/categoryController');
-const { protect, adminOnly } = require('../middleware/auth');
+const { protect, adminOnly, adminOrVendor } = require('../middleware/auth');
 
 router.get('/', getCategories);
 router.get('/tree', getCategoryTree);
 router.get('/:slug', getCategoryBySlug);
-router.post('/', protect, adminOnly, createCategory);
+router.post('/', protect, adminOrVendor, createCategory);
 router.put('/:id', protect, adminOnly, updateCategory);
 router.delete('/:id', protect, adminOnly, deleteCategory);
 

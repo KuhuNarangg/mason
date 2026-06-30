@@ -9,7 +9,7 @@ import '../pages/admin/admin-pages.css';
 const navItems = [
   { name: 'Dashboard', path: '/vendor', icon: LayoutDashboard, end: true },
   { name: 'Orders', path: '/vendor/orders', icon: Package },
-  { name: 'Products', path: '/vendor/products', icon: Package },
+  { name: 'Catalogue', path: '/vendor/products', icon: Package },
   { name: 'Inventory', path: '/vendor/inventory', icon: Boxes },
   { name: 'Earnings', path: '/vendor/earnings', icon: Wallet },
   { name: 'Customs', path: '/vendor/customizations', icon: Scissors },

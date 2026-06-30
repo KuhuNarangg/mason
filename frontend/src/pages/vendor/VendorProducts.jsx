@@ -17,6 +17,35 @@ const VendorProducts = () => {
   const [selectedCategoryForBulk, setSelectedCategoryForBulk] = useState('');
   const [bulkSubmitting, setBulkSubmitting] = useState(false);
 
+  // Category Creation State
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [newCategoryGender, setNewCategoryGender] = useState('women');
+  const [newCategoryDesc, setNewCategoryDesc] = useState('');
+  const [showCreateCategoryModal, setShowCreateCategoryModal] = useState(false);
+  const [categorySubmitting, setCategorySubmitting] = useState(false);
+
+  const handleCreateCategorySubmit = async (e) => {
+    e.preventDefault();
+    if (!newCategoryName.trim()) return toast.error('Category name is required');
+    setCategorySubmitting(true);
+    try {
+      await api.post('/categories', {
+        name: newCategoryName.trim(),
+        gender: newCategoryGender,
+        description: newCategoryDesc.trim()
+      });
+      toast.success('Category created successfully!');
+      setShowCreateCategoryModal(false);
+      setNewCategoryName('');
+      setNewCategoryDesc('');
+      fetchCategories(); // Refresh categories dropdown!
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to create category');
+    } finally {
+      setCategorySubmitting(false);
+    }
+  };
+
   useEffect(() => {
     fetchProducts();
     fetchCategories();
@@ -117,10 +146,19 @@ const VendorProducts = () => {
   return (
     <div>
       <div className="page-header">
-        <h1 className="admin-page-title">My Products</h1>
-        <button className="btn-primary" onClick={() => navigate('/vendor/products/new')}>
-          <Plus size={20} /> Add Product
-        </button>
+        <h1 className="admin-page-title">Catalogue</h1>
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <button
+            className="btn-primary"
+            style={{ background: 'transparent', border: '1.5px solid var(--champagne-dark, #C08A74)', color: 'var(--champagne-dark, #C08A74)' }}
+            onClick={() => setShowCreateCategoryModal(true)}
+          >
+            <Plus size={18} /> Create Category
+          </button>
+          <button className="btn-primary" onClick={() => navigate('/vendor/products/new')}>
+            <Plus size={18} /> Add Product
+          </button>
+        </div>
       </div>
 
       <div className="filter-bar">
@@ -206,6 +244,7 @@ const VendorProducts = () => {
                 />
               </th>
               <th>Product Info</th>
+              <th>Sizes & Colors</th>
               <th>Price</th>
               <th>Stock</th>
               <th>Status</th>
@@ -215,7 +254,7 @@ const VendorProducts = () => {
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan="6" className="no-data">
+                <td colSpan="7" className="no-data">
                   No products yet. Add your first product to get started!
                 </td>
               </tr>
@@ -225,6 +264,18 @@ const VendorProducts = () => {
                 const maxStock = 1000;
                 const pct = Math.min(100, Math.round((totalStock / maxStock) * 100));
                 const level = pct >= 60 ? 'high' : pct >= 30 ? 'medium' : 'low';
+                
+                // Get unique sizes
+                const sizes = [...new Set((p.variants || []).map(v => v.size))];
+                
+                // Get unique colors
+                const colors = (p.variants || []).reduce((acc, v) => {
+                  if (v.color && !acc.find(item => item.color === v.color)) {
+                    acc.push({ color: v.color, hex: v.colorHex });
+                  }
+                  return acc;
+                }, []);
+
                 return (
                   <tr key={p._id}>
                     <td style={{ paddingLeft: '1rem' }}>
@@ -254,6 +305,39 @@ const VendorProducts = () => {
                           <div className="product-info-id">ID: {p._id.slice(-8).toUpperCase()} · {p.gender}/{p.type}</div>
                         </div>
                       </div>
+                    </td>
+                    <td>
+                      {/* Sizes */}
+                      {sizes.length > 0 ? (
+                        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '6px' }}>
+                          {sizes.map(s => (
+                            <span key={s} style={{ fontSize: '0.72rem', padding: '2px 6px', background: '#F3EDE4', borderRadius: '4px', color: '#475569', fontWeight: 600 }}>{s}</span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>No sizes</span>
+                      )}
+                      
+                      {/* Colors */}
+                      {colors.length > 0 ? (
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                          {colors.map(c => (
+                            <div
+                              key={c.color}
+                              title={c.color}
+                              style={{
+                                width: '12px',
+                                height: '12px',
+                                borderRadius: '50%',
+                                backgroundColor: c.hex || '#ccc',
+                                border: '1px solid #ddd',
+                              }}
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>No colors</span>
+                      )}
                     </td>
                     <td>
                       ₹{p.originalPrice}
@@ -295,6 +379,113 @@ const VendorProducts = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Create Category Modal */}
+      {showCreateCategoryModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(15, 23, 42, 0.4)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+        }}>
+          <div style={{
+            background: '#fff',
+            borderRadius: '8px',
+            border: '1px solid var(--champagne, #EAE0D5)',
+            width: '450px',
+            padding: '2rem',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+          }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--ink, #1e293b)', marginBottom: '1.5rem', fontFamily: 'inherit' }}>Create New Category</h3>
+            <form onSubmit={handleCreateCategorySubmit}>
+              <div style={{ marginBottom: '1.25rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#475569', marginBottom: '0.5rem' }}>Category Name *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Joggers, Shorts, Skirts"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.625rem 0.85rem',
+                    borderRadius: '6px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '0.9rem',
+                    outline: 'none',
+                    transition: 'border-color 0.2s',
+                  }}
+                />
+              </div>
+              <div style={{ marginBottom: '1.25rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#475569', marginBottom: '0.5rem' }}>Gender / Section *</label>
+                <select
+                  value={newCategoryGender}
+                  onChange={(e) => setNewCategoryGender(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.625rem 0.85rem',
+                    borderRadius: '6px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '0.9rem',
+                    background: '#fff',
+                    outline: 'none',
+                  }}
+                >
+                  <option value="women">Women</option>
+                  <option value="men">Men</option>
+                  <option value="kids">Kids</option>
+                  <option value="all">All / Unisex</option>
+                </select>
+              </div>
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#475569', marginBottom: '0.5rem' }}>Description</label>
+                <textarea
+                  placeholder="Optional brief description"
+                  value={newCategoryDesc}
+                  onChange={(e) => setNewCategoryDesc(e.target.value)}
+                  style={{
+                    width: '100%',
+                    height: '80px',
+                    padding: '0.625rem 0.85rem',
+                    borderRadius: '6px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '0.9rem',
+                    resize: 'none',
+                    outline: 'none',
+                  }}
+                />
+              </div>
+              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCreateCategoryModal(false);
+                    setNewCategoryName('');
+                    setNewCategoryDesc('');
+                  }}
+                  className="btn-small"
+                  style={{ padding: '0.5rem 1.25rem', background: 'transparent', border: '1px solid #cbd5e1', color: '#475569' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={categorySubmitting}
+                  className="btn-primary"
+                  style={{ padding: '0.5rem 1.5rem', fontSize: '0.85rem' }}
+                >
+                  {categorySubmitting ? 'Creating...' : 'Create Category'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

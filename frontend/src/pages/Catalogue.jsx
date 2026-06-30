@@ -9,8 +9,9 @@ const PRICE_CATEGORIES = [
   { label: 'Under ₹200', min: 0, max: 200, slug: 'under-200' },
   { label: '₹200–₹500', min: 200, max: 500, slug: '200-500' },
   { label: '₹500–₹1000', min: 500, max: 1000, slug: '500-1000' },
-  { label: '₹1000–₹2000', min: 1000, max: 2000, slug: '1000-2000' },
-  { label: 'Above ₹2000', min: 2000, max: Infinity, slug: 'above-2000' }
+  { label: '₹1000–₹3000', min: 1000, max: 3000, slug: '1000-3000' },
+  { label: '₹3000–₹5000', min: 3000, max: 5000, slug: '3000-5000' },
+  { label: 'Above ₹5000', min: 5000, max: Infinity, slug: 'above-5000' }
 ];
 
 const CATEGORY_ICONS = {
@@ -75,12 +76,6 @@ const Catalogue = () => {
   const getPriceCount = (min, max) => {
     return products.filter(p => {
       const price = p.price || p.originalPrice;
-      // Handle the bounds accurately
-      if (min === 0 && max === 200) return price < 200;
-      if (min === 200 && max === 500) return price >= 200 && price <= 500;
-      if (min === 500 && max === 1000) return price > 500 && price <= 1000;
-      if (min === 1000 && max === 2000) return price > 1000 && price <= 2000;
-      if (min === 2000) return price > 2000;
       return price >= min && price <= max;
     }).length;
   };
@@ -88,15 +83,7 @@ const Catalogue = () => {
   const getPriceProductImage = (min, max) => {
     const productWithImg = products.find(p => {
       const price = p.price || p.originalPrice;
-      let inRange = false;
-      if (min === 0 && max === 200) inRange = price < 200;
-      else if (min === 200 && max === 500) inRange = price >= 200 && price <= 500;
-      else if (min === 500 && max === 1000) inRange = price > 500 && price <= 1000;
-      else if (min === 1000 && max === 2000) inRange = price > 1000 && price <= 2000;
-      else if (min === 2000) inRange = price > 2000;
-      else inRange = price >= min && price <= max;
-
-      return inRange && p.images && p.images.length > 0;
+      return price >= min && price <= max && p.images && p.images.length > 0;
     });
     return productWithImg ? productWithImg.images[0] : null;
   };
@@ -172,15 +159,7 @@ const Catalogue = () => {
       if (activePriceObj) {
         const price = p.price || p.originalPrice;
         const { min, max } = activePriceObj;
-        
-        let inRange = false;
-        if (min === 0 && max === 200) inRange = price < 200;
-        else if (min === 200 && max === 500) inRange = price >= 200 && price <= 500;
-        else if (min === 500 && max === 1000) inRange = price > 500 && price <= 1000;
-        else if (min === 1000 && max === 2000) inRange = price > 1000 && price <= 2000;
-        else if (min === 2000) inRange = price > 2000;
-        else inRange = price >= min && price <= max;
-
+        const inRange = price >= min && price <= max;
         if (!inRange) return false;
       }
     }
@@ -236,7 +215,7 @@ const Catalogue = () => {
                   {imageUrl ? (
                     <img src={imageUrl} alt={cat.name} className="category-card-img" />
                   ) : (
-                    icon
+                    <div className="category-card-placeholder" style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #FAF6F0 0%, #F3EDE4 100%)' }} />
                   )}
                 </div>
                 <div className="category-card-info">

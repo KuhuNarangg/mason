@@ -25,8 +25,7 @@ const connectDB = async () => {
     try {
       const Category = require('../models/Category');
       const REQUIRED_CATEGORIES = [
-        'Dresses', 'Frocks', 'Tops', 'Skirts', 'Co-ords', 'Kurtis', 'Sarees',
-        'Jeans', 'Shirts', 'T-Shirts', 'Footwear', 'Accessories', 'Ethnic Wear', 'Western Wear'
+        'Dresses', 'Ethnics', 'Tops', 'Trousers'
       ];
 
       for (const catName of REQUIRED_CATEGORIES) {

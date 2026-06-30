@@ -86,7 +86,7 @@ const products = [
     brand: 'House of Mason',
     gender: 'women', type: 'ethnic',
     images: ['/blueethic1.jpg', '/blueethnic2.jpg', '/blueethnic3.jpg'],
-    originalPrice: 4900, discount: 0,
+    originalPrice: 5200, discount: 0,
     variants: [
       { size: 'S', color: 'Blue', colorHex: '#4169e1', stock: 3 },
       { size: 'M', color: 'Blue', colorHex: '#4169e1', stock: 5 },
@@ -229,6 +229,16 @@ const seed = async () => {
       role: 'user',
     });
     console.log('👤 Test user created: user@test.com / User@1234');
+
+    // Create approved vendor
+    const vendor = await User.create({
+      name: 'Mason Vendor',
+      email: 'vendor@mason.com',
+      password: 'password123',
+      role: 'vendor',
+      vendorStatus: 'approved',
+    });
+    console.log('👤 Vendor created: vendor@mason.com / password123');
 
     // Seed categories
     const createdCats = await Promise.all(categories.map(c => Category.create(c)));
