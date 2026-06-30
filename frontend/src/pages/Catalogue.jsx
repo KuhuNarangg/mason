@@ -225,7 +225,6 @@ const Catalogue = () => {
         <h2 className="section-title">Shop by Category</h2>
         <div className="category-grid">
           {categories
-            .filter(c => ['Dresses', 'Ethnics', 'Tops', 'Trousers'].includes(c.name))
             .sort((a, b) => {
               const order = { 'Dresses': 1, 'Ethnics': 2, 'Tops': 3, 'Trousers': 4 };
               return (order[a.name] || 5) - (order[b.name] || 5);
