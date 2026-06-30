@@ -28,6 +28,7 @@ const shiprocketRoutes = require('./src/routes/shiprocket');
 connectDB();
 
 const app = express();
+app.set('trust proxy', 1); // Trust first proxy (required for rate limiter on Render)
 
 /* ── Security ── */
 app.use(helmet({ crossOriginResourcePolicy: false }));  // Security headers
