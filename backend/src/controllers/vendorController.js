@@ -473,6 +473,30 @@ const getInvoices = asyncHandler(async (req, res) => {
   res.json({ success: true, total, page: Number(page), pages: Math.ceil(total / limit), invoices });
 });
 
+// @PUT /api/v1/vendor/products/bulk-category
+const bulkAssignCategory = asyncHandler(async (req, res) => {
+  const { productIds, categoryId } = req.body;
+  if (!productIds || !Array.isArray(productIds) || productIds.length === 0) {
+    res.status(400);
+    throw new Error('Please select at least one product.');
+  }
+  if (!categoryId) {
+    res.status(400);
+    throw new Error('Please select a category.');
+  }
+
+  const result = await Product.updateMany(
+    { _id: { $in: productIds }, vendor: req.user._id },
+    { $set: { category: categoryId } }
+  );
+
+  res.json({
+    success: true,
+    message: `Successfully assigned category to ${result.modifiedCount} product(s).`,
+    modifiedCount: result.modifiedCount,
+  });
+});
+
 module.exports = {
   getProfile,
   updateProfile,
@@ -493,4 +517,5 @@ module.exports = {
   getEarnings,
   getInvoices,
   getStoreBySlug,
+  bulkAssignCategory,
 };

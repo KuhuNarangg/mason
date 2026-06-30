@@ -14,7 +14,7 @@ const Contact = () => {
               <p>Mason Fashion Store<br/>Mall Road, Kanpur<br/>Uttar Pradesh, India</p>
               
               <h3>Contact Info</h3>
-              <p>Email: hello@masonfashion.in<br/>Phone: +91 98765 43210</p>
+              <p>Email: hello@masonfashion.in<br/>Phone: 816-8776809</p>
               
               <h3>Store Hours</h3>
               <p>Monday - Sunday: 10:00 AM - 9:00 PM</p>

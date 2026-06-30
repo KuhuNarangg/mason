@@ -71,6 +71,7 @@ const Navbar = () => {
             {/* Logo removed to keep only middle */}
 
             <nav className="m-navbar__nav desktop-only">
+              <Link to="/catalogue" className="m-nav-link" style={{ fontWeight: 600, color: 'var(--color-primary)' }}>Catalogue</Link>
               <Link to="/category/all?type=dress" className="m-nav-link">Dresses</Link>
               <Link to="/category/all?type=top" className="m-nav-link">Tops</Link>
               <Link to="/category/all?type=trouser" className="m-nav-link">Trousers</Link>
@@ -216,11 +217,11 @@ const Navbar = () => {
           </button>
         </div>
         <nav className="m-mobile-menu__nav">
+          <Link to="/catalogue" className="m-mobile-link" onClick={() => setMobileMenuOpen(false)} style={{ fontWeight: 600, color: 'var(--color-primary)' }}>Catalogue</Link>
           <Link to="/category/all?type=dress" className="m-mobile-link" onClick={() => setMobileMenuOpen(false)}>Dresses</Link>
           <Link to="/category/all?type=top" className="m-mobile-link" onClick={() => setMobileMenuOpen(false)}>Tops</Link>
           <Link to="/category/all?type=trouser" className="m-mobile-link" onClick={() => setMobileMenuOpen(false)}>Trousers</Link>
           <Link to="/category/all?type=ethnic" className="m-mobile-link" onClick={() => setMobileMenuOpen(false)}>Ethnics</Link>
-          <Link to="/category/all?type=westernwear" className="m-mobile-link" onClick={() => setMobileMenuOpen(false)}>Westernwear</Link>
           <Link to="/customization" className="m-mobile-link" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--rose-gold-dark)', fontWeight: 600 }}>Customise</Link>
         </nav>
         

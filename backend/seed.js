@@ -15,7 +15,6 @@ const categories = [
   { name: "Tops", gender: 'women', description: 'Chic tops and blouses' },
   { name: "Trousers", gender: 'women', description: 'Tailored trousers and pants' },
   { name: "Ethnics", gender: 'women', description: 'Traditional and modern ethnic wear' },
-  { name: "Westernwear", gender: 'women', description: 'Modern western fashion' },
 ];
 
 const products = [
@@ -72,7 +71,7 @@ const products = [
     brand: 'House of Mason',
     gender: 'women', type: 'dress',
     images: ['/whitedress.jpg', '/whitedress1.jpg', '/whitedress2.jpg'],
-    originalPrice: 2900, discount: 0,
+    originalPrice: 450, discount: 0,
     variants: [
       { size: 'XS', color: 'White', colorHex: '#ffffff', stock: 8 },
       { size: 'S', color: 'White', colorHex: '#ffffff', stock: 20 },
@@ -132,7 +131,7 @@ const products = [
     brand: 'House of Mason',
     gender: 'women', type: 'top',
     images: ['/blacktop.jpg'],
-    originalPrice: 2100, discount: 0,
+    originalPrice: 190, discount: 0,
     variants: [
       { size: 'XS', color: 'Black', colorHex: '#000000', stock: 15 },
       { size: 'S', color: 'Black', colorHex: '#000000', stock: 30 },
@@ -148,7 +147,7 @@ const products = [
     brand: 'House of Mason',
     gender: 'women', type: 'top',
     images: ['/whitetop1.jpg', '/whitetop2.jpg', '/whitetop3.jpg', '/whitetop4.jpg'],
-    originalPrice: 2400, discount: 0,
+    originalPrice: 1600, discount: 0,
     variants: [
       { size: 'S', color: 'White', colorHex: '#ffffff', stock: 18 },
       { size: 'M', color: 'White', colorHex: '#ffffff', stock: 24 },
@@ -160,7 +159,7 @@ const products = [
     name: 'Blue Flowing Skirt',
     description: 'A flowy blue skirt perfect for western wear.',
     brand: 'House of Mason',
-    gender: 'women', type: 'westernwear',
+    gender: 'women', type: 'dress',
     images: ['/blueflowskirt1.jpg'],
     originalPrice: 2800, discount: 0,
     variants: [
@@ -177,7 +176,7 @@ const products = [
     brand: 'House of Mason',
     gender: 'women', type: 'trouser',
     images: ['/greypants1.jpg', '/greypants2.jpg'],
-    originalPrice: 2700, discount: 0,
+    originalPrice: 890, discount: 0,
     variants: [
       { size: '28', color: 'Grey', colorHex: '#808080', stock: 8 },
       { size: '30', color: 'Grey', colorHex: '#808080', stock: 12 },
@@ -190,7 +189,7 @@ const products = [
     name: 'Signature Tailored Blazer',
     description: 'Our signature tailored blazer. Available in Classic Brown and Crisp White.',
     brand: 'House of Mason',
-    gender: 'women', type: 'westernwear',
+    gender: 'women', type: 'top',
     images: ['/brownblazer1.jpg', '/whiteblazer.jpg', '/brownblazer2.jpg', '/brownblazer3.jpg'],
     originalPrice: 4100, discount: 0,
     variants: [
@@ -235,8 +234,20 @@ const seed = async () => {
     const createdCats = await Promise.all(categories.map(c => Category.create(c)));
     console.log(`📂 ${createdCats.length} categories seeded`);
 
+    const TYPE_TO_CATEGORY = {
+      dress: 'Dresses',
+      top: 'Tops',
+      trouser: 'Trousers',
+      ethnic: 'Ethnics',
+    };
+
     // Seed products
-    const createdProducts = await Promise.all(products.map(p => Product.create({ ...p, slug: null })));
+    const createdProducts = await Promise.all(products.map(p => {
+      const categoryName = TYPE_TO_CATEGORY[p.type];
+      const categoryObj = createdCats.find(c => c.name === categoryName && c.gender === p.gender) || createdCats.find(c => c.name === categoryName);
+      const categoryId = categoryObj ? categoryObj._id : null;
+      return Product.create({ ...p, category: categoryId, slug: null });
+    }));
     console.log(`👕 ${createdProducts.length} products seeded`);
 
     console.log('\n✅ Database seeded successfully!');

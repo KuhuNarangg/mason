@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { GoogleLogin } from '@react-oauth/google';
 import api from '../utils/api';
@@ -8,78 +8,27 @@ import './Auth.css';
 const Login = () => {
   const { googleLogin, setAuthUser } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirect = searchParams.get('redirect');
 
-  const [email, setEmail]               = useState('');
-  const [password, setPassword]         = useState('');
-  const [code, setCode]                 = useState('');
-  const [detectedRole, setDetectedRole] = useState(null); // 'admin' | 'vendor' | null
-  const [error, setError]               = useState('');
-  const [loading, setLoading]           = useState(false);
-  const debounceRef = useRef(null);
-  const codeRef     = useRef(null);
-
-  const checkRole = useCallback(async (emailValue) => {
-    if (!emailValue || !emailValue.includes('@')) {
-      setDetectedRole(null);
-      return;
-    }
-    try {
-      const { data } = await api.get(`/auth/check-role?email=${encodeURIComponent(emailValue)}`);
-      const role = data.role === 'admin' || data.role === 'vendor' ? data.role : null;
-      setDetectedRole(role);
-    } catch {
-      setDetectedRole(null);
-    }
-  }, []);
-
-  /* Focus code field whenever it appears */
-  useEffect(() => {
-    if (detectedRole && codeRef.current) codeRef.current.focus();
-  }, [detectedRole]);
-
-  /* Cleanup debounce on unmount */
-  useEffect(() => () => clearTimeout(debounceRef.current), []);
-
-  const handleEmailChange = (e) => {
-    const val = e.target.value;
-    setEmail(val);
-    setCode('');
-    setDetectedRole(null);
-    clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => checkRole(val), 400);
-  };
+  const [email, setEmail]       = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError]       = useState('');
+  const [loading, setLoading]   = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-
-    // If email was auto-filled (browser autocomplete), check-role may not have fired yet
-    let role = detectedRole;
-    if (!role && email) {
-      try {
-        const { data } = await api.get(`/auth/check-role?email=${encodeURIComponent(email)}`);
-        role = data.role === 'admin' || data.role === 'vendor' ? data.role : null;
-        setDetectedRole(role);
-      } catch {
-        role = null;
-      }
-    }
-
-    if ((role === 'admin' || role === 'vendor') && !code.trim()) {
-      setError(`Please enter your ${role} verification code.`);
-      return;
-    }
-
     setLoading(true);
+
     try {
       const payload = { email, password };
-      if (role === 'admin' || role === 'vendor') payload.code = code.trim();
-
       const { data } = await api.post('/auth/login', payload);
       setAuthUser(data.token, data.user);
 
       if (data.user.role === 'admin') navigate('/admin');
       else if (data.user.role === 'vendor') navigate(data.user.vendorStatus === 'approved' ? '/vendor' : '/vendor-pending');
+      else if (redirect) navigate(`/${redirect}`);
       else navigate('/');
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid credentials.');
@@ -90,7 +39,12 @@ const Login = () => {
 
   const handleGoogle = async (credentialResponse) => {
     const res = await googleLogin(credentialResponse.credential);
-    if (res?.success) navigate(res.role === 'admin' ? '/admin' : res.role === 'vendor' ? '/vendor' : '/');
+    if (res?.success) {
+      if (res.role === 'admin') navigate('/admin');
+      else if (res.role === 'vendor') navigate(res.vendorStatus === 'approved' ? '/vendor' : '/vendor-pending');
+      else if (redirect) navigate(`/${redirect}`);
+      else navigate('/');
+    }
   };
 
   const isLocked = error.toLowerCase().includes('locked');
@@ -142,24 +96,10 @@ const Login = () => {
                 type="email"
                 className="auth-input"
                 value={email}
-                onChange={handleEmailChange}
-                onBlur={() => checkRole(email)}
+                onChange={e => setEmail(e.target.value)}
                 required
                 placeholder="Enter your email"
               />
-              {detectedRole && (
-                <span style={{
-                  display: 'inline-block',
-                  marginTop: '0.35rem',
-                  fontSize: '0.72rem',
-                  letterSpacing: '0.08em',
-                  textTransform: 'uppercase',
-                  color: detectedRole === 'admin' ? '#1d4ed8' : '#065f46',
-                  fontWeight: 600,
-                }}>
-                  {detectedRole === 'admin' ? '⬡ Admin account detected' : '⬡ Vendor account detected'}
-                </span>
-              )}
             </div>
 
             {/* Password */}
@@ -174,34 +114,6 @@ const Login = () => {
                 placeholder="Enter your password"
               />
             </div>
-
-            {/* Verification Code — only for admin / vendor */}
-            {(detectedRole === 'admin' || detectedRole === 'vendor') && (
-              <div className="form-group" style={{ animation: 'fadeSlideIn 0.2s ease' }}>
-                <label className="form-label">
-                  {detectedRole === 'admin' ? 'Admin Verification Code' : 'Vendor Verification Code'}
-                </label>
-                <input
-                  ref={codeRef}
-                  type="password"
-                  className="auth-input"
-                  value={code}
-                  onChange={e => setCode(e.target.value)}
-                  required
-                  placeholder={`Enter your ${detectedRole} access code`}
-                  maxLength={12}
-                  autoComplete="off"
-                />
-                <span style={{
-                  display: 'block',
-                  marginTop: '0.3rem',
-                  fontSize: '0.72rem',
-                  color: 'var(--ink-muted)',
-                }}>
-                  Required for {detectedRole} panel access.
-                </span>
-              </div>
-            )}
 
             <button type="submit" className="auth-btn" disabled={loading || isLocked}>
               {loading ? 'Please wait…' : 'Sign In'}

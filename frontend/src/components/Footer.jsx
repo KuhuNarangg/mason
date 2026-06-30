@@ -25,7 +25,7 @@ const Footer = () => {
             </p>
             <div className="m-footer__contact">
               <span><Mail size={16} strokeWidth={1.5} /> customercare@owlstitch.com</span>
-              <span><Phone size={16} strokeWidth={1.5} /> +1 (800) 123-4567</span>
+              <span><Phone size={16} strokeWidth={1.5} /> 816-8776809</span>
               <span><MapPin size={16} strokeWidth={1.5} /> 124 Luxury Ave, NY 10012</span>
             </div>
           </div>

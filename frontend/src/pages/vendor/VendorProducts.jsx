@@ -12,8 +12,14 @@ const VendorProducts = () => {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
 
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategoryForBulk, setSelectedCategoryForBulk] = useState('');
+  const [bulkSubmitting, setBulkSubmitting] = useState(false);
+
   useEffect(() => {
     fetchProducts();
+    fetchCategories();
   }, []);
 
   const fetchProducts = async () => {
@@ -29,11 +35,24 @@ const VendorProducts = () => {
     }
   };
 
+  const fetchCategories = async () => {
+    try {
+      const { data } = await api.get('/categories');
+      setCategories(data.categories || []);
+    } catch {
+      console.error('Failed to fetch categories');
+    }
+  };
+
   useEffect(() => {
     setLoading(true);
     fetchProducts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter]);
+
+  useEffect(() => {
+    setSelectedIds([]);
+  }, [filter, search]);
 
   const handleDelete = async (id) => {
     if (!confirm('Delete this product?')) return;
@@ -53,6 +72,39 @@ const VendorProducts = () => {
       fetchProducts();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to update product');
+    }
+  };
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedIds(filtered.map(p => p._id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id) => {
+    setSelectedIds(prev =>
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkAssignCategory = async () => {
+    if (!selectedCategoryForBulk) return;
+    setBulkSubmitting(true);
+    try {
+      const { data } = await api.put('/vendor/products/bulk-category', {
+        productIds: selectedIds,
+        categoryId: selectedCategoryForBulk,
+      });
+      toast.success(data.message || 'Category assigned successfully!');
+      setSelectedIds([]);
+      setSelectedCategoryForBulk('');
+      fetchProducts();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Bulk assignment failed');
+    } finally {
+      setBulkSubmitting(false);
     }
   };
 
@@ -94,10 +146,65 @@ const VendorProducts = () => {
         </div>
       </div>
 
+      {selectedIds.length > 0 && (
+        <div style={{
+          background: 'var(--champagne-light, #FAF6F0)',
+          border: '1px solid var(--champagne, #EAE0D5)',
+          padding: '1rem',
+          borderRadius: '8px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginTop: '1rem',
+          marginBottom: '1rem',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+        }}>
+          <div style={{ fontSize: '0.9rem', color: 'var(--ink)' }}>
+            <strong>{selectedIds.length}</strong> product(s) selected
+          </div>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            <select
+              className="search-input"
+              style={{ width: '220px', padding: '0.45rem 0.75rem', borderRadius: '4px', border: '1px solid #ccc', background: '#fff' }}
+              value={selectedCategoryForBulk}
+              onChange={(e) => setSelectedCategoryForBulk(e.target.value)}
+            >
+              <option value="">-- Assign Category --</option>
+              {categories.map(cat => (
+                <option key={cat._id} value={cat._id}>{cat.name} ({cat.gender})</option>
+              ))}
+            </select>
+            <button
+              className="btn-primary"
+              style={{ padding: '0.45rem 1.2rem', fontSize: '0.85rem' }}
+              disabled={!selectedCategoryForBulk || bulkSubmitting}
+              onClick={handleBulkAssignCategory}
+            >
+              {bulkSubmitting ? 'Assigning...' : 'Assign Category'}
+            </button>
+            <button
+              className="btn-small"
+              style={{ padding: '0.45rem 0.8rem', background: 'transparent', border: '1px solid #ccc', color: '#555' }}
+              onClick={() => { setSelectedIds([]); setSelectedCategoryForBulk(''); }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="table-wrap">
         <table className="admin-table">
           <thead>
             <tr>
+              <th style={{ width: '40px', paddingLeft: '1rem' }}>
+                <input
+                  type="checkbox"
+                  checked={filtered.length > 0 && selectedIds.length === filtered.length}
+                  onChange={handleSelectAll}
+                  style={{ cursor: 'pointer', transform: 'scale(1.1)' }}
+                />
+              </th>
               <th>Product Info</th>
               <th>Price</th>
               <th>Stock</th>
@@ -108,7 +215,7 @@ const VendorProducts = () => {
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan="5" className="no-data">
+                <td colSpan="6" className="no-data">
                   No products yet. Add your first product to get started!
                 </td>
               </tr>
@@ -120,6 +227,14 @@ const VendorProducts = () => {
                 const level = pct >= 60 ? 'high' : pct >= 30 ? 'medium' : 'low';
                 return (
                   <tr key={p._id}>
+                    <td style={{ paddingLeft: '1rem' }}>
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(p._id)}
+                        onChange={() => handleSelectOne(p._id)}
+                        style={{ cursor: 'pointer', transform: 'scale(1.1)' }}
+                      />
+                    </td>
                     <td>
                       <div className="product-info-cell">
                         {p.images && p.images.length > 0 ? (

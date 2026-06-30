@@ -32,6 +32,7 @@ import Privacy from './pages/policies/Privacy';
 import About from './pages/About';
 import SizeGuide from './pages/policies/SizeGuide';
 import GarmentCare from './pages/policies/GarmentCare';
+import Catalogue from './pages/Catalogue';
 
 // Admin Components
 import { Suspense, lazy } from 'react';
@@ -83,6 +84,7 @@ const StorefrontLayout = () => {
       <main className="pt-navbar">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/catalogue" element={<Catalogue />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/vendor-register" element={<VendorRegister />} />

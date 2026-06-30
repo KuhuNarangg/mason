@@ -44,11 +44,11 @@ const register = asyncHandler(async (req, res) => {
 
 /* ── @POST /api/v1/auth/login ─────────────────────── */
 const login = asyncHandler(async (req, res) => {
-  const { email, password, code } = req.body;
-  const user = await User.findOne({ email }).select('+accessCode');
+  const { email, password } = req.body;
+  const user = await User.findOne({ email });
 
   /* Unknown email — don't reveal info */
-  if (!user) { res.status(401); throw new Error('ID or password or code is wrong, please try again'); }
+  if (!user) { res.status(401); throw new Error('ID or password is wrong, please try again'); }
 
   /* ── Role-specific lockout check ── */
   if (user.role === 'admin') {
@@ -68,35 +68,10 @@ const login = asyncHandler(async (req, res) => {
     }
   }
 
-  /* ── Require verification code for admin / vendor ── */
-  if (user.role === 'admin' && !code) {
-    res.status(400); throw new Error('Admin verification code is required');
-  }
-  if (user.role === 'vendor' && !code) {
-    res.status(400); throw new Error('Vendor verification code is required');
-  }
-
   /* ── Validate credentials ── */
   const passwordMatch = await user.matchPassword(password);
 
-  let codeMatch = true;
-  if (user.role === 'admin') {
-    const dbResult = await user.matchAccessCode(code);
-    if (dbResult === null) {
-      codeMatch = String(code) === (process.env.ADMIN_ACCESS_CODE || '31082005');
-    } else {
-      codeMatch = dbResult;
-    }
-  } else if (user.role === 'vendor') {
-    const dbResult = await user.matchAccessCode(code);
-    if (dbResult === null) {
-      codeMatch = String(code) === (process.env.VENDOR_ACCESS_CODE || '20050831');
-    } else {
-      codeMatch = dbResult;
-    }
-  }
-
-  if (!passwordMatch || !codeMatch) {
+  if (!passwordMatch) {
     /* ── Track failed attempts per role ── */
     if (user.role === 'admin') {
       user.adminCodeAttempts += 1;
@@ -110,7 +85,7 @@ const login = asyncHandler(async (req, res) => {
       }
       await user.save();
       res.status(401);
-      throw new Error('ID or password or code is wrong, please try again');
+      throw new Error('ID or password is wrong, please try again');
 
     } else if (user.role === 'vendor') {
       user.vendorCodeAttempts += 1;
@@ -120,7 +95,7 @@ const login = asyncHandler(async (req, res) => {
       }
       await user.save();
       res.status(401);
-      throw new Error('ID or password or code is wrong, please try again');
+      throw new Error('ID or password is wrong, please try again');
 
     } else {
       user.loginAttempts += 1;

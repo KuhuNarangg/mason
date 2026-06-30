@@ -20,6 +20,37 @@ const connectDB = async () => {
     } catch (cleanupErr) {
       console.error('⚠️  storeSlug cleanup skipped:', cleanupErr.message);
     }
+
+    // Seed default categories for Catalogue
+    try {
+      const Category = require('../models/Category');
+      const REQUIRED_CATEGORIES = [
+        'Dresses', 'Frocks', 'Tops', 'Skirts', 'Co-ords', 'Kurtis', 'Sarees',
+        'Jeans', 'Shirts', 'T-Shirts', 'Footwear', 'Accessories', 'Ethnic Wear', 'Western Wear'
+      ];
+
+      for (const catName of REQUIRED_CATEGORIES) {
+        const slug = catName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        const exists = await Category.findOne({
+          $or: [
+            { name: { $regex: `^${catName}$`, $options: 'i' } },
+            { slug: slug }
+          ]
+        });
+
+        if (!exists) {
+          await Category.create({
+            name: catName,
+            slug: slug,
+            gender: 'all',
+            isActive: true
+          });
+          console.log(`🌱 Seeded category: ${catName}`);
+        }
+      }
+    } catch (seedErr) {
+      console.error('⚠️ Category seeding failed:', seedErr.message);
+    }
   } catch (error) {
     console.error(`❌ MongoDB connection error: ${error.message}`);
     process.exit(1);

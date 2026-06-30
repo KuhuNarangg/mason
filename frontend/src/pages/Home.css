@@ -52,7 +52,7 @@
    ============================================================ */
 .m-hero {
   position: relative;
-  height: 100svh;
+  height: calc(100svh - var(--navbar-height));
   min-height: 600px;
   overflow: hidden;
   background: var(--ink);
@@ -616,8 +616,30 @@
     background-attachment: scroll; /* Mobile parallax fallback */
   }
   
+  .m-hero {
+    height: calc(100svh - var(--navbar-height) - 60px); /* 60px for mobile bottom nav */
+    min-height: 400px;
+  }
+
+  .m-hero__title {
+    font-size: clamp(2.5rem, 10vw, 4.5rem);
+    margin-bottom: var(--space-6);
+  }
+
+  .m-hero__line--italic {
+    padding-left: 0;
+  }
+
   .m-hero__indicators {
-    bottom: var(--space-4);
+    bottom: 20px;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    gap: var(--space-2);
+  }
+
+  .m-hero__dot {
+    width: 25px;
   }
 }
 /* ============================================================

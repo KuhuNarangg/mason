@@ -6,7 +6,7 @@ const {
   getInventory, updateVariantStock,
   getVendorOrders, getVendorOrderById, updateItemStatus, updateItemTracking, updateOrderBill,
   getEarnings, getInvoices,
-  getStoreBySlug,
+  getStoreBySlug, bulkAssignCategory
 } = require('../controllers/vendorController');
 const { protect, vendorOnly, approvedVendor } = require('../middleware/auth');
 
@@ -31,6 +31,7 @@ router.post('/products',                    createProduct);
 router.put('/products/:id',                 updateProduct);
 router.delete('/products/:id',              deleteProduct);
 router.put('/products/:id/toggle-active',   toggleProductActive);
+router.put('/products/bulk-category',       bulkAssignCategory);
 
 /* Inventory */
 router.get('/inventory',                                  getInventory);

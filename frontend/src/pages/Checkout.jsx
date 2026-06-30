@@ -13,7 +13,14 @@ import './Checkout.css';
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAuth } = useAuth();
+
+  useEffect(() => {
+    if (!isAuth) {
+      navigate('/login?redirect=checkout');
+    }
+  }, [isAuth, navigate]);
+
   const { cart, clearCart, totalAmount } = useCart();
   const [step, setStep] = useState(1); // 1: Shipping, 2: Payment, 3: Confirm
   const [loading, setLoading] = useState(false);

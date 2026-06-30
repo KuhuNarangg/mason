@@ -1,7 +1,8 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Trash2, Plus, Minus, ArrowRight, ShieldCheck, Heart } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
+import { useAuth } from '../context/AuthContext';
 import { formatPrice } from '../utils/formatPrice';
 import toast from 'react-hot-toast';
 import './Cart.css';
@@ -9,6 +10,17 @@ import './Cart.css';
 const Cart = () => {
   const { cart, updateItem, removeItem, totalItems, totalAmount } = useCart();
   const { toggle, isWishlisted } = useWishlist();
+  const { isAuth } = useAuth();
+  const navigate = useNavigate();
+
+  const handleCheckout = (e) => {
+    e.preventDefault();
+    if (!isAuth) {
+      navigate('/login?redirect=checkout');
+    } else {
+      navigate('/checkout');
+    }
+  };
 
   const handleSaveForLater = (item) => {
     if (!isWishlisted(item.product._id)) {
@@ -126,9 +138,9 @@ const Cart = () => {
               <span>{formatPrice(finalAmount)}</span>
             </div>
 
-            <Link to="/checkout" className="place-order-btn">
+            <button onClick={handleCheckout} className="place-order-btn" style={{ border: 'none', cursor: 'pointer', width: '100%' }}>
               PLACE ORDER <ArrowRight size={16} />
-            </Link>
+            </button>
           </div>
 
           <div className="safe-checkout mt-4 d-flex align-center gap-2 text-muted justify-center">
