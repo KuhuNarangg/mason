@@ -190,7 +190,8 @@ const CategoryPage = () => {
   }
 
   return (
-    <div className="container mt-4 mb-5 fade-in">
+    <div className="container mt-4 mb-5 fade-in category-page-container black-theme">
+      {/* HEADER */}
       <div className="category-header d-flex justify-between align-center mb-5 reveal active">
         <div>
           <h1 className="category-title">{genderTitle}</h1>

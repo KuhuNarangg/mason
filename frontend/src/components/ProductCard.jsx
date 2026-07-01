@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, ShoppingBag } from 'lucide-react';
+import { Heart, ShoppingBag, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { formatPrice } from '../utils/formatPrice';
@@ -11,6 +11,7 @@ const ProductCard = ({ product }) => {
   const { toggle, isWishlisted } = useWishlist();
   const [isHovered, setIsHovered] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
+  const [currentImgIndex, setCurrentImgIndex] = useState(0);
 
   const wishlisted = isWishlisted(product._id);
   const inStock = product.variants.some(v => v.stock > 0);
@@ -30,8 +31,20 @@ const ProductCard = ({ product }) => {
 
   const NO_IMAGE = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22300%22%20height%3D%22400%22%20viewBox%3D%220%200%20300%20400%22%3E%3Crect%20fill%3D%22%23F5EDE4%22%20width%3D%22300%22%20height%3D%22400%22%2F%3E%3Ctext%20fill%3D%22%23A99B90%22%20font-family%3D%22serif%22%20font-size%3D%2216%22%20x%3D%2250%25%22%20y%3D%2250%25%22%20text-anchor%3D%22middle%22%20dy%3D%225%22%3ENo%20Image%3C%2Ftext%3E%3C%2Fsvg%3E';
 
-  const primaryImg = product.images?.[0] || NO_IMAGE;
-  const secondaryImg = product.images?.length > 1 ? product.images[1] : primaryImg;
+  const images = product.images?.length > 0 ? product.images : [NO_IMAGE];
+  const currentImg = images[currentImgIndex] || NO_IMAGE;
+
+  const handleNextImage = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCurrentImgIndex((prev) => (prev + 1) % images.length);
+  };
+
+  const handlePrevImage = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCurrentImgIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  };
 
   return (
     <Link
@@ -41,25 +54,40 @@ const ProductCard = ({ product }) => {
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="product-image-container">
-        {/* Primary Image */}
+        {/* Main Image */}
         <img
-          src={primaryImg}
+          key={currentImg}
+          src={currentImg}
           alt={product.name}
           className={`product-image primary ${imgLoaded ? 'loaded' : ''}`}
           loading="lazy"
           onLoad={() => setImgLoaded(true)}
           onError={(e) => { e.target.onerror = null; e.target.src = NO_IMAGE; }}
         />
-        {/* Secondary Image (hover) — eager loaded so hover is instant */}
-        {secondaryImg !== primaryImg && (
-          <img
-            src={secondaryImg}
-            alt={product.name}
-            className={`product-image secondary ${isHovered ? 'visible' : ''}`}
-            loading="eager"
-            fetchPriority="low"
-            onError={(e) => { e.target.onerror = null; e.target.src = NO_IMAGE; }}
-          />
+
+        {/* Carousel Navigation Arrows */}
+        {images.length > 1 && (
+          <>
+            <button 
+              className={`product-carousel-btn prev ${(isHovered || window.innerWidth < 768) ? 'visible' : ''}`} 
+              onClick={handlePrevImage}
+              aria-label="Previous image"
+            >
+              <ChevronLeft size={20} />
+            </button>
+            <button 
+              className={`product-carousel-btn next ${(isHovered || window.innerWidth < 768) ? 'visible' : ''}`} 
+              onClick={handleNextImage}
+              aria-label="Next image"
+            >
+              <ChevronRight size={20} />
+            </button>
+            <div className="product-carousel-dots">
+              {images.map((_, idx) => (
+                <div key={idx} className={`product-dot ${idx === currentImgIndex ? 'active' : ''}`} />
+              ))}
+            </div>
+          </>
         )}
 
         {/* Shimmer placeholder */}
