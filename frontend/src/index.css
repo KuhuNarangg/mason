@@ -366,6 +366,11 @@ body.global-dark-theme .catalogue-sidebar {
   border-color: var(--black-theme-border) !important;
 }
 
+body.global-dark-theme .catalogue-sidebar,
+body.global-dark-theme .mobile-filter-modal {
+  background-color: var(--black-theme-bg) !important;
+}
+
 /* Navbar */
 body.global-dark-theme .m-navbar {
   background-color: var(--black-theme-bg) !important;
