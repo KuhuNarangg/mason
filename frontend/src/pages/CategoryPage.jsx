@@ -58,6 +58,12 @@ const CategoryPage = () => {
     setSelectedTypes(typeParam ? [typeParam] : []);
   }, [typeParam]);
 
+  // Activate Global Dark Theme for Category Page
+  useEffect(() => {
+    document.body.classList.add('global-dark-theme');
+    return () => document.body.classList.remove('global-dark-theme');
+  }, []);
+
   // Keep the Categories sidebar in sync with the ?category= URL param
   // (e.g. when navigating between category links without a full page reload)
   useEffect(() => {
@@ -190,8 +196,8 @@ const CategoryPage = () => {
   }
 
   return (
-    <div className="container mt-4 mb-5 fade-in category-page-container black-theme">
-      {/* HEADER */}
+    <div className="container mt-4 mb-5 fade-in category-page-container">
+      {/* Dynamic Header */}
       <div className="category-header d-flex justify-between align-center mb-5 reveal active">
         <div>
           <h1 className="category-title">{genderTitle}</h1>

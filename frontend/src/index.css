@@ -324,3 +324,100 @@ img, video {
 .pt-navbar {
   padding-top: var(--navbar-height);
 }
+
+/* Black Theme Overrides */
+:root {
+  --black-theme-bg: #0a0a0a;
+  --black-theme-text: #ffffff;
+  --black-theme-text-muted: #a3a3a3;
+  --black-theme-border: rgba(255, 255, 255, 0.1);
+}
+
+/* Global Dark Theme Overrides */
+body.global-dark-theme {
+  background-color: var(--black-theme-bg) !important;
+  color: var(--black-theme-text) !important;
+}
+
+/* Base Overrides */
+body.global-dark-theme .catalogue-container {
+  background-color: transparent !important;
+}
+
+body.global-dark-theme .filter-title, 
+body.global-dark-theme .category-title,
+body.global-dark-theme h1, body.global-dark-theme h2, body.global-dark-theme h3,
+body.global-dark-theme .breadcrumb-back-btn,
+body.global-dark-theme .breadcrumb-current {
+  color: var(--black-theme-text) !important;
+}
+
+body.global-dark-theme .filter-checkbox-label, 
+body.global-dark-theme .filter-radio-label,
+body.global-dark-theme .text-muted,
+body.global-dark-theme .breadcrumb-separator {
+  color: var(--black-theme-text-muted) !important;
+}
+
+body.global-dark-theme .category-header,
+body.global-dark-theme .mobile-filter-bar,
+body.global-dark-theme .catalogue-breadcrumbs,
+body.global-dark-theme .catalogue-sidebar {
+  border-color: var(--black-theme-border) !important;
+}
+
+/* Navbar */
+body.global-dark-theme .m-navbar {
+  background-color: var(--black-theme-bg) !important;
+  border-bottom-color: var(--black-theme-border) !important;
+}
+
+body.global-dark-theme .m-navbar .btn-icon,
+body.global-dark-theme .m-navbar .m-nav-link,
+body.global-dark-theme .m-navbar .m-navbar__logo-text,
+body.global-dark-theme .m-navbar span {
+  color: var(--black-theme-text) !important;
+}
+
+body.global-dark-theme .m-navbar .m-navbar__logo-img {
+  filter: invert(1) hue-rotate(180deg) brightness(1.5);
+}
+
+/* Footer */
+body.global-dark-theme .m-footer {
+  background-color: #050505 !important;
+  border-top-color: var(--black-theme-border) !important;
+  color: var(--black-theme-text-muted) !important;
+}
+
+body.global-dark-theme .m-footer h4,
+body.global-dark-theme .m-footer a {
+  color: var(--black-theme-text) !important;
+}
+
+/* Product Cards */
+body.global-dark-theme .product-card {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+body.global-dark-theme .product-title {
+  color: #fff !important;
+}
+body.global-dark-theme .product-price {
+  color: #f3f4f6 !important;
+}
+body.global-dark-theme .product-original-price {
+  color: #9ca3af !important;
+}
+
+/* Dropdowns & Forms */
+body.global-dark-theme select {
+  background-color: transparent !important;
+  color: var(--black-theme-text) !important;
+  border-color: var(--black-theme-border) !important;
+}
+body.global-dark-theme select option {
+  background-color: var(--black-theme-bg) !important;
+  color: var(--black-theme-text) !important;
+}
+body.global-dark-theme .m-label { color: #C08A74 !important; }
