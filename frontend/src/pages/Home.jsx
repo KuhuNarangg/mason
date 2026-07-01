@@ -10,6 +10,7 @@ const Home = () => {
   const [featured, setFeatured] = useState([]);
   const [trending, setTrending] = useState([]);
   const [newArrivals, setNewArrivals] = useState([]);
+  const [cinematicMedia, setCinematicMedia] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentHero, setCurrentHero] = useState(0);
 
@@ -33,14 +34,16 @@ const Home = () => {
   useEffect(() => {
     const fetchHomeData = async () => {
       try {
-        const [featRes, trendRes, newRes] = await Promise.all([
+        const [featRes, trendRes, newRes, mediaRes] = await Promise.all([
           api.get('/products?featured=true&limit=8'),
           api.get('/products?trending=true&limit=8'),
-          api.get('/products?sort=newest&limit=8')
+          api.get('/products?sort=newest&limit=8'),
+          api.get('/homemedia')
         ]);
         setFeatured(featRes.data.products);
         setTrending(trendRes.data.products);
         setNewArrivals(newRes.data.products);
+        setCinematicMedia(mediaRes.data.media || []);
       } catch (err) {
         console.error('Failed to fetch home data', err);
       } finally {
@@ -213,6 +216,78 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* 4.5. THE MASON CINEMATIC EXPERIENCE */}
+      {(loading || cinematicMedia.length > 0) && (
+        <section className="m-cinematic" style={{ padding: '6rem 0', background: '#0a0a0a', color: '#fff', overflow: 'hidden' }}>
+          <div className="container">
+            <div className="reveal-up" style={{ textAlign: 'center', marginBottom: '4rem' }}>
+              <span className="m-label" style={{ color: '#C08A74', letterSpacing: '3px' }}>Visual Lookbook</span>
+              <h2 className="m-section-title" style={{ color: '#fff' }}>The Mason <em>Cinematic</em> Experience</h2>
+              <p style={{ maxWidth: '600px', margin: '1rem auto 0', color: '#a3a3a3' }}>
+                Immerse yourself in our world. Discover the movement, the texture, and the unparalleled grace of our latest collections in motion.
+              </p>
+            </div>
+
+            {loading ? (
+              <div className="m-loading-state"><div className="spinner" style={{ borderColor: '#fff', borderTopColor: 'transparent' }} /></div>
+            ) : (
+              <div className="m-cinematic__grid" style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
+                gap: '2rem',
+                alignItems: 'center'
+              }}>
+                {cinematicMedia.map((media, i) => (
+                  <div key={media._id} className="reveal-up" style={{ 
+                    position: 'relative', 
+                    borderRadius: '16px', 
+                    overflow: 'hidden',
+                    aspectRatio: '9/16',
+                    boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
+                    transitionDelay: `${i * 0.1}s`,
+                    transform: i % 2 !== 0 ? 'translateY(2rem)' : 'none' // Staggered masonry effect
+                  }}>
+                    {media.type === 'video' ? (
+                      <video 
+                        src={media.url} 
+                        autoPlay 
+                        loop 
+                        muted 
+                        playsInline 
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    ) : (
+                      <img 
+                        src={media.url} 
+                        alt={media.title}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        loading="lazy"
+                      />
+                    )}
+                    {media.title && (
+                      <div style={{ 
+                        position: 'absolute', 
+                        bottom: 0, 
+                        left: 0, 
+                        right: 0, 
+                        padding: '3rem 1.5rem 1.5rem', 
+                        background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)',
+                        color: 'white',
+                        fontWeight: '600',
+                        fontSize: '1.1rem',
+                        letterSpacing: '0.5px'
+                      }}>
+                        {media.title}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* 5. FEATURED PRODUCTS (Admin-curated editorial grid) */}
       {(loading || featured.length > 0) && (

@@ -8,6 +8,7 @@ const {
   getSettlementsOverview, getVendorSettlementDetail, settleVendorPayout,
   getSettings, updateSettings,
 } = require('../controllers/adminController');
+const { getHomeMedia, getAdminHomeMedia, createHomeMedia, deleteHomeMedia } = require('../controllers/homeMediaController');
 const { protect, adminOnly } = require('../middleware/auth');
 
 router.use(protect, adminOnly);
@@ -32,6 +33,11 @@ router.put('/vendors/:id/suspend',         suspendVendor);
 router.put('/vendors/:id/reinstate',       reinstateVendor);
 router.put('/vendors/:id/commission',      setVendorCommission);
 router.delete('/vendors/:id',              deleteVendor);
+
+/* ── Home Media management ── */
+router.get('/homemedia',                   getAdminHomeMedia);
+router.post('/homemedia',                  createHomeMedia);
+router.delete('/homemedia/:id',            deleteHomeMedia);
 
 /* ── Returns management ── */
 router.get('/returns',                     getReturns);

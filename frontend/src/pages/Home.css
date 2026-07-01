@@ -789,3 +789,13 @@
     gap: var(--space-3);
   }
 }
+
+@media (max-width: 768px) {
+  .m-cinematic__grid {
+    gap: 1rem !important;
+  }
+  .m-cinematic__grid > div {
+    transform: none !important;
+  }
+}
+
