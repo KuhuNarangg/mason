@@ -10,7 +10,7 @@ const Returns = () => {
           <p>Thank you for shopping at Owl Stitch by Mason. If, for any reason, you are not completely satisfied with a purchase, we invite you to review our policy on refunds and returns.</p>
           
           <h3>1. Return Eligibility</h3>
-          <p>Returns are allowed within our specified return period (typically 7 days from the date of delivery). To be eligible for a return, your item must be unused, in the same condition that you received it, and must be in the original packaging with all tags attached.</p>
+          <p>Returns are allowed within our specified return period (typically 7 days from the date of delivery). To be eligible for a return, your item must be unused, in the same condition that you received it, and must be in the original packaging with all tags attached. <strong>Please Note:</strong> Each garment is shipped with a uniquely numbered Security Seal Tag to ensure authenticity and safeguard against misuse. Returns or refunds will only be accepted if the original Security Seal Tag remains intact and attached to the garment.</p>
           
           <h3>2. Non-Returnable Items</h3>
           <p>Certain types of items cannot be returned, including custom-made products, intimate apparel, and final sale items.</p>
