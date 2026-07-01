@@ -33,9 +33,10 @@ const CATEGORY_ICONS = {
 
 const Catalogue = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState([]);
+  const [loadingCats, setLoadingCats] = useState(true);
+  const [loadingProducts, setLoadingProducts] = useState(true);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
   // Active query parameters
@@ -44,23 +45,27 @@ const Catalogue = () => {
   const activeSearchParam = searchParams.get('search') || '';
 
   useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      try {
-        // Fetch all products (limit: 1000 for client-side count computation & instant filtering)
-        const { data: prodData } = await api.get('/products', { params: { limit: 1000 } });
-        setProducts(prodData.products || []);
+    // Load categories instantly
+    api.get('/categories')
+      .then(res => {
+        setCategories(res.data.categories || []);
+        setLoadingCats(false);
+      })
+      .catch(err => {
+        console.error('Failed to load categories', err);
+        setLoadingCats(false);
+      });
 
-        // Fetch active categories
-        const { data: catData } = await api.get('/categories');
-        setCategories(catData.categories || []);
-      } catch (err) {
-        console.error('Failed to load catalogue data', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadData();
+    // Load products in the background for counts and filtering
+    api.get('/products', { params: { limit: 1000 } })
+      .then(res => {
+        setProducts(res.data.products || []);
+        setLoadingProducts(false);
+      })
+      .catch(err => {
+        console.error('Failed to load products', err);
+        setLoadingProducts(false);
+      });
   }, []);
 
   // Helpers to get item counts
@@ -189,7 +194,7 @@ const Catalogue = () => {
     return true;
   });
 
-  if (loading) {
+  if (loadingCats || (isGridView && loadingProducts)) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
         <div className="spinner" style={{ marginBottom: '1rem' }} />

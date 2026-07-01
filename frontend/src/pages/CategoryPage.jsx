@@ -49,7 +49,9 @@ const CategoryPage = () => {
   ];
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    // Timeout ensures browser scroll restoration doesn't override this
+    const timer = setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' }), 10);
+    return () => clearTimeout(timer);
   }, [slug, gender]);
 
   useEffect(() => {
