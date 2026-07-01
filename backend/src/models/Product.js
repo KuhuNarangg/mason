@@ -15,6 +15,7 @@ const reviewSchema = new mongoose.Schema(
     rating: { type: Number, required: true, min: 1, max: 5 },
     comment: { type: String },
     photos: [{ type: String }],
+    isApproved: { type: Boolean, default: false }
   },
   { timestamps: true }
 );
@@ -122,6 +123,17 @@ productSchema.pre('save', function () {
   if (!this.thumbnail && this.images.length > 0) {
     this.thumbnail = this.images[0];
   }
+  next();
 });
 
-module.exports = mongoose.model('Product', productSchema);
+// Calculate rating based on approved reviews only
+productSchema.methods.calculateApprovedRating = function() {
+  const approvedReviews = this.reviews.filter(r => r.isApproved);
+  this.numReviews = approvedReviews.length;
+  this.rating = approvedReviews.length > 0 
+    ? approvedReviews.reduce((acc, r) => acc + r.rating, 0) / approvedReviews.length 
+    : 0;
+};
+
+const Product = mongoose.model('Product', productSchema);
+module.exports = Product;

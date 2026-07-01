@@ -183,12 +183,15 @@ const addReview = asyncHandler(async (req, res) => {
     name: req.user.name, 
     rating: Number(rating), 
     comment,
-    photos: photos || []
+    photos: photos || [],
+    isApproved: false
   });
-  product.numReviews = product.reviews.length;
-  product.rating = product.reviews.reduce((acc, r) => acc + r.rating, 0) / product.reviews.length;
+  
+  // Rating and numReviews are NOT updated yet. 
+  // They will be updated when the admin approves the review.
+  
   await product.save();
-  res.status(201).json({ success: true, message: 'Review added successfully' });
+  res.status(201).json({ success: true, message: 'Review submitted and is pending admin approval' });
 });
 
 // @PUT /api/v1/products/:id/wishlist

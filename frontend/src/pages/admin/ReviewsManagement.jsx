@@ -9,6 +9,7 @@ const ReviewsManagement = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch]   = useState('');
   const [ratingFilter, setRatingFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('pending'); // 'all', 'pending', 'approved'
   const [busyId, setBusyId]   = useState(null);
 
   useEffect(() => { fetchReviews(); }, []);
@@ -38,9 +39,25 @@ const ReviewsManagement = () => {
     }
   };
 
+  const handleApprove = async (review) => {
+    setBusyId(review.reviewId);
+    try {
+      const { data } = await api.put(`/admin/reviews/${review.productId}/${review.reviewId}/approve`);
+      toast.success(data.message);
+      // Update local state without refetching to be snappy
+      setReviews(prev => prev.map(r => r.reviewId === review.reviewId ? { ...r, isApproved: data.isApproved } : r));
+    } catch {
+      toast.error('Failed to update review status');
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   const displayed = useMemo(() => {
     let list = reviews;
     if (ratingFilter) list = list.filter(r => String(r.rating) === ratingFilter);
+    if (statusFilter === 'pending') list = list.filter(r => !r.isApproved);
+    if (statusFilter === 'approved') list = list.filter(r => r.isApproved);
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(r =>
@@ -71,9 +88,15 @@ const ReviewsManagement = () => {
 
       <div className="filter-bar" style={{ marginBottom: '1.25rem' }}>
         <div className="filter-tabs">
+          {['all', 'pending', 'approved'].map(s => (
+            <button key={s} className={`filter-tab${statusFilter === s ? ' active' : ''}`} onClick={() => setStatusFilter(s)}>
+              {s.charAt(0).toUpperCase() + s.slice(1)}
+            </button>
+          ))}
+          <div className="vertical-divider" style={{ width: 1, height: 24, background: '#e2e8f0', margin: '0 8px' }} />
           {['', '5', '4', '3', '2', '1'].map(r => (
             <button key={r} className={`filter-tab${ratingFilter === r ? ' active' : ''}`} onClick={() => setRatingFilter(r)}>
-              {r === '' ? 'All' : `${r} ★`}
+              {r === '' ? 'All ★' : `${r} ★`}
             </button>
           ))}
         </div>
@@ -97,6 +120,7 @@ const ReviewsManagement = () => {
               <th>Customer</th>
               <th>Rating</th>
               <th>Comment</th>
+              <th>Status</th>
               <th>Date</th>
               <th style={{ textAlign: 'right' }}>Actions</th>
             </tr>
@@ -120,9 +144,25 @@ const ReviewsManagement = () => {
                     </span>
                   </td>
                   <td className="table-cell-secondary" style={{ maxWidth: 320 }}>{r.comment || '—'}</td>
+                  <td>
+                    {r.isApproved ? (
+                      <span className="status-badge active" style={{ fontSize: '0.75rem' }}>Approved</span>
+                    ) : (
+                      <span className="status-badge pending" style={{ fontSize: '0.75rem', background: '#fef3c7', color: '#92400e' }}>Pending</span>
+                    )}
+                  </td>
                   <td className="table-cell-secondary">{new Date(r.createdAt).toLocaleDateString()}</td>
                   <td>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                      <button 
+                        className={`btn-icon-sm ${r.isApproved ? 'edit' : 'add'}`} 
+                        disabled={busyId === r.reviewId} 
+                        title={r.isApproved ? "Unapprove Review" : "Approve Review"} 
+                        onClick={() => handleApprove(r)}
+                        style={{ color: r.isApproved ? '#d97706' : '#059669', background: r.isApproved ? '#fef3c7' : '#d1fae5' }}
+                      >
+                        {r.isApproved ? 'Unapprove' : 'Approve'}
+                      </button>
                       <button className="btn-icon-sm delete" disabled={busyId === r.reviewId} title="Delete Review" onClick={() => handleDelete(r)}>
                         <Trash2 size={16} />
                       </button>

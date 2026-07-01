@@ -99,6 +99,10 @@ const ProductDetail = () => {
   const [selectedColor, setSelectedColor] = useState('');
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [showSizeGuide, setShowSizeGuide] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
   
   const { cart, addToCart, updateItem, removeItem } = useCart();
   const { toggle, isWishlisted } = useWishlist();
@@ -160,6 +164,27 @@ const ProductDetail = () => {
       displayImages = filtered;
     }
   }
+
+  const submitReview = async (e) => {
+    e.preventDefault();
+    setSubmittingReview(true);
+    try {
+      const { data } = await api.post(`/products/${product._id}/reviews`, {
+        rating: reviewRating,
+        comment: reviewComment
+      });
+      alert(data.message || 'Review submitted successfully. It is pending admin approval.');
+      setShowReviewModal(false);
+      setReviewComment('');
+      setReviewRating(5);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to submit review.');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  const approvedReviews = product.reviews?.filter(r => r.isApproved) || [];
 
   return (
     <div className="container product-detail-container">
@@ -366,13 +391,18 @@ const ProductDetail = () => {
 
       {/* Reviews Section */}
       <div className="product-reviews-section">
-        <h3 className="reviews-title">Customer Reviews ({product.numReviews})</h3>
+        <div className="d-flex justify-between align-center mb-4">
+          <h3 className="reviews-title" style={{ marginBottom: 0 }}>Customer Reviews ({approvedReviews.length})</h3>
+          <button className="btn btn-outline" onClick={() => setShowReviewModal(true)}>
+            Write a Review
+          </button>
+        </div>
         
-        {product.reviews && product.reviews.length === 0 ? (
-          <p className="text-muted text-center py-4">No reviews yet. Only customers who have received this item can leave a review.</p>
+        {approvedReviews.length === 0 ? (
+          <p className="text-muted text-center py-4">No reviews yet. Be the first to share your thoughts!</p>
         ) : (
           <div className="reviews-list">
-            {product.reviews?.map((review) => (
+            {approvedReviews.map((review) => (
               <div key={review._id} className="review-item">
                 <div className="d-flex align-center justify-between mb-2">
                   <div className="font-weight-bold" style={{ fontWeight: '600' }}>{review.name} <span className="text-success small ms-2">✓ Verified Purchase</span></div>
@@ -477,6 +507,53 @@ const ProductDetail = () => {
                   <li><strong>Length:</strong> Measure from the highest point of the shoulder to the hem.</li>
                 </ul>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Write Review Modal */}
+      {showReviewModal && (
+        <div className="size-guide-overlay" onClick={() => !submittingReview && setShowReviewModal(false)}>
+          <div className="size-guide-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+            <div className="size-guide-header">
+              <h3>Write a Review</h3>
+              <button className="size-guide-close" onClick={() => !submittingReview && setShowReviewModal(false)}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className="size-guide-body" style={{ padding: '2rem' }}>
+              <form onSubmit={submitReview}>
+                <div className="mb-4">
+                  <label className="font-weight-bold d-block mb-2">Rating</label>
+                  <div className="d-flex gap-2">
+                    {[1, 2, 3, 4, 5].map(star => (
+                      <Star
+                        key={star}
+                        size={28}
+                        style={{ cursor: 'pointer' }}
+                        fill={star <= reviewRating ? "#f59e0b" : "none"}
+                        color={star <= reviewRating ? "#f59e0b" : "#d1d5db"}
+                        onClick={() => setReviewRating(star)}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <div className="mb-4">
+                  <label className="font-weight-bold d-block mb-2">Comment</label>
+                  <textarea
+                    className="m-search-input"
+                    style={{ width: '100%', height: '100px', padding: '10px', border: '1px solid var(--champagne)', fontSize: '1rem', borderRadius: '4px' }}
+                    placeholder="Tell us what you think about this product..."
+                    value={reviewComment}
+                    onChange={(e) => setReviewComment(e.target.value)}
+                    required
+                  />
+                </div>
+                <button type="submit" className="btn btn-primary w-100" disabled={submittingReview}>
+                  {submittingReview ? 'Submitting...' : 'Submit Review'}
+                </button>
+              </form>
             </div>
           </div>
         </div>

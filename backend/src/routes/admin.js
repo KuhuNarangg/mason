@@ -4,7 +4,7 @@ const {
   getAllUsers, getUserDetail, deleteUser, getDashboardStats,
   getFailedPayments, manualConfirmOrder,
   createVendor, getVendors, getVendorById, approveVendor, rejectVendor, suspendVendor, reinstateVendor, setVendorCommission, deleteVendor,
-  getReturns, getReviews, deleteReview, getAnalytics,
+  getReturns, getReviews, deleteReview, approveReview, getAnalytics,
   getSettlementsOverview, getVendorSettlementDetail, settleVendorPayout,
   getSettings, updateSettings,
 } = require('../controllers/adminController');
@@ -45,6 +45,7 @@ router.get('/returns',                     getReturns);
 /* ── Reviews moderation ── */
 router.get('/reviews',                     getReviews);
 router.delete('/reviews/:productId/:reviewId', deleteReview);
+router.put('/reviews/:productId/:reviewId/approve', approveReview);
 
 /* ── Vendor settlements ── */
 router.get('/settlements/overview',           getSettlementsOverview);

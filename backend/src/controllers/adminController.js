@@ -661,6 +661,7 @@ const getReviews = asyncHandler(async (req, res) => {
         comment: review.comment,
         photos: review.photos,
         createdAt: review.createdAt,
+        isApproved: review.isApproved,
       });
     }
   }
@@ -682,21 +683,39 @@ const deleteReview = asyncHandler(async (req, res) => {
 
   review.deleteOne();
 
-  // Recalculate rating average + count
-  const count = product.reviews.length;
-  const avg = count ? product.reviews.reduce((sum, r) => sum + r.rating, 0) / count : 0;
-  product.numReviews = count;
-  product.rating = avg;
-
+  // Recalculate ratings based only on approved reviews
+  product.calculateApprovedRating();
   await product.save();
   res.json({ success: true, message: 'Review deleted' });
+});
+
+// @PUT /api/v1/admin/reviews/:productId/:reviewId/approve
+const approveReview = asyncHandler(async (req, res) => {
+  const { productId, reviewId } = req.params;
+  const product = await Product.findById(productId);
+  if (!product) { res.status(404); throw new Error('Product not found'); }
+
+  const review = product.reviews.id(reviewId);
+  if (!review) { res.status(404); throw new Error('Review not found'); }
+
+  // Toggle approval status
+  review.isApproved = !review.isApproved;
+  
+  // Recalculate rating
+  product.calculateApprovedRating();
+  await product.save();
+
+  res.json({ 
+    success: true, 
+    message: `Review ${review.isApproved ? 'approved' : 'unapproved'} successfully`,
+    isApproved: review.isApproved
+  });
 });
 
 module.exports = {
   getAllUsers, getUserDetail, deleteUser, getDashboardStats, getFailedPayments, manualConfirmOrder,
   createVendor, getVendors, getVendorById, approveVendor, rejectVendor, suspendVendor, reinstateVendor, setVendorCommission, deleteVendor,
-  getReturns, getReviews, deleteReview, getAnalytics,
+  getReturns, getReviews, deleteReview, approveReview, getAnalytics,
   getSettlementsOverview, getVendorSettlementDetail, settleVendorPayout,
   getSettings, updateSettings,
 };
-
