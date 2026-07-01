@@ -52,7 +52,7 @@ const CategoryPage = () => {
     // Timeout ensures browser scroll restoration doesn't override this
     const timer = setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' }), 10);
     return () => clearTimeout(timer);
-  }, [slug, gender]);
+  }, [gender]);
 
   useEffect(() => {
     setSelectedTypes(typeParam ? [typeParam] : []);
