@@ -79,7 +79,7 @@ if (process.env.ADMIN_URL) {
 
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.indexOf(origin) !== -1 || origin.includes('owlstitch')) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1 || origin.includes('owlstitch') || origin.includes('vercel.app')) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));

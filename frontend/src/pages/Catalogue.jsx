@@ -28,7 +28,9 @@ const CATEGORY_ICONS = {
   'Footwear': '👠',
   'Accessories': '👜',
   'Ethnic Wear': '🥻',
-  'Western Wear': '👗'
+  'Western Wear': '👗',
+  'Festive Wear': '✨',
+  'All Products': '🌟'
 };
 
 const Catalogue = () => {
@@ -48,7 +50,14 @@ const Catalogue = () => {
     // Load categories instantly
     api.get('/categories')
       .then(res => {
-        setCategories(res.data.categories || []);
+        const fetched = res.data.categories || [];
+        const customCategories = [
+          { _id: 'custom-all', name: 'All Products', slug: 'all' },
+          { _id: 'custom-festive', name: 'Festive Wear', slug: 'festive' },
+          { _id: 'custom-accessories', name: 'Accessories', slug: 'accessories' }
+        ];
+        const extraCats = customCategories.filter(c => !fetched.some(f => f.slug === c.slug));
+        setCategories([...extraCats, ...fetched]);
         setLoadingCats(false);
       })
       .catch(err => {
@@ -71,6 +80,17 @@ const Catalogue = () => {
   // Helpers to get item counts
   const isProductInCategory = (p, cat) => {
     if (!cat) return false;
+    
+    if (cat.slug === 'all') return true;
+    if (cat.slug === 'festive') {
+      const searchStr = `${p.tags?.join(' ')} ${p.name} ${p.description} ${p.category?.name}`.toLowerCase();
+      return searchStr.includes('festive') || searchStr.includes('wedding');
+    }
+    if (cat.slug === 'accessories') {
+      const searchStr = `${p.type} ${p.category?.name}`.toLowerCase();
+      return searchStr.includes('accessory') || searchStr.includes('accessories');
+    }
+
     const pCatId = p.category?._id || p.category;
     const pSubCatId = p.subcategory?._id || p.subcategory;
     if (String(pCatId) === String(cat._id) || String(pSubCatId) === String(cat._id)) {
@@ -96,6 +116,10 @@ const Catalogue = () => {
 
   const getCategoryProductImage = (catId) => {
     const cat = categories.find(c => String(c._id) === String(catId));
+    if (cat?.slug === 'accessories') return '/hero5.jpg';
+    if (cat?.slug === 'festive') return '/hero4.jpg';
+    if (cat?.slug === 'all') return '/hero1.jpg';
+
     const productWithImg = products.find(p => isProductInCategory(p, cat) && p.images && p.images.length > 0);
     return productWithImg ? productWithImg.images[0] : null;
   };
