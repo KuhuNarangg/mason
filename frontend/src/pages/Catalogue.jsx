@@ -117,7 +117,7 @@ const Catalogue = () => {
   const getCategoryProductImage = (catId) => {
     const cat = categories.find(c => String(c._id) === String(catId));
     if (cat?.slug === 'accessories') return '/hero5.jpg';
-    if (cat?.slug === 'festive') return '/hero4.jpg';
+    if (cat?.slug === 'festive') return '/festive.jpg';
     if (cat?.slug === 'all') return '/hero1.jpg';
 
     const productWithImg = products.find(p => isProductInCategory(p, cat) && p.images && p.images.length > 0);
