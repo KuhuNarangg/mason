@@ -34,16 +34,17 @@ const Home = () => {
   useEffect(() => {
     const fetchHomeData = async () => {
       try {
-        const [featRes, trendRes, newRes, mediaRes] = await Promise.all([
+        const [featRes, trendRes, newRes, mediaRes] = await Promise.allSettled([
           api.get('/products?featured=true&limit=8'),
           api.get('/products?trending=true&limit=8'),
           api.get('/products?sort=newest&limit=8'),
           api.get('/homemedia')
         ]);
-        setFeatured(featRes.data.products);
-        setTrending(trendRes.data.products);
-        setNewArrivals(newRes.data.products);
-        setCinematicMedia(mediaRes.data.media || []);
+
+        if (featRes.status === 'fulfilled') setFeatured(featRes.value.data.products);
+        if (trendRes.status === 'fulfilled') setTrending(trendRes.value.data.products);
+        if (newRes.status === 'fulfilled') setNewArrivals(newRes.value.data.products);
+        if (mediaRes.status === 'fulfilled') setCinematicMedia(mediaRes.value.data.media || []);
       } catch (err) {
         console.error('Failed to fetch home data', err);
       } finally {
