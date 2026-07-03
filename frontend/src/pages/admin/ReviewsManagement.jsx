@@ -143,7 +143,18 @@ const ReviewsManagement = () => {
                       {r.rating} <Star size={14} fill="#f59e0b" stroke="none" />
                     </span>
                   </td>
-                  <td className="table-cell-secondary" style={{ maxWidth: 320 }}>{r.comment || '—'}</td>
+                  <td className="table-cell-secondary" style={{ maxWidth: 320 }}>
+                    <div>{r.comment || '—'}</div>
+                    {r.photos && r.photos.length > 0 && (
+                      <div style={{ display: 'flex', gap: '4px', marginTop: '4px', flexWrap: 'wrap' }}>
+                        {r.photos.map((photo, idx) => (
+                          <a key={idx} href={photo} target="_blank" rel="noreferrer">
+                            <img src={photo} alt="review" style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #e2e8f0' }} />
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </td>
                   <td>
                     {r.isApproved ? (
                       <span className="status-badge active" style={{ fontSize: '0.75rem' }}>Approved</span>

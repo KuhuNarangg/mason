@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Heart, ShoppingBag, Truck, RotateCcw, Star, X, Ruler, ShieldCheck, Ban } from 'lucide-react';
 import api from '../utils/api';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
+import { useAuth } from '../context/AuthContext';
 import { formatPrice } from '../utils/formatPrice';
 import ProductCard from '../components/ProductCard';
 import './ProductDetail.css';
@@ -92,6 +93,7 @@ const getSizeGuide = (product) => {
 
 const ProductDetail = () => {
   const { slug } = useParams();
+  const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeImage, setActiveImage] = useState(0);
@@ -102,10 +104,12 @@ const ProductDetail = () => {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
+  const [reviewPhotos, setReviewPhotos] = useState([]);
   const [submittingReview, setSubmittingReview] = useState(false);
   
   const { cart, addToCart, updateItem, removeItem } = useCart();
   const { toggle, isWishlisted } = useWishlist();
+  const { isAuth } = useAuth();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -150,7 +154,6 @@ const ProductDetail = () => {
     }
   };
 
-  // Find if this product+size+color is already in cart
   const cartItem = cart?.items?.find(
     i => i.product?._id === product._id && i.variantSize === selectedSize && i.variantColor === selectedColor
   );
@@ -169,14 +172,24 @@ const ProductDetail = () => {
     e.preventDefault();
     setSubmittingReview(true);
     try {
+      const photoUrls = [];
+      for (const file of reviewPhotos) {
+        const formData = new FormData();
+        formData.append('file', file);
+        const { data } = await api.post('/upload', formData);
+        if (data.url) photoUrls.push(data.url);
+      }
+
       const { data } = await api.post(`/products/${product._id}/reviews`, {
         rating: reviewRating,
-        comment: reviewComment
+        comment: reviewComment,
+        photos: photoUrls
       });
       alert(data.message || 'Review submitted successfully. It is pending admin approval.');
       setShowReviewModal(false);
       setReviewComment('');
       setReviewRating(5);
+      setReviewPhotos([]);
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to submit review.');
     } finally {
@@ -188,7 +201,6 @@ const ProductDetail = () => {
 
   return (
     <div className="container product-detail-container">
-      {/* Breadcrumbs */}
       <div className="breadcrumbs mb-4">
         <Link to="/">Home</Link> / 
         <Link to={`/category/${product.gender}`}> {product.gender} </Link> / 
@@ -196,7 +208,6 @@ const ProductDetail = () => {
       </div>
 
       <div className="product-detail-grid">
-        {/* Images */}
         <div className="product-gallery">
           <div className="thumbnail-list">
             {displayImages.map((img, idx) => (
@@ -214,7 +225,6 @@ const ProductDetail = () => {
           </div>
         </div>
 
-        {/* Info */}
         <div className="product-info-panel">
           <h1 className="detail-brand">{product.brand}</h1>
           <h2 className="detail-title">{product.name}</h2>
@@ -232,7 +242,6 @@ const ProductDetail = () => {
 
           <div className="divider my-4"></div>
 
-          {/* Size Selector */}
           <div className="selector-group">
             <div className="d-flex justify-between mb-2">
               <span className="font-weight-bold">Select Size</span>
@@ -257,13 +266,11 @@ const ProductDetail = () => {
             </div>
           </div>
 
-          {/* Color Selector */}
           <div className="selector-group mt-4">
             <div className="mb-2"><span className="font-weight-bold">Select Color:</span> <span style={{ color: 'var(--rose-gold)' }}>{selectedColor}</span></div>
             <div className="color-options">
               {uniqueColors.map(color => {
                 const hex = product.variants.find(v => v.color === color)?.colorHex || '#ccc';
-                // Detect near-white colors to add a visible border
                 const isLight = (() => {
                   const h = hex.replace('#', '');
                   if (h.length !== 6) return false;
@@ -286,7 +293,7 @@ const ProductDetail = () => {
                     }}
                     onClick={() => {
                       setSelectedColor(color);
-                      setActiveImage(0); // reset to first image on color change
+                      setActiveImage(0);
                     }}
                     title={color}
                   />
@@ -295,10 +302,8 @@ const ProductDetail = () => {
             </div>
           </div>
 
-          {/* Actions */}
           <div className="action-buttons mt-5">
             {cartItem ? (
-              /* Quantity controls — shown when this variant is already in cart */
               <div className="qty-controls-wrap">
                 <div className="qty-controls">
                   <button
@@ -343,7 +348,6 @@ const ProductDetail = () => {
             </button>
           </div>
 
-          {/* Delivery & Services */}
           <div className="services-box mt-5">
             <div className="service-item">
               <Truck size={24} className="text-muted" />
@@ -375,7 +379,6 @@ const ProductDetail = () => {
             </div>
           </div>
 
-          {/* Description */}
           <div className="product-description mt-5">
             <h3>Product Details</h3>
             <p>{product.description}</p>
@@ -389,13 +392,18 @@ const ProductDetail = () => {
         </div>
       </div>
 
-      {/* Reviews Section */}
       <div className="product-reviews-section">
         <div className="d-flex justify-between align-center mb-4">
           <h3 className="reviews-title" style={{ marginBottom: 0 }}>Customer Reviews ({approvedReviews.length})</h3>
-          <button className="btn btn-outline" onClick={() => setShowReviewModal(true)}>
-            Write a Review
-          </button>
+          {isAuth ? (
+            <button className="btn btn-outline" onClick={() => setShowReviewModal(true)}>
+              Write a Review
+            </button>
+          ) : (
+            <button className="btn btn-outline" onClick={() => navigate('/login')}>
+              Log in to review
+            </button>
+          )}
         </div>
         
         {approvedReviews.length === 0 ? (
@@ -443,7 +451,6 @@ const ProductDetail = () => {
         )}
       </div>
 
-      {/* Related Products Section */}
       {relatedProducts.length > 0 && (
         <section className="related-products-section">
           <div className="section-header-center">
@@ -458,7 +465,6 @@ const ProductDetail = () => {
           </div>
         </section>
       )}
-      {/* Size Guide Modal */}
       {showSizeGuide && (
         <div className="size-guide-overlay" onClick={() => setShowSizeGuide(false)}>
           <div className="size-guide-modal" onClick={(e) => e.stopPropagation()}>
