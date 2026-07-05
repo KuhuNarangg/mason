@@ -716,19 +716,19 @@ const Orders = () => {
       {/* Review Modal */}
       {reviewModalOpen && reviewProduct && (
         <div className="modal-root" onClick={closeReviewModal}>
-          <div className="modal-container" onClick={e => e.stopPropagation()} style={{ maxWidth: '650px', padding: '10px' }}>
+          <div className="modal-container" onClick={e => e.stopPropagation()} style={{ maxWidth: '450px', padding: '10px' }}>
             <div className="modal-head">
-              <h4 style={{ fontSize: '1.4rem' }}>Write a Review</h4>
-              <button onClick={closeReviewModal}><X size={24}/></button>
+              <h4 style={{ fontSize: '1.5rem' }}>Write a Review</h4>
+              <button onClick={closeReviewModal}><X size={26}/></button>
             </div>
             <form className="modal-form" onSubmit={submitReview} style={{ padding: '20px' }}>
               <div className="rating-box" style={{ marginBottom: '1.5rem' }}>
-                <label style={{ fontSize: '1.2rem', display: 'block', marginBottom: '10px', fontWeight: 'bold' }}>Rating</label>
+                <label style={{ fontSize: '1.4rem', display: 'block', marginBottom: '10px', fontWeight: 'bold' }}>Rating</label>
                 <div style={{ display: 'flex', gap: '10px' }}>
                   {[1, 2, 3, 4, 5].map((star) => (
                     <Star 
                       key={star} 
-                      size={36} 
+                      size={40} 
                       onClick={() => setRating(star)}
                       fill={star <= rating ? "#f59e0b" : "none"}
                       stroke={star <= rating ? "#f59e0b" : "#d1d5db"}
@@ -738,18 +738,18 @@ const Orders = () => {
                 </div>
               </div>
               <div style={{ marginBottom: '1.5rem' }}>
-                <label style={{ fontSize: '1.2rem', display: 'block', marginBottom: '10px', fontWeight: 'bold' }}>Comment</label>
+                <label style={{ fontSize: '1.4rem', display: 'block', marginBottom: '10px', fontWeight: 'bold' }}>Comment</label>
                 <textarea 
                   className="modal-input" 
                   rows="5" 
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   placeholder="What do you think about this product?"
-                  style={{ width: '100%', padding: '15px', fontSize: '1.1rem', borderRadius: '8px' }}
+                  style={{ width: '100%', padding: '15px', fontSize: '1.3rem', borderRadius: '8px', fontFamily: 'inherit', lineHeight: '1.5' }}
                 ></textarea>
               </div>
               <div className="photo-upload-section" style={{ marginBottom: '1.5rem' }}>
-                <label style={{ fontSize: '1.2rem', display: 'block', marginBottom: '10px', fontWeight: 'bold' }}>Photos (Optional)</label>
+                <label style={{ fontSize: '1.4rem', display: 'block', marginBottom: '10px', fontWeight: 'bold' }}>Photos (Optional)</label>
                 <div className="photo-list">
                   {reviewPhotos.map((url, i) => (
                     <div key={i} className="photo-box">
@@ -758,12 +758,12 @@ const Orders = () => {
                     </div>
                   ))}
                 </div>
-                <label className="upload-label" style={{ padding: '10px', fontSize: '1.1rem' }}>
-                  {uploadingPhotos ? 'Uploading...' : <><Upload size={20} /> Add Photos</>}
+                <label className="upload-label" style={{ padding: '10px', fontSize: '1.3rem' }}>
+                  {uploadingPhotos ? 'Uploading...' : <><Upload size={22} /> Add Photos</>}
                   <input type="file" multiple accept="image/*" onChange={handlePhotoUpload} style={{ display: 'none' }} disabled={uploadingPhotos} />
                 </label>
               </div>
-              <button type="submit" className="modal-submit" style={{ fontSize: '1.2rem', padding: '12px' }}>Submit Review</button>
+              <button type="submit" className="modal-submit" style={{ fontSize: '1.4rem', padding: '12px' }}>Submit Review</button>
             </form>
           </div>
         </div>

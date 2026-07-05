@@ -521,22 +521,22 @@ const ProductDetail = () => {
       {/* Write Review Modal */}
       {showReviewModal && (
         <div className="size-guide-overlay" onClick={() => !submittingReview && setShowReviewModal(false)}>
-          <div className="size-guide-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '650px', padding: '10px' }}>
+          <div className="size-guide-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '450px', padding: '10px' }}>
             <div className="size-guide-header">
               <h3>Write a Review</h3>
               <button className="size-guide-close" onClick={() => !submittingReview && setShowReviewModal(false)}>
                 <X size={20} />
               </button>
             </div>
-            <div className="size-guide-body" style={{ padding: '2.5rem' }}>
+            <div className="size-guide-body" style={{ padding: '2rem' }}>
               <form onSubmit={submitReview}>
                 <div className="mb-4">
-                  <label className="font-weight-bold d-block mb-3" style={{ fontSize: '1.2rem' }}>Rating</label>
+                  <label className="font-weight-bold d-block mb-3" style={{ fontSize: '1.4rem' }}>Rating</label>
                   <div className="d-flex gap-3">
                     {[1, 2, 3, 4, 5].map(star => (
                       <Star
                         key={star}
-                        size={36}
+                        size={40}
                         style={{ cursor: 'pointer' }}
                         fill={star <= reviewRating ? "#f59e0b" : "none"}
                         color={star <= reviewRating ? "#f59e0b" : "#d1d5db"}
@@ -547,14 +547,14 @@ const ProductDetail = () => {
                 </div>
                 
                 <div className="mb-4">
-                  <label className="font-weight-bold d-block mb-3" style={{ fontSize: '1.2rem' }}>Photos (Optional)</label>
+                  <label className="font-weight-bold d-block mb-3" style={{ fontSize: '1.4rem' }}>Photos (Optional)</label>
                   <input 
                     type="file" 
                     multiple 
                     accept="image/*"
                     onChange={(e) => setReviewPhotos(Array.from(e.target.files))}
                     className="form-control"
-                    style={{ padding: '10px', fontSize: '1.1rem' }}
+                    style={{ padding: '10px', fontSize: '1.2rem', fontFamily: 'inherit' }}
                   />
                   {reviewPhotos.length > 0 && (
                     <div className="d-flex gap-2 mt-3 flex-wrap">
@@ -571,17 +571,17 @@ const ProductDetail = () => {
                 </div>
 
                 <div className="mb-4">
-                  <label className="font-weight-bold d-block mb-3" style={{ fontSize: '1.2rem' }}>Comment</label>
+                  <label className="font-weight-bold d-block mb-3" style={{ fontSize: '1.4rem' }}>Comment</label>
                   <textarea
                     className="m-search-input"
-                    style={{ width: '100%', height: '140px', padding: '15px', border: '1px solid var(--champagne)', fontSize: '1.1rem', borderRadius: '8px' }}
+                    style={{ width: '100%', height: '140px', padding: '15px', border: '1px solid var(--champagne)', fontSize: '1.3rem', borderRadius: '8px', fontFamily: 'inherit', lineHeight: '1.5' }}
                     placeholder="Tell us what you think about this product..."
                     value={reviewComment}
                     onChange={(e) => setReviewComment(e.target.value)}
                     required
                   />
                 </div>
-                <button type="submit" className="btn btn-primary w-100" style={{ fontSize: '1.2rem', padding: '12px' }} disabled={submittingReview}>
+                <button type="submit" className="btn btn-primary w-100" style={{ fontSize: '1.4rem', padding: '12px' }} disabled={submittingReview}>
                   {submittingReview ? 'Submitting...' : 'Submit Review'}
                 </button>
               </form>
