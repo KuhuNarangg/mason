@@ -90,10 +90,10 @@ const HomeMediaManagement = () => {
           Add New Media
         </h3>
         
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem', marginTop: '1rem', alignItems: 'start' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', marginTop: '1rem' }}>
           
-          {/* Left Column: Form Fields */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {/* Top Row: Form Fields */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
             <div className="admin-form-group">
               <label style={{ fontWeight: 600, color: '#334155' }}>Media Format</label>
               <select 
@@ -129,7 +129,7 @@ const HomeMediaManagement = () => {
             </button>
           </div>
 
-          {/* Right Column: Upload Area */}
+          {/* Upload Area */}
           <div className="admin-form-group" style={{ margin: 0, height: '100%' }}>
             {fileUrl ? (
               <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: '250px', borderRadius: '12px', overflow: 'hidden', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
