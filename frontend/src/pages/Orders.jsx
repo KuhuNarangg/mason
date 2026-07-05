@@ -716,32 +716,40 @@ const Orders = () => {
       {/* Review Modal */}
       {reviewModalOpen && reviewProduct && (
         <div className="modal-root" onClick={closeReviewModal}>
-          <div className="modal-container" onClick={e => e.stopPropagation()}>
+          <div className="modal-container" onClick={e => e.stopPropagation()} style={{ maxWidth: '650px', padding: '10px' }}>
             <div className="modal-head">
-              <h4>Write a Review</h4>
-              <button onClick={closeReviewModal}><X size={20}/></button>
+              <h4 style={{ fontSize: '1.4rem' }}>Write a Review</h4>
+              <button onClick={closeReviewModal}><X size={24}/></button>
             </div>
-            <form className="modal-form" onSubmit={submitReview}>
-              <div className="rating-box">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <Star 
-                    key={star} 
-                    size={32} 
-                    onClick={() => setRating(star)}
-                    fill={star <= rating ? "#f59e0b" : "none"}
-                    stroke={star <= rating ? "#f59e0b" : "#d1d5db"}
-                    className={star <= rating ? 'active' : ''}
-                  />
-                ))}
+            <form className="modal-form" onSubmit={submitReview} style={{ padding: '20px' }}>
+              <div className="rating-box" style={{ marginBottom: '1.5rem' }}>
+                <label style={{ fontSize: '1.2rem', display: 'block', marginBottom: '10px', fontWeight: 'bold' }}>Rating</label>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star 
+                      key={star} 
+                      size={36} 
+                      onClick={() => setRating(star)}
+                      fill={star <= rating ? "#f59e0b" : "none"}
+                      stroke={star <= rating ? "#f59e0b" : "#d1d5db"}
+                      style={{ cursor: 'pointer' }}
+                    />
+                  ))}
+                </div>
               </div>
-              <textarea 
-                className="modal-input" 
-                rows="4" 
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                placeholder="What do you think about this product?"
-              ></textarea>
-              <div className="photo-upload-section">
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{ fontSize: '1.2rem', display: 'block', marginBottom: '10px', fontWeight: 'bold' }}>Comment</label>
+                <textarea 
+                  className="modal-input" 
+                  rows="5" 
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  placeholder="What do you think about this product?"
+                  style={{ width: '100%', padding: '15px', fontSize: '1.1rem', borderRadius: '8px' }}
+                ></textarea>
+              </div>
+              <div className="photo-upload-section" style={{ marginBottom: '1.5rem' }}>
+                <label style={{ fontSize: '1.2rem', display: 'block', marginBottom: '10px', fontWeight: 'bold' }}>Photos (Optional)</label>
                 <div className="photo-list">
                   {reviewPhotos.map((url, i) => (
                     <div key={i} className="photo-box">
@@ -750,12 +758,12 @@ const Orders = () => {
                     </div>
                   ))}
                 </div>
-                <label className="upload-label">
-                  {uploadingPhotos ? 'Uploading...' : <><Upload size={16} /> Add Photos</>}
+                <label className="upload-label" style={{ padding: '10px', fontSize: '1.1rem' }}>
+                  {uploadingPhotos ? 'Uploading...' : <><Upload size={20} /> Add Photos</>}
                   <input type="file" multiple accept="image/*" onChange={handlePhotoUpload} style={{ display: 'none' }} disabled={uploadingPhotos} />
                 </label>
               </div>
-              <button type="submit" className="modal-submit">Submit Review</button>
+              <button type="submit" className="modal-submit" style={{ fontSize: '1.2rem', padding: '12px' }}>Submit Review</button>
             </form>
           </div>
         </div>

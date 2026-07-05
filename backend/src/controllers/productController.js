@@ -124,6 +124,9 @@ const getFilterOptions = asyncHandler(async (req, res) => {
 const getProductById = asyncHandler(async (req, res) => {
   const product = await Product.findById(req.params.id).populate('reviews.user', 'name avatar').lean();
   if (!product) { res.status(404); throw new Error('Product not found'); }
+  if (product.reviews) {
+    product.reviews = product.reviews.filter(r => r.isApproved);
+  }
   res.json({ success: true, product });
 });
 
@@ -131,6 +134,9 @@ const getProductById = asyncHandler(async (req, res) => {
 const getProductBySlug = asyncHandler(async (req, res) => {
   const product = await Product.findOne({ slug: req.params.slug }).populate('reviews.user', 'name avatar').lean();
   if (!product) { res.status(404); throw new Error('Product not found'); }
+  if (product.reviews) {
+    product.reviews = product.reviews.filter(r => r.isApproved);
+  }
   res.json({ success: true, product });
 });
 

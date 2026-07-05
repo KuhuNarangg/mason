@@ -86,7 +86,7 @@ const productSchema = new mongoose.Schema(
 productSchema.index({ name: 'text', description: 'text', brand: 'text', tags: 'text' });
 
 // Auto-compute discounted price & slug before save
-productSchema.pre('save', function () {
+productSchema.pre('save', function (next) {
   // Compute final price based on tax config
   if (this.taxConfig && !this.taxConfig.isInclusive) {
     // Exclusive mode: price is derived from basePrice + taxes + additionalCharges, then discount is applied to it

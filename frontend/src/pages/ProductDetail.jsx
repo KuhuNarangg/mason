@@ -521,22 +521,22 @@ const ProductDetail = () => {
       {/* Write Review Modal */}
       {showReviewModal && (
         <div className="size-guide-overlay" onClick={() => !submittingReview && setShowReviewModal(false)}>
-          <div className="size-guide-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+          <div className="size-guide-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '650px', padding: '10px' }}>
             <div className="size-guide-header">
               <h3>Write a Review</h3>
               <button className="size-guide-close" onClick={() => !submittingReview && setShowReviewModal(false)}>
                 <X size={20} />
               </button>
             </div>
-            <div className="size-guide-body" style={{ padding: '2rem' }}>
+            <div className="size-guide-body" style={{ padding: '2.5rem' }}>
               <form onSubmit={submitReview}>
                 <div className="mb-4">
-                  <label className="font-weight-bold d-block mb-2">Rating</label>
-                  <div className="d-flex gap-2">
+                  <label className="font-weight-bold d-block mb-3" style={{ fontSize: '1.2rem' }}>Rating</label>
+                  <div className="d-flex gap-3">
                     {[1, 2, 3, 4, 5].map(star => (
                       <Star
                         key={star}
-                        size={28}
+                        size={36}
                         style={{ cursor: 'pointer' }}
                         fill={star <= reviewRating ? "#f59e0b" : "none"}
                         color={star <= reviewRating ? "#f59e0b" : "#d1d5db"}
@@ -545,18 +545,43 @@ const ProductDetail = () => {
                     ))}
                   </div>
                 </div>
+                
                 <div className="mb-4">
-                  <label className="font-weight-bold d-block mb-2">Comment</label>
+                  <label className="font-weight-bold d-block mb-3" style={{ fontSize: '1.2rem' }}>Photos (Optional)</label>
+                  <input 
+                    type="file" 
+                    multiple 
+                    accept="image/*"
+                    onChange={(e) => setReviewPhotos(Array.from(e.target.files))}
+                    className="form-control"
+                    style={{ padding: '10px', fontSize: '1.1rem' }}
+                  />
+                  {reviewPhotos.length > 0 && (
+                    <div className="d-flex gap-2 mt-3 flex-wrap">
+                      {reviewPhotos.map((file, idx) => (
+                        <img 
+                          key={idx} 
+                          src={URL.createObjectURL(file)} 
+                          alt="preview" 
+                          style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #e5e7eb' }} 
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="mb-4">
+                  <label className="font-weight-bold d-block mb-3" style={{ fontSize: '1.2rem' }}>Comment</label>
                   <textarea
                     className="m-search-input"
-                    style={{ width: '100%', height: '100px', padding: '10px', border: '1px solid var(--champagne)', fontSize: '1rem', borderRadius: '4px' }}
+                    style={{ width: '100%', height: '140px', padding: '15px', border: '1px solid var(--champagne)', fontSize: '1.1rem', borderRadius: '8px' }}
                     placeholder="Tell us what you think about this product..."
                     value={reviewComment}
                     onChange={(e) => setReviewComment(e.target.value)}
                     required
                   />
                 </div>
-                <button type="submit" className="btn btn-primary w-100" disabled={submittingReview}>
+                <button type="submit" className="btn btn-primary w-100" style={{ fontSize: '1.2rem', padding: '12px' }} disabled={submittingReview}>
                   {submittingReview ? 'Submitting...' : 'Submit Review'}
                 </button>
               </form>
