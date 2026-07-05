@@ -50,7 +50,7 @@ export const openRazorpayCheckout = (options) => {
     currency,
     name: 'Mason',
     description: `Order #${orderNumber}`,
-    image: '/logo.png',          // shown in Razorpay modal header (optional)
+    image: '/owlnewnobg.png',          // shown in Razorpay modal header (optional)
     order_id: razorpayOrderId,
 
     prefill: {
