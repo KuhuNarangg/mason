@@ -23,7 +23,9 @@ const uploadImage = asyncHandler(async (req, res) => {
         resource_type: 'auto',
       },
       (error, result) => {
-        if (error) throw error;
+        if (error) {
+          return res.status(error.http_code || 500).json({ success: false, message: `Cloudinary error: ${error.message}` });
+        }
         res.json({
           success: true,
           url: result.secure_url,
