@@ -106,6 +106,7 @@ const ProductDetail = () => {
   const [reviewComment, setReviewComment] = useState('');
   const [reviewPhotos, setReviewPhotos] = useState([]);
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [uploadingPhotos, setUploadingPhotos] = useState(false);
   
   const { cart, addToCart, updateItem, removeItem } = useCart();
   const { toggle, isWishlisted } = useWishlist();
@@ -168,22 +169,37 @@ const ProductDetail = () => {
     }
   }
 
+  const handlePhotoUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    setUploadingPhotos(true);
+    try {
+      const uploadedUrls = [];
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file);
+        const { data } = await api.post('/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        if (data.url) uploadedUrls.push(data.url);
+      }
+      setReviewPhotos(prev => [...prev, ...uploadedUrls]);
+    } catch (err) {
+      alert('Failed to upload photos');
+    } finally {
+      setUploadingPhotos(false);
+    }
+  };
+
   const submitReview = async (e) => {
     e.preventDefault();
     setSubmittingReview(true);
     try {
-      const photoUrls = [];
-      for (const file of reviewPhotos) {
-        const formData = new FormData();
-        formData.append('file', file);
-        const { data } = await api.post('/upload', formData);
-        if (data.url) photoUrls.push(data.url);
-      }
-
       const { data } = await api.post(`/products/${product._id}/reviews`, {
         rating: reviewRating,
         comment: reviewComment,
-        photos: photoUrls
+        photos: reviewPhotos
       });
       alert(data.message || 'Review submitted successfully. It is pending admin approval.');
       setShowReviewModal(false);
@@ -548,26 +564,33 @@ const ProductDetail = () => {
                 
                 <div className="mb-4">
                   <label className="font-weight-bold d-block mb-3" style={{ fontSize: '1.4rem' }}>Photos (Optional)</label>
-                  <input 
-                    type="file" 
-                    multiple 
-                    accept="image/*"
-                    onChange={(e) => setReviewPhotos(Array.from(e.target.files))}
-                    className="form-control"
-                    style={{ padding: '10px', fontSize: '1.2rem', fontFamily: 'inherit' }}
-                  />
-                  {reviewPhotos.length > 0 && (
-                    <div className="d-flex gap-2 mt-3 flex-wrap">
-                      {reviewPhotos.map((file, idx) => (
+                  <div className="d-flex gap-2 flex-wrap mb-3">
+                    {reviewPhotos.map((url, idx) => (
+                      <div key={idx} style={{ position: 'relative' }}>
                         <img 
-                          key={idx} 
-                          src={URL.createObjectURL(file)} 
+                          src={url} 
                           alt="preview" 
                           style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #e5e7eb' }} 
                         />
-                      ))}
-                    </div>
-                  )}
+                        <button 
+                          type="button" 
+                          onClick={() => setReviewPhotos(prev => prev.filter((_, i) => i !== idx))}
+                          style={{ position: 'absolute', top: '-5px', right: '-5px', background: 'red', color: 'white', borderRadius: '50%', width: '20px', height: '20px', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', cursor: 'pointer' }}
+                        >×</button>
+                      </div>
+                    ))}
+                    <label style={{ width: '80px', height: '80px', border: '2px dashed #ccc', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: '#f9fafb', margin: 0 }}>
+                      {uploadingPhotos ? <span style={{fontSize: '0.9rem', color: '#666'}}>...</span> : <span style={{fontSize: '2.5rem', color: '#999', lineHeight: 1}}>+</span>}
+                      <input 
+                        type="file" 
+                        multiple 
+                        accept="image/*"
+                        onChange={handlePhotoUpload}
+                        style={{ display: 'none' }}
+                        disabled={uploadingPhotos}
+                      />
+                    </label>
+                  </div>
                 </div>
 
                 <div className="mb-4">
