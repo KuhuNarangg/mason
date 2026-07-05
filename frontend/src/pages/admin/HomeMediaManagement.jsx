@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trash2, Plus, Image as ImageIcon, Video, UploadCloud } from 'lucide-react';
+import { Trash2, Plus, Image as ImageIcon, Video, UploadCloud, CheckCircle, X } from 'lucide-react';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
 import './admin-pages.css';
@@ -37,7 +37,7 @@ const HomeMediaManagement = () => {
       const { data } = await api.post('/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
       if (data.url) {
         setFileUrl(data.url);
-        toast.success('File uploaded successfully to cloud!');
+        toast.success('Media uploaded to cloud!');
       }
     } catch (err) {
       toast.error(err.response?.data?.message || 'File upload failed');
@@ -50,7 +50,7 @@ const HomeMediaManagement = () => {
     if (!fileUrl) return toast.error('Please upload a file first');
     try {
       await api.post('/admin/homemedia', { ...newMedia, url: fileUrl });
-      toast.success('Media added successfully');
+      toast.success('Media published successfully');
       setNewMedia({ title: '', type: 'video' });
       setFileUrl('');
       fetchMedia();
@@ -70,182 +70,185 @@ const HomeMediaManagement = () => {
     }
   };
 
-  if (loading) return <div className="p-4 text-muted">Loading cinematic gallery...</div>;
+  const resetUpload = () => {
+    setFileUrl('');
+    setNewMedia({ title: '', type: 'video' });
+  };
+
+  if (loading) return <div className="p-5 text-center text-muted">Loading cinematic gallery...</div>;
 
   return (
-    <div className="admin-fade-in" style={{ paddingBottom: '2rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <div>
-          <h2 className="admin-page-title">Cinematic Gallery</h2>
-          <p className="admin-page-subtitle">Manage videos and pictures shown in the middle of the home page</p>
-        </div>
+    <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto', fontFamily: 'Inter, sans-serif' }}>
+      
+      {/* Header */}
+      <div style={{ marginBottom: '3rem', textAlign: 'center' }}>
+        <h1 style={{ fontSize: '2.5rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-1px', margin: '0 0 0.5rem 0' }}>Cinematic Gallery</h1>
+        <p style={{ fontSize: '1.1rem', color: '#64748b', margin: 0 }}>Curate the immersive media experience for your homepage.</p>
       </div>
 
-      {/* Add New Media Form */}
-      <div className="admin-card" style={{ marginBottom: '3rem', borderTop: '4px solid #10b981', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02)' }}>
-        <h3 className="admin-card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.25rem', marginBottom: '1.5rem' }}>
-          <div style={{ background: '#ecfdf5', padding: '0.5rem', borderRadius: '8px', color: '#10b981' }}>
-            <Plus size={20} />
-          </div>
-          Add New Media
-        </h3>
+      {/* Upload Studio */}
+      <div style={{ background: '#fff', borderRadius: '24px', padding: '2rem', boxShadow: '0 20px 40px -15px rgba(0,0,0,0.05)', marginBottom: '4rem', border: '1px solid #f1f5f9' }}>
         
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', marginTop: '1rem' }}>
-          
-          {/* Top Row: Form Fields */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
-            <div className="admin-form-group">
-              <label style={{ fontWeight: 600, color: '#334155' }}>Media Format</label>
-              <select 
-                className="admin-input" 
-                value={newMedia.type} 
-                onChange={e => setNewMedia({...newMedia, type: e.target.value})}
-                style={{ padding: '0.75rem', fontSize: '1rem', borderRadius: '8px', border: '1px solid #cbd5e1' }}
-              >
-                <option value="video">Video (MP4/WebM)</option>
-                <option value="image">Picture (JPG/PNG)</option>
-              </select>
-            </div>
-
-            <div className="admin-form-group">
-              <label style={{ fontWeight: 600, color: '#334155' }}>Optional Title</label>
-              <input 
-                className="admin-input" 
-                type="text" 
-                placeholder="e.g. Summer Collection 2026" 
-                value={newMedia.title}
-                onChange={e => setNewMedia({...newMedia, title: e.target.value})}
-                style={{ padding: '0.75rem', fontSize: '1rem', borderRadius: '8px', border: '1px solid #cbd5e1' }}
-              />
-            </div>
-            
-            <button 
-              className="btn-primary" 
-              onClick={handleCreate} 
-              disabled={!fileUrl}
-              style={{ padding: '0.75rem 1.5rem', fontSize: '1rem', borderRadius: '8px', marginTop: 'auto', opacity: !fileUrl ? 0.6 : 1 }}
+        {!fileUrl ? (
+          /* Empty Upload State */
+          <div style={{ position: 'relative' }}>
+            <input 
+              type="file" 
+              accept="video/*,image/*" 
+              onChange={handleFileUpload} 
+              disabled={uploading}
+              style={{ display: 'none' }}
+              id="media-studio-upload"
+            />
+            <label htmlFor="media-studio-upload" style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              border: '2px dashed #cbd5e1', borderRadius: '16px', padding: '4rem 2rem',
+              cursor: 'pointer', transition: 'all 0.3s ease', background: uploading ? '#f8fafc' : '#ffffff',
+              opacity: uploading ? 0.6 : 1
+            }}
+            onMouseOver={e => !uploading && (e.currentTarget.style.borderColor = '#3b82f6', e.currentTarget.style.background = '#f0f9ff')}
+            onMouseOut={e => !uploading && (e.currentTarget.style.borderColor = '#cbd5e1', e.currentTarget.style.background = '#ffffff')}
             >
-              Publish to Home Page
-            </button>
-          </div>
-
-          {/* Upload Area */}
-          <div className="admin-form-group" style={{ margin: 0, height: '100%' }}>
-            {fileUrl ? (
-              <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: '250px', borderRadius: '12px', overflow: 'hidden', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
-                {newMedia.type === 'video' ? (
-                  <video src={fileUrl} style={{ width: '100%', height: '100%', minHeight: '250px', objectFit: 'cover' }} autoPlay loop muted />
+              <div style={{ background: uploading ? 'transparent' : '#f1f5f9', padding: '1.5rem', borderRadius: '50%', marginBottom: '1.5rem', transition: 'all 0.3s' }}>
+                {uploading ? (
+                  <div style={{ width: '40px', height: '40px', border: '4px solid #e2e8f0', borderTopColor: '#3b82f6', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
                 ) : (
-                  <img src={fileUrl} style={{ width: '100%', height: '100%', minHeight: '250px', objectFit: 'cover' }} alt="Preview" />
+                  <UploadCloud size={40} color="#3b82f6" />
                 )}
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent 50%)', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', padding: '1.5rem' }}>
-                  <span style={{ color: '#fff', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <div style={{ width: '8px', height: '8px', background: '#10b981', borderRadius: '50%' }}></div>
-                    Ready to Publish
-                  </span>
-                  <button 
-                    onClick={() => setFileUrl('')} 
-                    style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)', color: 'white', border: '1px solid rgba(255,255,255,0.3)', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 500, transition: 'all 0.2s' }}
-                    onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
-                    onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
-                  >
-                    Change File
-                  </button>
-                </div>
               </div>
-            ) : (
-              <div style={{ position: 'relative', height: '100%', minHeight: '250px' }}>
-                <input 
-                  type="file" 
-                  accept={newMedia.type === 'video' ? "video/*" : "image/*"} 
-                  onChange={handleFileUpload} 
-                  disabled={uploading}
-                  style={{ display: 'none' }}
-                  id="media-upload"
-                />
-                <label htmlFor="media-upload" style={{
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem',
-                  border: '2px dashed #cbd5e1', height: '100%', minHeight: '250px', borderRadius: '12px', cursor: 'pointer',
-                  color: '#64748b', transition: 'all 0.3s ease', background: uploading ? '#f1f5f9' : '#f8fafc',
-                  opacity: uploading ? 0.7 : 1
-                }}
-                onMouseOver={e => !uploading && (e.currentTarget.style.background = '#f1f5f9', e.currentTarget.style.borderColor = '#94a3b8')}
-                onMouseOut={e => !uploading && (e.currentTarget.style.background = '#f8fafc', e.currentTarget.style.borderColor = '#cbd5e1')}
-                >
-                  <div style={{ background: '#fff', padding: '1rem', borderRadius: '50%', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-                    {uploading ? (
-                      <div style={{ width: '24px', height: '24px', border: '3px solid #e2e8f0', borderTopColor: '#3b82f6', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-                    ) : (
-                      <UploadCloud size={32} color="#3b82f6" />
-                    )}
-                  </div>
-                  <div style={{ textAlign: 'center' }}>
-                    <p style={{ margin: 0, fontWeight: 600, color: '#334155', fontSize: '1.1rem' }}>
-                      {uploading ? 'Uploading to Cloudinary...' : 'Click to Browse Files'}
-                    </p>
-                    <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.85rem' }}>
-                      {uploading ? 'Please wait, this may take a moment' : `Supports high-res ${newMedia.type === 'video' ? 'MP4, WebM' : 'JPG, PNG, WebP'}`}
-                    </p>
-                  </div>
-                </label>
-                <style>{`@keyframes spin { 100% { transform: rotate(360deg); } }`}</style>
-              </div>
-            )}
+              <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}>
+                {uploading ? 'Uploading to cloud...' : 'Drag & Drop Media'}
+              </h3>
+              <p style={{ margin: 0, color: '#64748b', fontSize: '1rem' }}>
+                {uploading ? 'Please wait a moment' : 'Supports high-res MP4, WebM, JPG, PNG'}
+              </p>
+            </label>
+            <style>{`@keyframes spin { 100% { transform: rotate(360deg); } }`}</style>
           </div>
-        </div>
+        ) : (
+          /* Success & Configuration State */
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#10b981' }}>
+                <CheckCircle size={24} />
+                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>Media Ready</h3>
+              </div>
+              <button onClick={resetUpload} style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.5rem', transition: 'color 0.2s' }} onMouseOver={e=>e.currentTarget.style.color='#ef4444'} onMouseOut={e=>e.currentTarget.style.color='#64748b'}>
+                <X size={18} /> Discard
+              </button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', alignItems: 'center' }}>
+              {/* Media Preview Player */}
+              <div style={{ width: '100%', height: '300px', borderRadius: '16px', overflow: 'hidden', background: '#000', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)' }}>
+                {newMedia.type === 'video' ? (
+                  <video src={fileUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} autoPlay loop muted controls />
+                ) : (
+                  <img src={fileUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Preview" />
+                )}
+              </div>
+
+              {/* Media Details Form */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', background: '#f8fafc', padding: '2rem', borderRadius: '16px' }}>
+                
+                <div>
+                  <label style={{ display: 'block', fontWeight: 600, color: '#334155', marginBottom: '0.5rem' }}>Media Type</label>
+                  <div style={{ display: 'flex', gap: '1rem' }}>
+                    <label style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '1rem', background: newMedia.type === 'video' ? '#3b82f6' : '#fff', color: newMedia.type === 'video' ? '#fff' : '#64748b', border: '1px solid', borderColor: newMedia.type === 'video' ? '#3b82f6' : '#cbd5e1', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s', fontWeight: 500 }}>
+                      <input type="radio" name="mediaType" value="video" checked={newMedia.type === 'video'} onChange={() => setNewMedia({...newMedia, type: 'video'})} style={{ display: 'none' }} />
+                      <Video size={18} /> Video
+                    </label>
+                    <label style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '1rem', background: newMedia.type === 'image' ? '#3b82f6' : '#fff', color: newMedia.type === 'image' ? '#fff' : '#64748b', border: '1px solid', borderColor: newMedia.type === 'image' ? '#3b82f6' : '#cbd5e1', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s', fontWeight: 500 }}>
+                      <input type="radio" name="mediaType" value="image" checked={newMedia.type === 'image'} onChange={() => setNewMedia({...newMedia, type: 'image'})} style={{ display: 'none' }} />
+                      <ImageIcon size={18} /> Image
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontWeight: 600, color: '#334155', marginBottom: '0.5rem' }}>Title (Optional)</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. Summer Campaign" 
+                    value={newMedia.title}
+                    onChange={e => setNewMedia({...newMedia, title: e.target.value})}
+                    style={{ width: '100%', padding: '1rem', fontSize: '1rem', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none', transition: 'border-color 0.2s' }}
+                    onFocus={e => e.target.style.borderColor = '#3b82f6'}
+                    onBlur={e => e.target.style.borderColor = '#cbd5e1'}
+                  />
+                </div>
+
+                <button 
+                  onClick={handleCreate} 
+                  style={{ width: '100%', padding: '1rem', background: '#0f172a', color: '#fff', fontSize: '1.1rem', fontWeight: 600, border: 'none', borderRadius: '8px', cursor: 'pointer', marginTop: '0.5rem', transition: 'background 0.2s' }}
+                  onMouseOver={e => e.currentTarget.style.background = '#1e293b'}
+                  onMouseOut={e => e.currentTarget.style.background = '#0f172a'}
+                >
+                  Publish to Gallery
+                </button>
+
+              </div>
+            </div>
+
+          </div>
+        )}
       </div>
 
-      {/* Media Grid */}
-      <h3 className="admin-page-title" style={{ fontSize: '1.3rem', marginBottom: '1.5rem', color: '#1e293b' }}>Published Media</h3>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '2rem' }}>
+      {/* Gallery Grid */}
+      <h2 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#0f172a', marginBottom: '2rem' }}>Live Gallery</h2>
+      
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2rem' }}>
         {mediaItems.length === 0 ? (
-          <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '4rem 2rem', background: '#fff', borderRadius: '16px', color: '#94a3b8', border: '1px dashed #cbd5e1' }}>
-            <Video size={48} color="#cbd5e1" style={{ marginBottom: '1rem' }} />
-            <p style={{ fontSize: '1.1rem', margin: 0 }}>Your cinematic gallery is empty.</p>
-            <p style={{ fontSize: '0.9rem', marginTop: '0.5rem' }}>Upload your first video or image above to showcase it on the homepage!</p>
+          <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '5rem 2rem', background: '#f8fafc', borderRadius: '24px', color: '#94a3b8' }}>
+            <ImageIcon size={48} color="#cbd5e1" style={{ marginBottom: '1rem' }} />
+            <p style={{ fontSize: '1.2rem', margin: 0, fontWeight: 500 }}>Your gallery is currently empty.</p>
           </div>
         ) : (
           mediaItems.map(item => (
-            <div key={item._id} style={{ background: '#fff', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 20px -2px rgba(0,0,0,0.08)', position: 'relative', transition: 'transform 0.2s ease', cursor: 'default' }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-4px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
+            <div key={item._id} style={{ borderRadius: '20px', overflow: 'hidden', position: 'relative', background: '#000', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', cursor: 'default', height: '400px' }}>
               
-              <div style={{ position: 'absolute', top: '0.75rem', right: '0.75rem', zIndex: 10 }}>
-                <button 
-                  onClick={() => handleDelete(item._id)}
-                  style={{ background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(4px)', border: 'none', padding: '0.6rem', borderRadius: '50%', color: '#ef4444', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
-                  onMouseOver={e => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = 'white'; }}
-                  onMouseOut={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.9)'; e.currentTarget.style.color = '#ef4444'; }}
-                  title="Delete from Gallery"
-                >
-                  <Trash2 size={18} />
-                </button>
-              </div>
+              {/* Media Content */}
+              {item.type === 'video' ? (
+                <video src={item.url} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.8 }} autoPlay loop muted playsInline />
+              ) : (
+                <img src={item.url} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.9 }} alt="Media" />
+              )}
 
-              <div style={{ position: 'absolute', top: '0.75rem', left: '0.75rem', zIndex: 10, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)', color: 'white', padding: '0.3rem 0.75rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem', border: '1px solid rgba(255,255,255,0.2)' }}>
-                {item.type === 'video' ? <Video size={14} color="#60a5fa" /> : <ImageIcon size={14} color="#34d399" />}
+              {/* Gradient Overlay for Text Visibility */}
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 50%)', pointerEvents: 'none' }} />
+
+              {/* Top Right: Type Badge */}
+              <div style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', padding: '0.4rem 0.8rem', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#fff', fontSize: '0.8rem', fontWeight: 600, border: '1px solid rgba(255,255,255,0.2)' }}>
+                {item.type === 'video' ? <Video size={14} /> : <ImageIcon size={14} />}
                 {item.type.toUpperCase()}
               </div>
 
-              <div style={{ height: '240px', background: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                {item.type === 'video' ? (
-                  <video src={item.url} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.9 }} controls />
-                ) : (
-                  <img src={item.url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Media" />
-                )}
-              </div>
-              
-              <div style={{ padding: '1.25rem', borderTop: '1px solid #f1f5f9' }}>
-                <h4 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 600, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  {item.title || 'Untitled Media'}
+              {/* Bottom Left: Title */}
+              <div style={{ position: 'absolute', bottom: '1.5rem', left: '1.5rem', right: '1.5rem' }}>
+                <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '1.4rem', fontWeight: 700, color: '#fff', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+                  {item.title || 'Cinematic Shot'}
                 </h4>
-                <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.8rem', color: '#64748b' }}>
-                  Published on Home Page
-                </p>
+              </div>
+
+              {/* Hover Delete Button */}
+              <div className="gallery-delete-btn" style={{ position: 'absolute', top: '1rem', left: '1rem' }}>
+                <button 
+                  onClick={() => handleDelete(item._id)}
+                  style={{ background: '#ef4444', border: 'none', padding: '0.75rem', borderRadius: '50%', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(239,68,68,0.4)', transition: 'transform 0.2s' }}
+                  onMouseOver={e => e.currentTarget.style.transform = 'scale(1.1)'}
+                  onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+                  title="Remove from Gallery"
+                >
+                  <Trash2 size={18} />
+                </button>
               </div>
 
             </div>
           ))
         )}
       </div>
+
     </div>
   );
 };
