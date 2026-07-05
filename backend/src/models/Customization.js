@@ -6,19 +6,37 @@ const customizationSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  fabric: {
+  productType: {
     type: String,
-    required: true
+    required: true, // e.g., 'T-Shirt', 'Hoodie', 'Couple T-Shirts'
+  },
+  designType: {
+    type: String, // e.g., 'Gen Z Collection', 'Couple Collection', 'Custom Upload'
+  },
+  material: {
+    type: String,
+    required: true,
   },
   color: {
     type: String,
-    required: true
+    required: true,
   },
-  measurements: {
-    bust: { type: Number },
-    waist: { type: Number },
-    hips: { type: Number },
-    length: { type: Number }
+  printType: {
+    type: String, // e.g., 'DTF', 'Screen Print', 'Embroidery'
+    required: true,
+  },
+  quoteText: {
+    type: String, // Predefined or custom entered text
+  },
+  customDesignUrl: {
+    type: String, // Cloudinary URL for uploaded design
+  },
+  printPlacement: {
+    type: String, // 'Front', 'Back', 'Left Chest', etc.
+  },
+  quantity: {
+    type: Number,
+    default: 1
   },
   notes: {
     type: String,
@@ -29,8 +47,9 @@ const customizationSchema = new mongoose.Schema({
     enum: ['pending', 'approved', 'disapproved', 'quoted', 'in-progress', 'completed', 'rejected'],
     default: 'pending'
   },
-  priceQuote: {
+  totalPrice: {
     type: Number,
+    required: true,
     default: 0
   },
   paymentStatus: {

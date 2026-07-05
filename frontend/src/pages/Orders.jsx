@@ -656,7 +656,7 @@ const Orders = () => {
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                           <span style={{ fontSize: '1.25rem' }}>✨</span>
-                          <h4 className="m-0 font-bold" style={{ fontFamily: 'var(--font-heading, serif)', fontSize: '1.15rem' }}>Bespoke Custom Dress Request</h4>
+                          <h4 className="m-0 font-bold" style={{ fontFamily: 'var(--font-heading, serif)', fontSize: '1.15rem' }}>Custom Design Order</h4>
                         </div>
                         <span className="tiny-label" style={{ display: 'block', marginTop: '0.25rem' }}>
                           Submitted on {new Date(req.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
@@ -670,38 +670,49 @@ const Orders = () => {
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
                       <div>
-                        <h5 className="section-title mb-2" style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px', color: '#888' }}>Design Details</h5>
+                        <h5 className="section-title mb-2" style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px', color: '#888' }}>Product Details</h5>
                         <div style={{ background: '#faf9f7', padding: '1rem', borderRadius: '8px', minHeight: '100px' }}>
-                          <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem' }}><strong>Fabric:</strong> {req.fabric ? req.fabric.charAt(0).toUpperCase() + req.fabric.slice(1) : '-'}</p>
+                          <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem' }}><strong>Product:</strong> {req.productType} (x{req.quantity})</p>
+                          <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem' }}><strong>Theme:</strong> {req.designType}</p>
+                          <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem' }}><strong>Material:</strong> {req.material}</p>
                           <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem' }}><strong>Color:</strong> {req.color}</p>
-                          <p style={{ margin: '0', color: '#555', fontStyle: 'italic', fontSize: '0.85rem', lineHeight: '1.4' }}>"{req.notes || 'No design notes provided.'}"</p>
                         </div>
                       </div>
 
                       <div>
-                        <h5 className="section-title mb-2" style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px', color: '#888' }}>Measurements (Inches)</h5>
-                        <div style={{ background: '#faf9f7', padding: '1rem', borderRadius: '8px', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem', minHeight: '100px', fontSize: '0.9rem' }}>
-                          <div><strong>Bust:</strong> {req.measurements?.bust ? `${req.measurements.bust}"` : '-'}</div>
-                          <div><strong>Waist:</strong> {req.measurements?.waist ? `${req.measurements.waist}"` : '-'}</div>
-                          <div><strong>Hips:</strong> {req.measurements?.hips ? `${req.measurements.hips}"` : '-'}</div>
-                          <div><strong>Length:</strong> {req.measurements?.length ? `${req.measurements.length}"` : '-'}</div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <h5 className="section-title mb-2" style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px', color: '#888' }}>Status & Pricing</h5>
-                        <div style={{ background: '#faf9f7', padding: '1rem', borderRadius: '8px', display: 'flex', flexDirection: 'column', minHeight: '100px', fontSize: '0.9rem' }}>
-                          <p style={{ margin: '0 0 0.5rem 0' }}>
-                            <strong>Price Quote:</strong> {req.priceQuote ? formatPrice(req.priceQuote) : 'Awaiting Quote'}
-                          </p>
-                          {req.priceQuote > 0 && (
-                            <p style={{ margin: '0 0 0.5rem 0' }}>
-                              <strong>Payment Status:</strong> <span style={{ color: req.paymentStatus === 'paid' ? 'green' : '#f59e0b', fontWeight: 600 }}>{req.paymentStatus.toUpperCase()}</span>
-                            </p>
+                        <h5 className="section-title mb-2" style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px', color: '#888' }}>Artwork & Printing</h5>
+                        <div style={{ background: '#faf9f7', padding: '1rem', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '0.5rem', minHeight: '100px', fontSize: '0.9rem' }}>
+                          <div><strong>Type:</strong> {req.printType}</div>
+                          <div><strong>Placement:</strong> {req.printPlacement}</div>
+                          {req.quoteText && (
+                            <div style={{ marginTop: '0.5rem', fontStyle: 'italic', color: '#555' }}>
+                              "{req.quoteText}"
+                            </div>
                           )}
-                          <div style={{ fontSize: '0.75rem', color: '#555', marginTop: 'auto', background: '#eef2ff', padding: '8px', borderRadius: '6px', border: '1px solid #e0e7ff', lineHeight: 1.4 }}>
-                            💬 Our master tailors will contact you directly at your email/phone to discuss details.
-                          </div>
+                          {req.customDesignUrl && (
+                            <div style={{ marginTop: '0.5rem' }}>
+                              <a href={req.customDesignUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--ink)' }}>
+                                <img src={req.customDesignUrl} alt="Uploaded Artwork" style={{ maxWidth: '80px', borderRadius: '4px', border: '1px solid #ccc' }} />
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <h5 className="section-title mb-2" style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px', color: '#888' }}>Pricing & Notes</h5>
+                        <div style={{ background: '#faf9f7', padding: '1rem', borderRadius: '8px', display: 'flex', flexDirection: 'column', minHeight: '100px', fontSize: '0.9rem' }}>
+                          <p style={{ margin: '0 0 0.5rem 0', fontSize: '1.1rem', fontWeight: 'bold' }}>
+                            Total: ₹{req.totalPrice}
+                          </p>
+                          <p style={{ margin: '0 0 0.5rem 0' }}>
+                            <strong>Payment Status:</strong> <span style={{ color: req.paymentStatus === 'paid' ? 'green' : '#f59e0b', fontWeight: 600 }}>{req.paymentStatus.toUpperCase()}</span>
+                          </p>
+                          {req.notes && (
+                            <div style={{ fontSize: '0.85rem', color: '#555', marginTop: '0.5rem', background: '#eef2ff', padding: '8px', borderRadius: '6px', border: '1px solid #e0e7ff', lineHeight: 1.4 }}>
+                              <strong>Notes:</strong> {req.notes}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>

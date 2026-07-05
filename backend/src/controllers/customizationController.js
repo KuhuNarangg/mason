@@ -12,18 +12,37 @@ const { createNotification } = require('../utils/notificationHelper');
 // @route   POST /api/v1/customizations/general
 // @access  Private (Customer)
 const createGeneralRequest = asyncHandler(async (req, res) => {
-  const { fabric, color, measurements, notes } = req.body;
+  const {
+    productType,
+    designType,
+    material,
+    color,
+    printType,
+    quoteText,
+    customDesignUrl,
+    printPlacement,
+    quantity,
+    totalPrice,
+    notes
+  } = req.body;
 
-  if (!fabric || !color) {
+  if (!productType || !material || !color || !printType || !totalPrice) {
     res.status(400);
-    throw new Error('Fabric and color are required');
+    throw new Error('Required fields missing');
   }
 
   const customization = await Customization.create({
     user: req.user._id,
-    fabric,
+    productType,
+    designType,
+    material,
     color,
-    measurements: measurements || {},
+    printType,
+    quoteText,
+    customDesignUrl,
+    printPlacement,
+    quantity: quantity || 1,
+    totalPrice,
     notes: notes || '',
   });
 
@@ -31,13 +50,13 @@ const createGeneralRequest = asyncHandler(async (req, res) => {
   const admins = await User.find({ role: 'admin' }).select('_id');
   await Promise.all(admins.map(admin => createNotification({
     user: admin._id,
-    title: 'New Custom Design Request ✂️',
-    message: `${req.user.name} submitted a bespoke design request (${fabric}, ${color}).`,
+    title: 'New Custom Design Order 👕',
+    message: `${req.user.name} ordered a custom ${productType} (${color}).`,
     link: '/admin/customizations',
     type: 'custom_order'
   })));
 
-  res.status(201).json({ success: true, message: 'Your design request was submitted successfully', customization });
+  res.status(201).json({ success: true, message: 'Your custom design order was submitted successfully', customization });
 });
 
 // @desc    Get logged-in customer's general bespoke design requests
