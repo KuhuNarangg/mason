@@ -127,7 +127,7 @@ const Login = () => {
           </div>
           <div style={{ display: 'flex', justifyContent: 'center', width: '100%', overflow: 'hidden' }}>
             <GoogleLogin onSuccess={handleGoogle} onError={() => {}}
-              text="signin_with" shape="rectangular" theme="outline" size="large" />
+              text="signin_with" shape="rectangular" theme="outline" size="large" width="280" />
           </div>
           <p className="auth-footer">
             Don't have an account? <Link to="/register">Create an account</Link>

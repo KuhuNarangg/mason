@@ -218,7 +218,7 @@ const Navbar = () => {
           <Link to="/catalogue" className="m-mobile-link" onClick={() => setMobileMenuOpen(false)} style={{ fontWeight: 600, color: 'var(--color-primary)' }}>Catalogue</Link>
           <Link to="/category/all?type=dress" className="m-mobile-link" onClick={() => setMobileMenuOpen(false)}>Dresses</Link>
           <Link to="/category/all?type=top" className="m-mobile-link" onClick={() => setMobileMenuOpen(false)}>Tops</Link>
-          <Link to="/customization" className="m-mobile-link" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--rose-gold-dark)', fontWeight: 600 }}>Customise</Link>
+          <Link to="/customisation" className="m-mobile-link" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--rose-gold-dark)', fontWeight: 600 }}>Customise</Link>
         </nav>
         
         <div className="m-mobile-menu__footer">
