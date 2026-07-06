@@ -63,7 +63,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: calc(var(--navbar-height) + var(--space-6)) var(--space-4) var(--space-4);
+  padding: calc(var(--navbar-height) + var(--space-2)) var(--space-4) var(--space-4);
   background: var(--ivory);
   position: relative;
   overflow-y: auto;
@@ -240,7 +240,7 @@
 
 @media (max-width: 480px) {
   .auth-form-wrapper {
-    padding: calc(var(--navbar-height) + 1rem) 1rem 1rem;
+    padding: calc(var(--navbar-height) + 0.5rem) 1rem 1rem;
   }
   .auth-container {
     padding: 1.25rem 1.25rem;
