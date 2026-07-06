@@ -53,7 +53,7 @@ export const CartProvider = ({ children }) => {
 
   const clearCart = async () => {
     try {
-      await api.delete('/cart');
+      await api.delete('/cart/clear');
       setCart({ items: [] });
     } catch { /* silent */ }
   };
