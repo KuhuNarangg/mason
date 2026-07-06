@@ -4,7 +4,7 @@ const Product = require('../models/Product');
 
 // @GET /api/v1/cart
 const getCart = asyncHandler(async (req, res) => {
-  const cart = await Cart.findOne({ user: req.user._id }).populate('items.product', 'name thumbnail slug images brand');
+  const cart = await Cart.findOne({ user: req.user._id }).populate('items.product', 'name thumbnail slug images brand variants');
   res.json({ success: true, cart: cart || { items: [], totalAmount: 0 } });
 });
 
@@ -95,7 +95,7 @@ const updateCartItem = asyncHandler(async (req, res) => {
   await cart.save();
   
   // Populate product data before sending response
-  cart = await Cart.findOne({ user: req.user._id }).populate('items.product', 'name thumbnail slug images brand');
+  cart = await Cart.findOne({ user: req.user._id }).populate('items.product', 'name thumbnail slug images brand variants');
   res.json({ success: true, cart });
 });
 
@@ -107,7 +107,7 @@ const removeCartItem = asyncHandler(async (req, res) => {
   await cart.save();
   
   // Populate product data before sending response
-  cart = await Cart.findOne({ user: req.user._id }).populate('items.product', 'name thumbnail slug images brand');
+  cart = await Cart.findOne({ user: req.user._id }).populate('items.product', 'name thumbnail slug images brand variants');
   res.json({ success: true, cart });
 });
 
