@@ -127,3 +127,17 @@
   color: var(--error);
   border-color: var(--error);
 }
+
+@media (max-width: 576px) {
+  .wishlist-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+  .wishlist-page-container {
+    padding-top: calc(var(--navbar-height) + var(--space-6)) !important;
+  }
+  .wishlist-card {
+    border-bottom: 1px solid var(--champagne);
+    padding-bottom: var(--space-4);
+  }
+}

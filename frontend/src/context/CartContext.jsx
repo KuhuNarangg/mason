@@ -31,11 +31,16 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  const updateItem = async (itemId, quantity) => {
+  const updateItem = async (itemId, quantity, variantSize) => {
     try {
-      const { data } = await api.put(`/cart/${itemId}`, { quantity });
+      const payload = { quantity };
+      if (variantSize) payload.variantSize = variantSize;
+      
+      const { data } = await api.put(`/cart/${itemId}`, payload);
       setCart(data.cart);
-    } catch { toast.error('Update failed'); }
+    } catch (err) { 
+      toast.error(err.response?.data?.message || 'Update failed'); 
+    }
   };
 
   const removeItem = async (itemId) => {

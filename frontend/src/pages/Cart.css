@@ -97,6 +97,21 @@
   color: var(--text-primary);
 }
 
+.cart-size-select {
+  background: transparent;
+  border: 1px solid var(--champagne);
+  padding: 2px 6px;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+}
+.cart-size-select:focus {
+  border-color: var(--rose-gold-dark);
+}
+
 /* Quantity Control */
 .quantity-control {
   display: flex;
@@ -277,6 +292,21 @@
   .cart-summary {
     position: static;
     margin-top: var(--space-8);
+  }
+
+  .place-order-btn {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    margin: 0;
+    z-index: 100;
+    padding: 1.2rem;
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
+  }
+  
+  .cart-page-container {
+    padding-bottom: calc(var(--space-12) + 60px) !important;
   }
 
   .cart-item {

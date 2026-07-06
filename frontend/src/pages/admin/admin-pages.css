@@ -2,6 +2,11 @@
    MASON Admin — Professional Design System
    ============================================================ */
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
 /* Hide scrollbars but keep scroll functionality */
 .scrollbar-hide {
   scrollbar-width: none;
@@ -2412,5 +2417,33 @@
 
   .admin-content {
     padding: 1.25rem;
+  }
+
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .search-input-wrap {
+    max-width: 100%;
   }
 }

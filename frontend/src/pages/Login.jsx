@@ -125,9 +125,9 @@ const Login = () => {
             <span style={{ fontSize: '0.72rem', color: 'var(--ink-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>or</span>
             <div style={{ flex: 1, height: 1, background: 'var(--champagne)' }} />
           </div>
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', width: '100%', overflow: 'hidden' }}>
             <GoogleLogin onSuccess={handleGoogle} onError={() => {}}
-              text="signin_with" shape="rectangular" theme="outline" size="large" width="340" />
+              text="signin_with" shape="rectangular" theme="outline" size="large" />
           </div>
           <p className="auth-footer">
             Don't have an account? <Link to="/register">Create an account</Link>

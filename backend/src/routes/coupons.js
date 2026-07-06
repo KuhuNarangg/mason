@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { getCoupons, createCoupon, updateCoupon, deleteCoupon, validateCoupon } = require('../controllers/couponController');
+const { getCoupons, createCoupon, updateCoupon, deleteCoupon, validateCoupon, getActiveCoupons } = require('../controllers/couponController');
 const { protect, adminOnly } = require('../middleware/auth');
 
 // Public/User route
+router.get('/active', getActiveCoupons);
 router.post('/validate', validateCoupon);
 
 // Admin only routes

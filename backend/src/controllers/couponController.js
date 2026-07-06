@@ -103,10 +103,17 @@ const validateCoupon = asyncHandler(async (req, res) => {
   });
 });
 
+// @GET /api/v1/coupons/active (Public)
+const getActiveCoupons = asyncHandler(async (req, res) => {
+  const coupons = await Coupon.find({ isActive: true, expiryDate: { $gt: new Date() } }).sort({ createdAt: -1 });
+  res.json({ success: true, coupons });
+});
+
 module.exports = {
   getCoupons,
   createCoupon,
   updateCoupon,
   deleteCoupon,
-  validateCoupon
+  validateCoupon,
+  getActiveCoupons
 };

@@ -40,9 +40,22 @@ const Checkout = () => {
   const [fieldErrors, setFieldErrors] = useState({});
   const [discount, setDiscount] = useState(0);
   const [coupon, setCoupon] = useState('');
+  const [activeCoupons, setActiveCoupons] = useState([]);
   const [savedAddresses, setSavedAddresses] = useState([]);
   const [selectedAddressIndex, setSelectedAddressIndex] = useState(-1);
   const [saveAddressToProfile, setSaveAddressToProfile] = useState(false);
+
+  useEffect(() => {
+    const fetchActiveCoupons = async () => {
+      try {
+        const { data } = await api.get('/coupons/active');
+        setActiveCoupons(data.coupons || []);
+      } catch (err) {
+        console.error('Failed to fetch coupons', err);
+      }
+    };
+    fetchActiveCoupons();
+  }, []);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -165,7 +178,7 @@ const Checkout = () => {
       // ── COD flow ──────────────────────────────────────────────
       if (paymentMethod === 'cod') {
         toast.success('Order placed successfully! 🎉');
-        clearCart();
+        await clearCart();
         navigate('/orders');
         return;
       }
@@ -209,7 +222,7 @@ const Checkout = () => {
               razorpay_signature: response.razorpay_signature,
             });
             toast.success('Payment successful! 🎉 Order confirmed.');
-            clearCart();
+            await clearCart();
             navigate(`/orders/${dbOrder._id}`);
           } catch (err) {
             toast.error(err.response?.data?.message || 'Payment verification failed. Contact support.');
@@ -224,9 +237,9 @@ const Checkout = () => {
         },
 
         // User closed modal without paying
-        onDismiss: () => {
+        onDismiss: async () => {
           toast('Payment cancelled. Your order is saved — you can pay from My Orders.', { icon: 'ℹ️' });
-          clearCart();
+          await clearCart();
           navigate(`/orders/${dbOrder._id}`);
         },
       });
@@ -369,26 +382,14 @@ const Checkout = () => {
                   </div>
                   <div className="form-group">
                     <label className="form-label">City *</label>
-                    {shipping.state && indiaData[shipping.state] ? (
-                      <select
-                        value={shipping.city}
-                        onChange={(e) => { setShipping({ ...shipping, city: e.target.value }); setFieldErrors(p => ({ ...p, city: '' })); }}
-                        className={`form-input ${fieldErrors.city ? 'field-error' : ''}`}
-                        disabled={selectedAddressIndex !== -1}
-                      >
-                        <option value="">Select City</option>
-                        {indiaData[shipping.state].map(c => <option key={c} value={c}>{c}</option>)}
-                      </select>
-                    ) : (
-                      <input
-                        type="text"
-                        placeholder="City"
-                        value={shipping.city}
-                        onChange={(e) => { setShipping({ ...shipping, city: e.target.value }); setFieldErrors(p => ({ ...p, city: '' })); }}
-                        className={`form-input ${fieldErrors.city ? 'field-error' : ''}`}
-                        disabled={selectedAddressIndex !== -1}
-                      />
-                    )}
+                    <input
+                      type="text"
+                      placeholder="City"
+                      value={shipping.city}
+                      onChange={(e) => { setShipping({ ...shipping, city: e.target.value }); setFieldErrors(p => ({ ...p, city: '' })); }}
+                      className={`form-input ${fieldErrors.city ? 'field-error' : ''}`}
+                      disabled={selectedAddressIndex !== -1}
+                    />
                     {fieldErrors.city && <span className="field-error-msg">{fieldErrors.city}</span>}
                   </div>
                 </div>
@@ -484,10 +485,15 @@ const Checkout = () => {
                       Apply
                     </button>
                   </div>
-                  <div className="mt-3">
-                    <span className="badge featured" style={{ cursor: 'pointer' }} onClick={() => setCoupon('SAVE10')}>SAVE10</span>
-                    <span className="badge trending ms-2" style={{ cursor: 'pointer' }} onClick={() => setCoupon('SAVE20')}>SAVE20</span>
-                  </div>
+                  {activeCoupons.length > 0 && (
+                    <div className="mt-3">
+                      {activeCoupons.map((c, i) => (
+                        <span key={c._id} className={`badge ${i === 0 ? 'featured' : 'trending'} ms-2`} style={{ cursor: 'pointer', display: 'inline-block', marginBottom: '0.5rem' }} onClick={() => setCoupon(c.code)}>
+                          {c.code}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="checkout-btn-row mt-5">

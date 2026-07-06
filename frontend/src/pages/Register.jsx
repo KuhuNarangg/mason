@@ -87,7 +87,7 @@ const Register = () => {
             <span style={{ fontSize: '0.72rem', color: 'var(--ink-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>or</span>
             <div style={{ flex: 1, height: 1, background: 'var(--champagne)' }} />
           </div>
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', width: '100%', overflow: 'hidden' }}>
             <GoogleLogin
               onSuccess={handleGoogle}
               onError={() => {}}
@@ -95,7 +95,6 @@ const Register = () => {
               shape="rectangular"
               theme="outline"
               size="large"
-              width="340"
             />
           </div>
 

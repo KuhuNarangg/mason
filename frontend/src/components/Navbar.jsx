@@ -74,7 +74,7 @@ const Navbar = () => {
               <Link to="/catalogue" className="m-nav-link" style={{ fontWeight: 600, color: 'var(--color-primary)' }}>Catalogue</Link>
               <Link to="/category/all?type=dress" className="m-nav-link">Dresses</Link>
               <Link to="/category/all?type=top" className="m-nav-link">Tops</Link>
-              <a href="/#customize" className="m-nav-link">Customize</a>
+              <Link to="/customisation" className="m-nav-link">Customize</Link>
             </nav>
           </div>
 

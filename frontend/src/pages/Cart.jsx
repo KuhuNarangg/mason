@@ -76,9 +76,27 @@ const Cart = () => {
                   <div>
                     <h3 className="item-brand">{item.product.brand}</h3>
                     <Link to={`/product/${item.product.slug}`} className="item-name">{item.product.name}</Link>
-                    <div className="item-variants text-muted mt-1">
-                      <span>Size: <b>{item.variantSize}</b></span>
-                      <span className="mx-2">|</span>
+                    <div className="item-variants text-muted mt-2 d-flex align-center" style={{ gap: '1rem', flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span>Size:</span>
+                        {item.product.variants && item.product.variants.some(v => v.color === item.variantColor) ? (
+                          <select 
+                            className="cart-size-select"
+                            value={item.variantSize}
+                            onChange={(e) => updateItem(item._id, item.quantity, e.target.value)}
+                          >
+                            {Array.from(new Set(item.product.variants.filter(v => v.color === item.variantColor && v.stock > 0).map(v => v.size))).map(size => (
+                              <option key={size} value={size}>{size}</option>
+                            ))}
+                            {/* In case current size is out of stock but still in cart, ensure it shows in the dropdown */}
+                            {!Array.from(new Set(item.product.variants.filter(v => v.color === item.variantColor && v.stock > 0).map(v => v.size))).includes(item.variantSize) && (
+                              <option value={item.variantSize}>{item.variantSize} (Out of Stock)</option>
+                            )}
+                          </select>
+                        ) : (
+                          <b>{item.variantSize}</b>
+                        )}
+                      </div>
                       <span>Color: <b>{item.variantColor}</b></span>
                     </div>
                   </div>
