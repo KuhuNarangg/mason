@@ -13,8 +13,27 @@ const Login = () => {
 
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
+  const [accessCode, setAccessCode] = useState('');
+  const [role, setRole]         = useState(null);
   const [error, setError]       = useState('');
   const [loading, setLoading]   = useState(false);
+
+  useEffect(() => {
+    const checkRole = async () => {
+      if (email.includes('@')) {
+        try {
+          const { data } = await api.get(`/auth/check-role?email=${encodeURIComponent(email)}`);
+          setRole(data.role);
+        } catch (err) {
+          setRole(null);
+        }
+      } else {
+        setRole(null);
+      }
+    };
+    const timer = setTimeout(checkRole, 500);
+    return () => clearTimeout(timer);
+  }, [email]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,7 +41,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const payload = { email, password };
+      const payload = { email, password, accessCode };
       const { data } = await api.post('/auth/login', payload);
       setAuthUser(data.token, data.user);
 
@@ -31,13 +50,20 @@ const Login = () => {
       else if (redirect) navigate(`/${redirect}`);
       else navigate('/');
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid credentials.');
+      if (err.response?.data?.requiresAccessCode) {
+        setRole(err.response.data.role);
+        setError('An access code is required for this account.');
+      } else {
+        setError(err.response?.data?.message || 'Invalid credentials.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogle = async (credentialResponse) => {
+    // If they are an admin or vendor, they should NOT use Google Login
+    // We will catch that in AuthContext and backend
     const res = await googleLogin(credentialResponse.credential);
     if (res?.success) {
       if (res.role === 'admin') navigate('/admin');
@@ -114,6 +140,21 @@ const Login = () => {
                 placeholder="Enter your password"
               />
             </div>
+            
+            {/* Conditional Access Code */}
+            {(role === 'admin' || role === 'vendor') && (
+              <div className="form-group">
+                <label className="form-label">Access Code (Required)</label>
+                <input
+                  type="password"
+                  className="auth-input"
+                  value={accessCode}
+                  onChange={e => setAccessCode(e.target.value)}
+                  required
+                  placeholder={`Enter ${role} access code`}
+                />
+              </div>
+            )}
 
             <button type="submit" className="auth-btn" disabled={loading || isLocked}>
               {loading ? 'Please wait…' : 'Sign In'}

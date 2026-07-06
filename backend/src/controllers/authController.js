@@ -56,10 +56,36 @@ const login = asyncHandler(async (req, res) => {
       res.status(429);
       throw new Error('Please try after 2 minutes');
     }
+    // New Access Code validation for Login
+    if (String(req.body.accessCode) !== String(process.env.ADMIN_ACCESS_CODE)) {
+      user.adminCodeAttempts += 1;
+      if (user.adminCodeAttempts >= MAX_CODE_ATTEMPTS) {
+        user.adminCodeLockUntil = new Date(Date.now() + CODE_LOCK_MINUTES * 60 * 1000);
+        user.adminCodeAttempts = 0;
+        sendAdminLockoutAlert({
+          adminEmail: user.email, ipAddress: req.ip,
+          attempts: MAX_CODE_ATTEMPTS, lockUntil: user.adminCodeLockUntil,
+        }).catch(() => {});
+      }
+      await user.save();
+      res.status(401);
+      return res.json({ requiresAccessCode: true, role: user.role, message: 'Invalid or missing access code' });
+    }
   } else if (user.role === 'vendor') {
     if (user.isVendorCodeLocked()) {
       res.status(429);
       throw new Error('Please try after 2 minutes');
+    }
+    // New Access Code validation for Login
+    if (String(req.body.accessCode) !== String(process.env.VENDOR_ACCESS_CODE)) {
+      user.vendorCodeAttempts += 1;
+      if (user.vendorCodeAttempts >= MAX_CODE_ATTEMPTS) {
+        user.vendorCodeLockUntil = new Date(Date.now() + CODE_LOCK_MINUTES * 60 * 1000);
+        user.vendorCodeAttempts = 0;
+      }
+      await user.save();
+      res.status(401);
+      return res.json({ requiresAccessCode: true, role: user.role, message: 'Invalid or missing access code' });
     }
   } else {
     if (user.isLoginLocked()) {
@@ -220,6 +246,11 @@ const googleAuth = asyncHandler(async (req, res) => {
 
   /* Find or create user */
   let user = await User.findOne({ $or: [{ googleId }, { email }] });
+
+  if (user && (user.role === 'admin' || user.role === 'vendor')) {
+    res.status(403);
+    throw new Error('Administrators and Vendors must use email and access code to sign in.');
+  }
 
   if (!user) {
     user = await User.create({ name, email, googleId, avatar: picture });
