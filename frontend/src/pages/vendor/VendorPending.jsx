@@ -38,7 +38,6 @@ const VendorPending = () => {
 
   const handleLogout = () => {
     logout();
-    window.location.href = '/';
   };
 
   return (

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Navigate, NavLink, useLocation, Outlet } from 'react-router-dom';
+import { Navigate, NavLink, useLocation, Outlet, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Package, Users, ShoppingCart, LogOut,
   Tags, Ticket, Store, Menu, X, Scissors,
@@ -30,6 +30,7 @@ const navItems = [
 const AdminLayout = () => {
   const { isAuth, user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Close sidebar whenever the route changes (mobile nav)
@@ -117,7 +118,7 @@ const AdminLayout = () => {
           <button
             onClick={() => {
               logout();
-              window.location.href = '/';
+              navigate('/');
             }}
             title="Logout"
             className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-red-400 hover:bg-white/5 transition-colors"
@@ -149,7 +150,7 @@ const AdminLayout = () => {
             <button
               onClick={() => {
                 logout();
-                window.location.href = '/';
+                navigate('/');
               }}
               className="flex items-center gap-3 px-4 py-3 mt-2 rounded-lg text-sm font-medium text-slate-400 hover:text-red-400 hover:bg-white/5 transition-colors"
             >

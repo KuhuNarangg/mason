@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Navigate, NavLink, useLocation, Outlet } from 'react-router-dom';
+import { Navigate, NavLink, useLocation, Outlet, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Package, LogOut, Scissors, TrendingUp, Menu, X, Boxes, Wallet, UserCog
 } from 'lucide-react';
@@ -19,6 +19,7 @@ const navItems = [
 const VendorLayout = () => {
   const { isAuth, user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Close sidebar whenever the route changes (mobile nav)
@@ -46,7 +47,7 @@ const VendorLayout = () => {
 
   const handleLogout = () => {
     logout();
-    window.location.href = '/';
+    navigate('/');
   };
 
   return (
