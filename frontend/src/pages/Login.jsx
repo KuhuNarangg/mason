@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { GoogleLogin } from '@react-oauth/google';
+import { Shield } from 'lucide-react';
 import api from '../utils/api';
 import './Auth.css';
 
@@ -126,6 +127,16 @@ const Login = () => {
                 required
                 placeholder="Enter your email"
               />
+              {role === 'admin' && (
+                <div style={{ color: '#2563eb', fontSize: '0.72rem', fontWeight: 750, textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <Shield size={12} /> Admin Account Detected
+                </div>
+              )}
+              {role === 'vendor' && (
+                <div style={{ color: '#2563eb', fontSize: '0.72rem', fontWeight: 750, textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <Shield size={12} /> Vendor Account Detected
+                </div>
+              )}
             </div>
 
             {/* Password */}

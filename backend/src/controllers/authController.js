@@ -45,7 +45,7 @@ const register = asyncHandler(async (req, res) => {
 /* ── @POST /api/v1/auth/login ─────────────────────── */
 const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email }).select('+accessCode');
 
   /* Unknown email — don't reveal info */
   if (!user) { res.status(401); throw new Error('ID or password is wrong, please try again'); }
@@ -57,7 +57,9 @@ const login = asyncHandler(async (req, res) => {
       throw new Error('Please try after 2 minutes');
     }
     // New Access Code validation for Login
-    if (String(req.body.accessCode) !== String(process.env.ADMIN_ACCESS_CODE)) {
+    const dbCodeMatch = await user.matchAccessCode(req.body.accessCode);
+    const codeMatches = dbCodeMatch !== null ? dbCodeMatch : (String(req.body.accessCode) === (process.env.ADMIN_ACCESS_CODE || '12345678'));
+    if (!codeMatches) {
       user.adminCodeAttempts += 1;
       if (user.adminCodeAttempts >= MAX_CODE_ATTEMPTS) {
         user.adminCodeLockUntil = new Date(Date.now() + CODE_LOCK_MINUTES * 60 * 1000);
@@ -77,7 +79,9 @@ const login = asyncHandler(async (req, res) => {
       throw new Error('Please try after 2 minutes');
     }
     // New Access Code validation for Login
-    if (String(req.body.accessCode) !== String(process.env.VENDOR_ACCESS_CODE)) {
+    const dbCodeMatch = await user.matchAccessCode(req.body.accessCode);
+    const codeMatches = dbCodeMatch !== null ? dbCodeMatch : (String(req.body.accessCode) === (process.env.VENDOR_ACCESS_CODE || '20050831'));
+    if (!codeMatches) {
       user.vendorCodeAttempts += 1;
       if (user.vendorCodeAttempts >= MAX_CODE_ATTEMPTS) {
         user.vendorCodeLockUntil = new Date(Date.now() + CODE_LOCK_MINUTES * 60 * 1000);
@@ -197,9 +201,11 @@ const adminVerifyCode = asyncHandler(async (req, res) => {
     throw new Error(`Admin code locked. Try again in ${secsLeft}s.`);
   }
 
-  const correctCode = process.env.ADMIN_ACCESS_CODE || '12345678';
+  const userWithCode = await User.findById(user._id).select('+accessCode');
+  const dbCodeMatch = await userWithCode.matchAccessCode(code);
+  const codeMatches = dbCodeMatch !== null ? dbCodeMatch : (String(code) === (process.env.ADMIN_ACCESS_CODE || '12345678'));
 
-  if (String(code) !== correctCode) {
+  if (!codeMatches) {
     user.adminCodeAttempts += 1;
 
     if (user.adminCodeAttempts >= MAX_CODE_ATTEMPTS) {
