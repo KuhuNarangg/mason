@@ -56,6 +56,10 @@ const login = asyncHandler(async (req, res) => {
       res.status(429);
       throw new Error('Please try after 2 minutes');
     }
+    if (!req.body.accessCode) {
+      res.status(401);
+      return res.json({ requiresAccessCode: true, role: user.role, message: 'An access code is required for this account.' });
+    }
     // New Access Code validation for Login
     const dbCodeMatch = await user.matchAccessCode(req.body.accessCode);
     const codeMatches = dbCodeMatch !== null ? dbCodeMatch : (String(req.body.accessCode) === (process.env.ADMIN_ACCESS_CODE || '12345678'));
@@ -71,12 +75,16 @@ const login = asyncHandler(async (req, res) => {
       }
       await user.save();
       res.status(401);
-      return res.json({ requiresAccessCode: true, role: user.role, message: 'Invalid or missing access code' });
+      return res.json({ requiresAccessCode: false, role: user.role, message: 'Invalid access code.' });
     }
   } else if (user.role === 'vendor') {
     if (user.isVendorCodeLocked()) {
       res.status(429);
       throw new Error('Please try after 2 minutes');
+    }
+    if (!req.body.accessCode) {
+      res.status(401);
+      return res.json({ requiresAccessCode: true, role: user.role, message: 'An access code is required for this account.' });
     }
     // New Access Code validation for Login
     const dbCodeMatch = await user.matchAccessCode(req.body.accessCode);
@@ -93,7 +101,7 @@ const login = asyncHandler(async (req, res) => {
       }
       await user.save();
       res.status(401);
-      return res.json({ requiresAccessCode: true, role: user.role, message: 'Invalid or missing access code' });
+      return res.json({ requiresAccessCode: false, role: user.role, message: 'Invalid access code.' });
     }
   } else {
     if (user.isLoginLocked()) {
