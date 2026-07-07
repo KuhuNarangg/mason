@@ -82,20 +82,21 @@ const row = (label, value) =>
     <td style="padding:8px 0;border-bottom:1px solid #f3f4f6;font-weight:600;font-size:0.85rem;">${value}</td>
   </tr>`;
 
-/* ── Admin Lockout Alert ───────────────────────────── */
-const sendAdminLockoutAlert = async ({ adminEmail, ipAddress, attempts, lockUntil }) => {
+/* ── Account Lockout Alert ───────────────────────────── */
+const sendAccountLockoutAlert = async ({ accountEmail, role, ipAddress, attempts, lockUntil }) => {
   await sendEmail({
     to: adminTo(),
-    subject: '🚨 Mason — Suspicious Login Attempt (Account Locked)',
+    subject: `🚨 Mason — Suspicious Login Attempt (${role} Account Locked)`,
     html: adminWrap(`
       <p style="margin:0 0 16px;font-size:1rem;color:#dc2626;font-weight:700;">⚠️ ${attempts} failed login attempts detected</p>
-      <p style="margin:0 0 18px;color:#374151;font-size:0.88rem;">Someone has attempted to log in to the admin panel with incorrect credentials <strong>${attempts} times</strong>. The account has been locked for 2 minutes.</p>
+      <p style="margin:0 0 18px;color:#374151;font-size:0.88rem;">Someone has attempted to log in to a <strong>${role}</strong> account with incorrect credentials <strong>${attempts} times</strong>. The account has been temporarily locked for security.</p>
       <table style="width:100%;border-collapse:collapse;">
-        ${row('Account', adminEmail)}
+        ${row('Account', accountEmail)}
+        ${row('Role', role)}
         ${row('IP Address', ipAddress || 'Unknown')}
         ${row('Locked Until', new Date(lockUntil).toLocaleString('en-IN'))}
       </table>
-      <p style="margin:20px 0 0;font-size:0.82rem;color:#6b7280;">If this was not you, change your admin password and access code immediately.</p>`),
+      <p style="margin:20px 0 0;font-size:0.82rem;color:#6b7280;">This is an automated security alert sent to the official Owl Stitch admin team.</p>`),
   });
 };
 
@@ -314,7 +315,7 @@ const sendVendorRejected = async ({ name, email, businessName, reason }) => {
 
 module.exports = {
   sendEmail,
-  sendAdminLockoutAlert,
+  sendAccountLockoutAlert,
   sendAdminNewOrder,
   sendAdminReturnRequest,
   sendAdminCancellationRequest,
