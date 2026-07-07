@@ -1,56 +1,66 @@
 import { useNavigate } from 'react-router-dom';
-import { Shirt, Palette, Sparkles, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import './CustomizeSection.css';
 
 const CustomizeSection = () => {
   const navigate = useNavigate();
 
   return (
-    <section id="customize" className="m-customize reveal-up" style={{ padding: 'var(--space-16) 0', background: 'var(--blush-light)' }}>
-      <div className="container">
-        <div className="text-center mb-5">
-          <span className="m-label" style={{ color: 'var(--rose-gold-dark)' }}>Custom Apparel</span>
-          <h2 className="m-section-title">Design Your <em>Vibe</em></h2>
-          <p className="m-customize__desc" style={{ maxWidth: '600px', margin: '1rem auto' }}>
-            Express yourself with our new interactive custom design flow. Whether it's a couple's collection, a Gen Z quote, or your own artwork — we bring your vision to life on premium fabrics.
+    <section className="m-customize reveal-up">
+      <div className="m-customize__inner container">
+        
+        {/* Left: Editorial copy */}
+        <div className="m-customize__copy">
+          <span className="m-label" style={{ color: 'var(--rose-gold-dark)' }}>Bespoke Atelier</span>
+          <h2 className="m-section-title">Made to <em>Order</em></h2>
+          <p className="m-customize__desc">
+            Your vision, our craft. From premium fabrics to hand-finished details — 
+            design a piece that is entirely, unapologetically yours.
           </p>
-        </div>
 
-        <div className="d-flex flex-col md:flex-row gap-4 mb-5" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem', textAlign: 'center' }}>
-          <div className="p-4" style={{ background: 'white', borderRadius: '12px', padding: '2rem' }}>
-            <div style={{ display: 'inline-flex', padding: '1rem', background: 'var(--blush)', borderRadius: '50%', color: 'var(--rose-gold-dark)', marginBottom: '1rem' }}>
-              <Shirt size={32} strokeWidth={1.5} />
+          <div className="m-customize__steps">
+            <div className="m-customize__step">
+              <span className="m-customize__step-num">01</span>
+              <div>
+                <h4 className="m-customize__step-title">Select Your Canvas</h4>
+                <p className="m-customize__step-desc">Choose from tees, hoodies, oversized fits, or couple sets.</p>
+              </div>
             </div>
-            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.25rem', marginBottom: '0.5rem' }}>1. Choose Product</h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Select from Premium T-Shirts, Hoodies, Oversized fits, or Couple Sets.</p>
+            <div className="m-customize__step">
+              <span className="m-customize__step-num">02</span>
+              <div>
+                <h4 className="m-customize__step-title">Personalise</h4>
+                <p className="m-customize__step-desc">Pick your colour, print type, and upload your artwork or text.</p>
+              </div>
+            </div>
+            <div className="m-customize__step">
+              <span className="m-customize__step-num">03</span>
+              <div>
+                <h4 className="m-customize__step-title">Delivered to You</h4>
+                <p className="m-customize__step-desc">Handcrafted with care and shipped to your doorstep.</p>
+              </div>
+            </div>
           </div>
 
-          <div className="p-4" style={{ background: 'white', borderRadius: '12px', padding: '2rem' }}>
-            <div style={{ display: 'inline-flex', padding: '1rem', background: 'var(--blush)', borderRadius: '50%', color: 'var(--rose-gold-dark)', marginBottom: '1rem' }}>
-              <Palette size={32} strokeWidth={1.5} />
-            </div>
-            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.25rem', marginBottom: '0.5rem' }}>2. Customize</h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Pick your color, print type (DTF, Embroidery), and upload your design or quote.</p>
-          </div>
-
-          <div className="p-4" style={{ background: 'white', borderRadius: '12px', padding: '2rem' }}>
-            <div style={{ display: 'inline-flex', padding: '1rem', background: 'var(--blush)', borderRadius: '50%', color: 'var(--rose-gold-dark)', marginBottom: '1rem' }}>
-              <Sparkles size={32} strokeWidth={1.5} />
-            </div>
-            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.25rem', marginBottom: '0.5rem' }}>3. Wear It</h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>We craft it with care and deliver your bespoke apparel straight to your door.</p>
-          </div>
-        </div>
-
-        <div className="text-center">
           <button 
-            className="btn btn-primary"
+            className="m-customize__cta"
             onClick={() => navigate('/customisation')}
-            style={{ padding: '1rem 2.5rem', fontSize: '1.1rem' }}
           >
-            Start Designing <ArrowRight size={18} className="ms-2" />
+            <span>Begin Your Design</span>
+            <ArrowRight size={16} strokeWidth={1.5} />
           </button>
         </div>
+
+        {/* Right: Editorial image */}
+        <div className="m-customize__visual">
+          <img 
+            src="/home3.jpg" 
+            alt="Custom crafted apparel" 
+            className="m-customize__img"
+            loading="lazy"
+          />
+        </div>
+
       </div>
     </section>
   );
