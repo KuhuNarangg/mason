@@ -124,8 +124,6 @@ html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
-  max-width: 100vw;
 }
 
 body {
@@ -135,14 +133,9 @@ body {
   color: var(--ink);
   background-color: var(--ivory);
   line-height: 1.6;
-  overflow-x: hidden;
-  max-width: 100vw;
-  width: 100%;
 }
 
 .app-container {
-  overflow-x: hidden;
-  max-width: 100vw;
   width: 100%;
   position: relative;
 }
@@ -325,6 +318,12 @@ img, video {
 .h-100 { height: 100%; }
 
 @media (max-width: 768px) {
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+    width: 100%;
+  }
+  
   :root {
     --navbar-height: 70px;
   }
