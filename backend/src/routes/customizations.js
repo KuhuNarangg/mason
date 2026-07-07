@@ -20,7 +20,9 @@ const {
   getAdminVendorPerformance,
   resolveDispute,
   getAllRequests,
-  updateRequestStatus
+  updateRequestStatus,
+  verifyGeneralPayment,
+  cancelGeneralRequest
 } = require('../controllers/customizationController');
 const { protect, adminOnly, adminOrVendor, approvedVendor } = require('../middleware/auth');
 
@@ -30,6 +32,12 @@ const { protect, adminOnly, adminOrVendor, approvedVendor } = require('../middle
 
 // Create a general bespoke design request
 router.post('/general', protect, createGeneralRequest);
+
+// Cancel a general bespoke design request
+router.put('/general/:id/cancel', protect, cancelGeneralRequest);
+
+// Verify general bespoke design payment
+router.post('/general/verify-payment', protect, verifyGeneralPayment);
 
 // List logged-in customer's general bespoke design requests
 router.get('/general/my-requests', protect, getMyGeneralRequests);

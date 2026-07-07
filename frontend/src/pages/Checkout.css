@@ -176,7 +176,7 @@
 .checkout-nav-btn {
   width: 100%;
   justify-content: center;
-  padding: 1.1rem 1rem !important;
+  padding: 0.85rem 1rem !important;
 }
 
 /* Responsive */
@@ -199,6 +199,33 @@
 
   .step-label {
     font-size: 9px;
+  }
+}
+
+@media (max-width: 576px) {
+  .checkout-btn-row {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: var(--space-2);
+  }
+  
+  .checkout-nav-btn {
+    padding: 0.75rem 1rem !important;
+    font-size: 0.8rem;
+  }
+
+  .coupon-input {
+    gap: var(--space-2);
+  }
+
+  .coupon-input .btn {
+    padding: 0.75rem 1.2rem;
+    font-size: 0.8rem;
+  }
+
+  .coupon-input .form-input {
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
   }
 }
 
@@ -320,5 +347,6 @@
   text-transform: uppercase;
   letter-spacing: 2px;
   border-radius: var(--radius-md);
+  padding: 0.85rem 1.5rem;
 }
 

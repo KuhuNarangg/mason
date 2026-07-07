@@ -17,3 +17,45 @@
 .order-card:hover {
   box-shadow: var(--shadow-sm);
 }
+
+/* Order & Custom Tab Navigation */
+.orders-tabs-nav {
+  display: flex;
+  gap: 1.5rem;
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 2rem;
+  padding-bottom: 0.5rem;
+}
+
+.orders-tab-btn {
+  background: none;
+  border: none;
+  border-bottom: 2.5px solid transparent;
+  color: #666;
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 0.5rem 1.25rem;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.orders-tab-btn.active {
+  border-bottom: 2.5px solid var(--rose-gold-dark, #C08A74);
+  color: var(--rose-gold-dark, #C08A74);
+}
+
+@media (max-width: 768px) {
+  .orders-tabs-nav {
+    gap: 0.5rem;
+  }
+  .orders-tab-btn {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.25rem;
+    letter-spacing: 0.5px;
+    flex: 1;
+    text-align: center;
+  }
+}

@@ -44,7 +44,7 @@ const customizationSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'approved', 'disapproved', 'quoted', 'in-progress', 'completed', 'rejected'],
+    enum: ['pending', 'approved', 'disapproved', 'quoted', 'in-progress', 'completed', 'rejected', 'cancelled'],
     default: 'pending'
   },
   totalPrice: {
@@ -54,8 +54,28 @@ const customizationSchema = new mongoose.Schema({
   },
   paymentStatus: {
     type: String,
-    enum: ['pending', 'paid'],
+    enum: ['pending', 'paid', 'failed'],
     default: 'pending'
+  },
+  shippingAddress: {
+    fullName: String,
+    phone: String,
+    line1: String,
+    line2: String,
+    city: String,
+    state: String,
+    pincode: String,
+  },
+  paymentMethod: {
+    type: String,
+    enum: ['razorpay', 'cod'],
+    default: 'razorpay'
+  },
+  paymentId: {
+    type: String
+  },
+  razorpayOrderId: {
+    type: String
   }
 }, { timestamps: true });
 

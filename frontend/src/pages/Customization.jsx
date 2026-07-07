@@ -13,11 +13,16 @@ import {
   Heart,
   Droplets,
   Layers,
-  Sparkles
+  Sparkles,
+  MapPin,
+  CreditCard,
+  Check
 } from 'lucide-react';
 import api from '../utils/api';
 import './Customization.css';
 import toast from 'react-hot-toast';
+import { loadRazorpayScript, openRazorpayCheckout } from '../utils/razorpay';
+import { states } from '../utils/indiaData';
 
 // Data definitions
 const products = [
@@ -99,6 +104,77 @@ const Customization = () => {
     notes: ''
   });
 
+  // Shipping & Payment State
+  const [shipping, setShipping] = useState({
+    fullName: user?.name || '',
+    phone: '',
+    line1: '',
+    line2: '',
+    city: '',
+    state: '',
+    pincode: '',
+  });
+  const [paymentMethod, setPaymentMethod] = useState('razorpay');
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [selectedAddressIndex, setSelectedAddressIndex] = useState(-1);
+
+  // Load user saved addresses
+  useEffect(() => {
+    if (user) {
+      const fetchProfile = async () => {
+        try {
+          const { data } = await api.get('/auth/me');
+          if (data.user?.addresses?.length > 0) {
+            setSavedAddresses(data.user.addresses);
+            const defaultIdx = data.user.addresses.findIndex(a => a.isDefault);
+            if (defaultIdx !== -1) {
+              setSelectedAddressIndex(defaultIdx);
+              const addr = data.user.addresses[defaultIdx];
+              setShipping({
+                fullName: addr.fullName,
+                phone: addr.phone,
+                line1: addr.line1,
+                line2: addr.line2 || '',
+                city: addr.city,
+                state: addr.state,
+                pincode: addr.pincode,
+              });
+            }
+          }
+        } catch (err) {
+          console.error('Failed to fetch user addresses:', err);
+        }
+      };
+      fetchProfile();
+    }
+  }, [user]);
+
+  const handleAddressSelect = (index) => {
+    setSelectedAddressIndex(index);
+    if (index === -1) {
+      setShipping({
+        fullName: user?.name || '',
+        phone: '',
+        line1: '',
+        line2: '',
+        city: '',
+        state: '',
+        pincode: '',
+      });
+    } else {
+      const addr = savedAddresses[index];
+      setShipping({
+        fullName: addr.fullName,
+        phone: addr.phone,
+        line1: addr.line1,
+        line2: addr.line2 || '',
+        city: addr.city,
+        state: addr.state,
+        pincode: addr.pincode,
+      });
+    }
+  };
+
   const [totalPrice, setTotalPrice] = useState(0);
 
   // Calculate Price
@@ -157,12 +233,63 @@ const Customization = () => {
         printPlacement: placements.find(p => p.id === formData.printPlacement)?.name,
         quantity: formData.quantity,
         totalPrice,
-        notes: formData.notes
+        notes: formData.notes,
+        shippingAddress: shipping,
+        paymentMethod
       };
 
       const { data } = await api.post('/customizations/general', payload);
       if (data.success) {
-        setSuccess(true);
+        if (paymentMethod === 'cod') {
+          toast.success('Custom design order placed successfully (COD)! 🛍️');
+          setSuccess(true);
+        } else if (paymentMethod === 'razorpay' && data.razorpayOrder) {
+          const scriptLoaded = await loadRazorpayScript();
+          if (!scriptLoaded) {
+            toast.error('Could not load payment gateway. Please check your connection.');
+            setLoading(false);
+            return;
+          }
+
+          const { razorpayOrder } = data;
+          openRazorpayCheckout({
+            keyId: razorpayOrder.keyId,
+            razorpayOrderId: razorpayOrder.razorpayOrderId,
+            amount: razorpayOrder.amount,
+            currency: razorpayOrder.currency,
+            orderNumber: `CUST_${data.customization._id.toString().slice(-6).toUpperCase()}`,
+            user: {
+              name: shipping.fullName,
+              email: user?.email || '',
+              phone: shipping.phone,
+            },
+            onSuccess: async (response) => {
+              try {
+                setLoading(true);
+                await api.post('/customizations/general/verify-payment', {
+                  customizationId: data.customization._id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_signature: response.razorpay_signature,
+                });
+                toast.success('Payment successful! 🎉 Custom order confirmed.');
+                setSuccess(true);
+              } catch (err) {
+                toast.error(err.response?.data?.message || 'Payment verification failed. Contact support.');
+              } finally {
+                setLoading(false);
+              }
+            },
+            onFailure: (msg) => {
+              toast.error(`Payment failed: ${msg}`);
+              setSuccess(true);
+            },
+            onDismiss: () => {
+              toast('Payment cancelled. Your customization request is saved.', { icon: 'ℹ️' });
+              setSuccess(true);
+            }
+          });
+        }
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Something went wrong');
@@ -191,7 +318,7 @@ const Customization = () => {
         <h1>Create Your Custom Design</h1>
         <p>Follow the steps to build your unique apparel.</p>
         <div className="cust-progress-bar">
-          <div className="cust-progress-fill" style={{ width: `${(step / 8) * 100}%` }} />
+          <div className="cust-progress-fill" style={{ width: `${(step / 9) * 100}%` }} />
         </div>
       </div>
 
@@ -415,6 +542,138 @@ const Customization = () => {
             </div>
           )}
 
+          {/* STEP 9: Shipping & Payment */}
+          {step === 9 && (
+            <div className="cust-step-animate">
+              <h2>9. Shipping & Payment</h2>
+              
+              {/* Saved Address Selector */}
+              {savedAddresses.length > 0 && (
+                <div className="mb-4">
+                  <label className="d-block mb-1 text-sm font-semibold" style={{ fontSize: '0.85rem', color: 'var(--ink)' }}>Select Saved Address</label>
+                  <select 
+                    className="cust-input mb-3" 
+                    value={selectedAddressIndex} 
+                    onChange={e => handleAddressSelect(Number(e.target.value))}
+                  >
+                    <option value={-1}>-- Use New Address --</option>
+                    {savedAddresses.map((addr, idx) => (
+                      <option key={idx} value={idx}>
+                        {addr.fullName} - {addr.line1}, {addr.city}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Address Form Fields */}
+              <div className="address-form-fields">
+                <div className="full-width-field">
+                  <input 
+                    type="text" 
+                    placeholder="Full Name"
+                    className="cust-input" 
+                    required 
+                    value={shipping.fullName} 
+                    onChange={e => setShipping({ ...shipping, fullName: e.target.value })} 
+                    disabled={selectedAddressIndex !== -1}
+                  />
+                </div>
+                <div>
+                  <input 
+                    type="tel" 
+                    placeholder="Phone Number"
+                    className="cust-input" 
+                    required 
+                    value={shipping.phone} 
+                    onChange={e => setShipping({ ...shipping, phone: e.target.value })} 
+                    disabled={selectedAddressIndex !== -1}
+                  />
+                </div>
+                <div>
+                  <input 
+                    type="text" 
+                    placeholder="Pincode"
+                    className="cust-input" 
+                    required 
+                    value={shipping.pincode} 
+                    onChange={e => setShipping({ ...shipping, pincode: e.target.value })} 
+                    disabled={selectedAddressIndex !== -1}
+                  />
+                </div>
+                <div className="full-width-field">
+                  <input 
+                    type="text" 
+                    placeholder="Address Line 1"
+                    className="cust-input" 
+                    required 
+                    value={shipping.line1} 
+                    onChange={e => setShipping({ ...shipping, line1: e.target.value })} 
+                    disabled={selectedAddressIndex !== -1}
+                  />
+                </div>
+                <div className="full-width-field">
+                  <input 
+                    type="text" 
+                    placeholder="Address Line 2 (Optional)"
+                    className="cust-input" 
+                    value={shipping.line2} 
+                    onChange={e => setShipping({ ...shipping, line2: e.target.value })} 
+                    disabled={selectedAddressIndex !== -1}
+                  />
+                </div>
+                <div>
+                  <input 
+                    type="text" 
+                    placeholder="City"
+                    className="cust-input" 
+                    required 
+                    value={shipping.city} 
+                    onChange={e => setShipping({ ...shipping, city: e.target.value })} 
+                    disabled={selectedAddressIndex !== -1}
+                  />
+                </div>
+                <div>
+                  <select 
+                    className="cust-input" 
+                    required 
+                    value={shipping.state} 
+                    onChange={e => setShipping({ ...shipping, state: e.target.value })}
+                    disabled={selectedAddressIndex !== -1}
+                  >
+                    <option value="">Select State</option>
+                    {states.map(s => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Payment Methods */}
+              <div className="mt-4">
+                <label className="d-block mb-2 font-semibold" style={{ fontSize: '0.85rem', color: 'var(--ink)' }}>Payment Method</label>
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                  <button 
+                    type="button"
+                    className={`cust-placement-btn flex-1 ${paymentMethod === 'razorpay' ? 'active' : ''}`}
+                    onClick={() => setPaymentMethod('razorpay')}
+                    style={{ flex: 1, padding: '0.85rem' }}
+                  >
+                    Online Payment
+                  </button>
+                  <button 
+                    type="button"
+                    className={`cust-placement-btn flex-1 ${paymentMethod === 'cod' ? 'active' : ''}`}
+                    onClick={() => setPaymentMethod('cod')}
+                    style={{ flex: 1, padding: '0.85rem' }}
+                  >
+                    Cash on Delivery
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Navigation Controls */}
           <div className="cust-nav-controls">
             {step > 1 ? (
@@ -423,7 +682,7 @@ const Customization = () => {
               </button>
             ) : <div></div>}
 
-            {step < 8 ? (
+            {step < 9 ? (
               <button 
                 className="cust-btn-primary" 
                 onClick={handleNext}
@@ -438,15 +697,23 @@ const Customization = () => {
                   (step === 7 && !formData.printPlacement)
                 }
               >
-                Next <ArrowRight size={18} />
+                {step === 8 ? 'Proceed to Shipping' : 'Next'} <ArrowRight size={18} />
               </button>
             ) : (
               <button 
-                className="cust-btn-submit" 
+                className={`cust-btn-submit ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 onClick={handleSubmit}
-                disabled={loading}
+                disabled={
+                  loading || 
+                  !shipping.fullName || 
+                  !shipping.phone || 
+                  !shipping.line1 || 
+                  !shipping.city || 
+                  !shipping.state || 
+                  !shipping.pincode
+                }
               >
-                {loading ? 'Processing...' : `Checkout (₹${totalPrice})`}
+                {loading ? 'Processing...' : `Place Custom Order (₹${totalPrice})`}
               </button>
             )}
           </div>
@@ -454,11 +721,19 @@ const Customization = () => {
 
         {/* Right: Live Preview Widget */}
         <div className="cust-preview-section">
-          <div className="cust-preview-card" style={{ backgroundColor: colors.find(c => c.name === formData.color)?.hex || '#f1f5f9' }}>
+          <div className="cust-preview-card" style={{ backgroundColor: colors.find(c => c.name === formData.color)?.hex || '#f5f0eb' }}>
             {formData.productType ? (
               <div className="preview-product-shape">
-                {/* Fallback silhouette based on product type */}
-                {formData.productType.includes('hoodie') ? <Layers size={120} color="rgba(255,255,255,0.8)" /> : <Shirt size={120} color="rgba(255,255,255,0.8)" />}
+                {/* Large shirt/hoodie silhouette filling the preview */}
+                <svg className={`shirt-silhouette ${['Midnight Black', 'Navy Blue'].includes(formData.color) ? 'dark-mode' : 'light-mode'}`} viewBox="0 0 300 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  {formData.productType.includes('hoodie') ? (
+                    /* Hoodie silhouette */
+                    <path d="M150 30 C140 30 130 25 120 22 C110 19 95 18 85 22 L40 55 L15 120 L50 140 L60 105 L60 330 L240 330 L240 105 L250 140 L285 120 L260 55 L215 22 C205 18 190 19 180 22 C170 25 160 30 150 30 Z M130 30 C130 45 140 55 150 55 C160 55 170 45 170 30" />
+                  ) : (
+                    /* T-shirt silhouette */
+                    <path d="M110 25 L60 45 L15 100 L55 130 L80 80 L80 335 L220 335 L220 80 L245 130 L285 100 L240 45 L190 25 C185 40 170 55 150 55 C130 55 115 40 110 25 Z" />
+                  )}
+                </svg>
                 
                 {/* Overlay Graphic */}
                 {formData.customDesignUrl && (

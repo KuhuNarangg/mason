@@ -90,14 +90,14 @@
 .policy-form textarea {
   width: 100%;
   padding: 1rem 1.25rem;
-  border: 1px solid var(--champagne);
-  border-radius: 0;
+  border: 1.5px solid var(--ink-muted, #8a7e76);
+  border-radius: 2px;
   font-family: var(--font-body);
   font-size: 0.9rem;
   color: var(--ink);
-  background: transparent;
+  background: #fff;
   outline: none;
-  transition: border-color 0.4s var(--ease-expo);
+  transition: border-color 0.4s var(--ease-expo), box-shadow 0.4s var(--ease-expo);
 }
 
 .policy-form input::placeholder,

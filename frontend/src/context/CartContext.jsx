@@ -21,17 +21,32 @@ export const CartProvider = ({ children }) => {
   useEffect(() => { fetchCart(); }, [isAuth]);
 
   const addToCart = async (productId, variantSize, variantColor, quantity = 1) => {
+    // Open sidebar and show success toast immediately for instant feedback
+    setCartOpen(true);
+    toast.success('Added to cart! 🛍️');
     try {
       const { data } = await api.post('/cart', { productId, variantSize, variantColor, quantity });
       setCart(data.cart);
-      setCartOpen(true);
-      toast.success('Added to cart! 🛍️');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to add to cart');
+      fetchCart(); // Re-sync with server
     }
   };
 
   const updateItem = async (itemId, quantity, variantSize) => {
+    const originalCart = { ...cart };
+    
+    // Optimistic update
+    setCart(prev => {
+      const updatedItems = prev.items.map(item => {
+        if (item._id === itemId) {
+          return { ...item, quantity, ...(variantSize && { variantSize }) };
+        }
+        return item;
+      });
+      return { ...prev, items: updatedItems };
+    });
+
     try {
       const payload = { quantity };
       if (variantSize) payload.variantSize = variantSize;
@@ -39,16 +54,30 @@ export const CartProvider = ({ children }) => {
       const { data } = await api.put(`/cart/${itemId}`, payload);
       setCart(data.cart);
     } catch (err) { 
+      // Rollback
+      setCart(originalCart);
       toast.error(err.response?.data?.message || 'Update failed'); 
     }
   };
 
   const removeItem = async (itemId) => {
+    const originalCart = { ...cart };
+    toast.success('Item removed');
+    
+    // Optimistic update
+    setCart(prev => {
+      const updatedItems = prev.items.filter(item => item._id !== itemId);
+      return { ...prev, items: updatedItems };
+    });
+
     try {
       const { data } = await api.delete(`/cart/${itemId}`);
       setCart(data.cart);
-      toast.success('Item removed');
-    } catch { toast.error('Remove failed'); }
+    } catch { 
+      // Rollback
+      setCart(originalCart);
+      toast.error('Remove failed'); 
+    }
   };
 
   const clearCart = async () => {

@@ -19,6 +19,16 @@ export const WishlistProvider = ({ children }) => {
 
   const toggle = async (productId) => {
     if (!isAuth) { toast.error('Please login to use wishlist'); return; }
+    
+    const isCurrentlyAdded = wishlist.includes(productId);
+    const originalWishlist = [...wishlist];
+    
+    // Optimistic update
+    setWishlist(prev => 
+      isCurrentlyAdded ? prev.filter(id => id !== productId) : [...prev, productId]
+    );
+    toast.success(isCurrentlyAdded ? 'Removed from wishlist' : '❤️ Added to wishlist');
+
     try {
       const { data } = await api.put(`/products/${productId}/wishlist`);
       setWishlist(data.wishlist);
@@ -26,10 +36,11 @@ export const WishlistProvider = ({ children }) => {
       // Update user in localStorage with new wishlist
       const updatedUser = { ...user, wishlist: data.wishlist };
       localStorage.setItem('user', JSON.stringify(updatedUser));
-      
-      const isAdded = data.wishlist.includes(productId);
-      toast.success(isAdded ? '❤️ Added to wishlist' : 'Removed from wishlist');
-    } catch { toast.error('Failed to update wishlist'); }
+    } catch {
+      // Rollback
+      setWishlist(originalWishlist);
+      toast.error('Failed to update wishlist');
+    }
   };
 
   const isWishlisted = (id) => wishlist.includes(id);

@@ -82,10 +82,14 @@ const row = (label, value) =>
     <td style="padding:8px 0;border-bottom:1px solid #f3f4f6;font-weight:600;font-size:0.85rem;">${value}</td>
   </tr>`;
 
-/* ── Account Lockout Alert ───────────────────────────── */
 const sendAccountLockoutAlert = async ({ accountEmail, role, ipAddress, attempts, lockUntil }) => {
+  let recipient = adminTo();
+  if (role === 'admin' || role === 'vendor') {
+    recipient = `${recipient}, customercare@owlstitch.com`;
+  }
+
   await sendEmail({
-    to: adminTo(),
+    to: recipient,
     subject: `🚨 Mason — Suspicious Login Attempt (${role} Account Locked)`,
     html: adminWrap(`
       <p style="margin:0 0 16px;font-size:1rem;color:#dc2626;font-weight:700;">⚠️ ${attempts} failed login attempts detected</p>

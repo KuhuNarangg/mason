@@ -8,7 +8,7 @@ import { generateInvoicePDF } from '../utils/generateInvoice';
 import './Profile.css';
 
 const Profile = () => {
-  const { user, logout } = useAuth();
+  const { user, token, logout, setAuthUser } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -94,8 +94,12 @@ const Profile = () => {
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     try {
-      await api.put('/auth/profile', profileData);
-      toast.success('Profile updated! (Refresh to see changes globally)');
+      const { data } = await api.put('/auth/profile', profileData);
+      // Update the user in AuthContext + localStorage so changes persist on refresh
+      const updatedUser = { ...user, ...data.user };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      setAuthUser(token, updatedUser);
+      toast.success('Profile updated successfully!');
     } catch (err) {
       toast.error('Failed to update profile');
     }

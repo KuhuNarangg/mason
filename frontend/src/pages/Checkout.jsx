@@ -481,7 +481,7 @@ const Checkout = () => {
                       onChange={(e) => setCoupon(e.target.value.toUpperCase())}
                       className="form-input flex-1"
                     />
-                    <button onClick={applyCoupon} className="btn btn-outline" style={{ padding: '0 1.5rem' }}>
+                    <button onClick={applyCoupon} className="btn btn-outline">
                       Apply
                     </button>
                   </div>
@@ -536,14 +536,14 @@ const Checkout = () => {
                   By placing this order, you agree to our <a href="/returns" target="_blank" style={{ color: 'var(--primary)', textDecoration: 'underline' }}>Return & Refund Policy</a>.
                 </div>
 
-                <div className="d-flex gap-3 mt-5">
-                  <button onClick={() => setStep(2)} className="btn btn-outline flex-1">
+                <div className="checkout-btn-row mt-5">
+                  <button onClick={() => setStep(2)} className="btn btn-outline checkout-nav-btn">
                     Back to Payment
                   </button>
                   <button
                     onClick={createOrder}
                     disabled={loading}
-                    className="btn btn-primary flex-1"
+                    className="btn btn-primary checkout-nav-btn"
                   >
                     {loading ? 'Processing...' : 'Complete Purchase'} <ArrowRight size={18} />
                   </button>
@@ -598,7 +598,7 @@ const Checkout = () => {
             </div>
 
             <div className="mt-4 p-3 bg-light rounded text-center" style={{ fontSize: '0.75rem', color: '#888', background: '#fcfaf9' }}>
-              🛡️ Secure 256-bit SSL encrypted checkout
+              🛡️ Secure Checkout
             </div>
           </div>
         </div>

@@ -23,10 +23,12 @@ const createGeneralRequest = asyncHandler(async (req, res) => {
     printPlacement,
     quantity,
     totalPrice,
-    notes
+    notes,
+    shippingAddress,
+    paymentMethod
   } = req.body;
 
-  if (!productType || !material || !color || !printType || !totalPrice) {
+  if (!productType || !material || !color || !printType || !totalPrice || !shippingAddress || !paymentMethod) {
     res.status(400);
     throw new Error('Required fields missing');
   }
@@ -44,7 +46,39 @@ const createGeneralRequest = asyncHandler(async (req, res) => {
     quantity: quantity || 1,
     totalPrice,
     notes: notes || '',
+    shippingAddress,
+    paymentMethod,
+    status: paymentMethod === 'cod' ? 'approved' : 'pending',
   });
+
+  // Razorpay order creation for online payment
+  let razorpayOrderData = null;
+  if (paymentMethod === 'razorpay') {
+    const razorpayInstance = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
+    });
+
+    const rzpOrder = await razorpayInstance.orders.create({
+      amount: Math.round(totalPrice * 100), // in paise
+      currency: 'INR',
+      receipt: `CUST_${customization._id.toString().slice(-6).toUpperCase()}`,
+      notes: {
+        customizationId: customization._id.toString(),
+      },
+    });
+
+    customization.razorpayOrderId = rzpOrder.id;
+    await customization.save();
+
+    razorpayOrderData = {
+      razorpayOrderId: rzpOrder.id,
+      amount: rzpOrder.amount,
+      currency: rzpOrder.currency,
+      keyId: process.env.RAZORPAY_KEY_ID,
+      customizationId: customization._id,
+    };
+  }
 
   // Notify all admins
   const admins = await User.find({ role: 'admin' }).select('_id');
@@ -56,7 +90,12 @@ const createGeneralRequest = asyncHandler(async (req, res) => {
     type: 'custom_order'
   })));
 
-  res.status(201).json({ success: true, message: 'Your custom design order was submitted successfully', customization });
+  res.status(201).json({
+    success: true,
+    message: 'Your custom design order was submitted successfully',
+    customization,
+    razorpayOrder: razorpayOrderData
+  });
 });
 
 // @desc    Get logged-in customer's general bespoke design requests
@@ -773,6 +812,80 @@ const updateRequestStatus = asyncHandler(async (req, res) => {
   res.json({ success: true, customization: populated });
 });
 
+// @desc    Verify Razorpay payment for a general bespoke request
+// @route   POST /api/v1/customizations/general/verify-payment
+// @access  Private (Customer)
+const verifyGeneralPayment = asyncHandler(async (req, res) => {
+  const { customizationId, razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
+
+  if (!customizationId || !razorpay_payment_id || !razorpay_order_id || !razorpay_signature) {
+    res.status(400);
+    throw new Error('Missing required payment fields');
+  }
+
+  // Signature check
+  const generated = crypto
+    .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || 'dummy_secret')
+    .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+    .digest('hex');
+
+  if (generated !== razorpay_signature) {
+    res.status(400);
+    throw new Error('Payment signature verification failed');
+  }
+
+  const customization = await Customization.findById(customizationId);
+  if (!customization) {
+    res.status(404);
+    throw new Error('Customization request not found');
+  }
+
+  customization.paymentStatus = 'paid';
+  customization.paymentId = razorpay_payment_id;
+  customization.status = 'approved'; // Set to approved since payment received
+  await customization.save();
+
+  res.json({ success: true, message: 'Payment verified successfully', customization });
+});
+
+// @desc    Cancel a general bespoke customization request
+// @route   PUT /api/v1/customizations/general/:id/cancel
+// @access  Private (Customer)
+const cancelGeneralRequest = asyncHandler(async (req, res) => {
+  const customization = await Customization.findById(req.params.id);
+  if (!customization) {
+    res.status(404);
+    throw new Error('Customization request not found');
+  }
+
+  // Check ownership
+  if (customization.user.toString() !== req.user._id.toString()) {
+    res.status(403);
+    throw new Error('Not authorised');
+  }
+
+  // Can only cancel if status is 'pending'
+  if (customization.status !== 'pending') {
+    res.status(400);
+    throw new Error('This request cannot be cancelled as it has already been processed');
+  }
+
+  customization.status = 'cancelled';
+  await customization.save();
+
+  // Notify admins
+  const admins = await User.find({ role: 'admin' }).select('_id');
+  await Promise.all(admins.map(admin => createNotification({
+    user: admin._id,
+    title: 'Custom Design Order Cancelled ❌',
+    message: `${req.user.name} cancelled their custom order (ID: ${customization._id.toString().slice(-6).toUpperCase()}).`,
+    link: '/admin/customizations',
+    type: 'custom_order'
+  })));
+
+  res.json({ success: true, message: 'Custom order cancelled successfully', customization });
+});
+
 module.exports = {
   createGeneralRequest,
   getMyGeneralRequests,
@@ -793,5 +906,7 @@ module.exports = {
   getAdminVendorPerformance,
   resolveDispute,
   getAllRequests,
-  updateRequestStatus
+  updateRequestStatus,
+  verifyGeneralPayment,
+  cancelGeneralRequest
 };

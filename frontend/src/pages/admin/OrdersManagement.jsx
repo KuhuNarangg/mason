@@ -194,7 +194,9 @@ const OrdersManagement = () => {
   const location = useLocation();
   const initialFilter = new URLSearchParams(location.search).get('status') || '';
 
+  const [activeTab, setActiveTab] = useState('regular'); // 'regular' or 'custom'
   const [orders, setOrders]       = useState([]);
+  const [customRequests, setCustomRequests] = useState([]);
   const [loading, setLoading]     = useState(true);
   const [filter, setFilter]       = useState(initialFilter);
   const [search, setSearch]       = useState('');
@@ -207,7 +209,10 @@ const OrdersManagement = () => {
   const [filterMonth, setFilterMonth] = useState('');
   const [filterDate, setFilterDate] = useState('');
 
-  useEffect(() => { fetchOrders(); }, [filter]);
+  useEffect(() => { 
+    fetchOrders(); 
+    fetchCustomRequests();
+  }, [filter]);
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -218,6 +223,17 @@ const OrdersManagement = () => {
       toast.error('Failed to fetch orders');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCustomRequests = async () => {
+    try {
+      const { data } = await api.get('/customizations');
+      if (data.success) {
+        setCustomRequests(data.customizations || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch custom requests:', err);
     }
   };
 
@@ -404,6 +420,46 @@ const OrdersManagement = () => {
         </div>
       </div>
 
+      {/* Tab Selection */}
+      <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #e2e8f0', marginBottom: '1.5rem', paddingBottom: '0.25rem' }}>
+        <button 
+          onClick={() => setActiveTab('regular')}
+          style={{
+            background: 'none',
+            border: 'none',
+            borderBottom: activeTab === 'regular' ? '3px solid #C08A74' : '3px solid transparent',
+            color: activeTab === 'regular' ? '#C08A74' : '#64748b',
+            fontWeight: 700,
+            fontSize: '0.9rem',
+            padding: '0.5rem 1rem',
+            cursor: 'pointer',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+            transition: 'all 0.2s'
+          }}
+        >
+          Regular Orders ({displayed.length})
+        </button>
+        <button 
+          onClick={() => setActiveTab('custom')}
+          style={{
+            background: 'none',
+            border: 'none',
+            borderBottom: activeTab === 'custom' ? '3px solid #C08A74' : '3px solid transparent',
+            color: activeTab === 'custom' ? '#C08A74' : '#64748b',
+            fontWeight: 700,
+            fontSize: '0.9rem',
+            padding: '0.5rem 1rem',
+            cursor: 'pointer',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+            transition: 'all 0.2s'
+          }}
+        >
+          Custom Design Orders ({customRequests.length})
+        </button>
+      </div>
+
       {/* Filter bar */}
       <div className="filter-bar">
         <div className="search-input-wrap">
@@ -411,34 +467,37 @@ const OrdersManagement = () => {
           <input
             type="text"
             className="search-input"
-            placeholder="Search by order ID or customer…"
+            placeholder={activeTab === 'regular' ? "Search by order ID or customer…" : "Search by product, customer email or name…"}
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
         </div>
-        <div className="filter-tabs">
-          {FILTER_TABS.map(tab => (
-            <button
-              key={tab.value}
-              className={`filter-tab${filter === tab.value ? ' active' : ''}`}
-              onClick={() => setFilter(tab.value)}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+        {activeTab === 'regular' && (
+          <div className="filter-tabs">
+            {FILTER_TABS.map(tab => (
+              <button
+                key={tab.value}
+                className={`filter-tab${filter === tab.value ? ' active' : ''}`}
+                onClick={() => setFilter(tab.value)}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Table */}
-      {loading ? (
-        <div className="admin-loading">
-          <div style={{ width:20, height:20, border:'2px solid #e2e8f0', borderTopColor:'#C08A74', borderRadius:'50%', animation:'spin 0.8s linear infinite' }} />
-          Loading orders…
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        </div>
-      ) : (
-        <div className="table-wrap">
-          <table className="admin-table">
+      {activeTab === 'regular' ? (
+        loading ? (
+          <div className="admin-loading">
+            <div style={{ width:20, height:20, border:'2px solid #e2e8f0', borderTopColor:'#C08A74', borderRadius:'50%', animation:'spin 0.8s linear infinite' }} />
+            Loading orders…
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          </div>
+        ) : (
+          <div className="table-wrap">
+            <table className="admin-table">
             <thead>
               <tr>
                 <th style={{ width: 60, paddingLeft: '1.25rem' }}>S.No</th>
@@ -850,6 +909,149 @@ const OrdersManagement = () => {
                       </tr>
                     ),
                   ].filter(Boolean);
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      )) : (
+        /* Custom Design Orders View */
+        <div className="table-wrap">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th style={{ paddingLeft: '1.25rem' }}>Customer</th>
+                <th>Product & Theme</th>
+                <th>Specs</th>
+                <th>Design / Artwork</th>
+                <th>Price (₹)</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {customRequests.filter(req => {
+                if (!search) return true;
+                const s = search.toLowerCase();
+                return (
+                  req.user?.name?.toLowerCase().includes(s) ||
+                  req.user?.email?.toLowerCase().includes(s) ||
+                  req.productType?.toLowerCase().includes(s) ||
+                  req.color?.toLowerCase().includes(s) ||
+                  req._id?.toLowerCase().includes(s)
+                );
+              }).length === 0 ? (
+                <tr>
+                  <td colSpan="7" className="no-data" style={{ textAlign: 'center', padding: '3rem 0', color: '#64748b' }}>
+                    No custom design orders found
+                  </td>
+                </tr>
+              ) : (
+                customRequests.filter(req => {
+                  if (!search) return true;
+                  const s = search.toLowerCase();
+                  return (
+                    req.user?.name?.toLowerCase().includes(s) ||
+                    req.user?.email?.toLowerCase().includes(s) ||
+                    req.productType?.toLowerCase().includes(s) ||
+                    req.color?.toLowerCase().includes(s) ||
+                    req._id?.toLowerCase().includes(s)
+                  );
+                }).map(req => {
+                  let statusColor = '#f59e0b';
+                  if (req.status === 'approved' || req.status === 'completed') statusColor = '#10b981';
+                  if (req.status === 'disapproved' || req.status === 'rejected' || req.status === 'cancelled') statusColor = '#ef4444';
+                  if (req.status === 'quoted') statusColor = '#3b82f6';
+                  if (req.status === 'in-progress') statusColor = '#8b5cf6';
+
+                  return (
+                    <tr key={req._id}>
+                      <td style={{ paddingLeft: '1.25rem' }}>
+                        <strong>{req.user?.name || 'Guest User'}</strong><br/>
+                        <small style={{ color: '#64748b' }}>{req.user?.email}</small><br/>
+                        <small style={{ color: '#64748b' }}>{req.user?.phone || 'No phone'}</small>
+                      </td>
+                      <td>
+                        <strong>{req.productType}</strong> (x{req.quantity})<br/>
+                        <span style={{ color: '#8a7e76', fontSize: '0.8rem', fontWeight: 600 }}>{req.designType}</span>
+                      </td>
+                      <td>
+                        <small><strong>Material:</strong> {req.material}</small><br/>
+                        <small><strong>Color:</strong> {req.color}</small><br/>
+                        <small><strong>Print:</strong> {req.printType}</small><br/>
+                        <small><strong>Placement:</strong> {req.printPlacement}</small>
+                      </td>
+                      <td>
+                        {req.quoteText ? (
+                          <div style={{ fontStyle: 'italic', fontSize: '0.825rem', color: '#475569', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={req.quoteText}>
+                            "{req.quoteText}"
+                          </div>
+                        ) : req.customDesignUrl ? (
+                          <a href={req.customDesignUrl} target="_blank" rel="noreferrer">
+                            <img src={req.customDesignUrl} alt="Uploaded Artwork" style={{ maxWidth: '60px', borderRadius: '6px', border: '1px solid #c4b5a8', padding: '2px', background: '#fff' }} />
+                          </a>
+                        ) : (
+                          <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>None</span>
+                        )}
+                      </td>
+                      <td>
+                        <strong style={{ fontSize: '0.95rem' }}>₹{req.totalPrice}</strong><br/>
+                        <span style={{ 
+                          fontSize: '0.75rem', 
+                          fontWeight: 700, 
+                          color: req.paymentStatus === 'paid' ? '#10b981' : '#f59e0b',
+                          background: req.paymentStatus === 'paid' ? '#d1fae5' : '#fef3c7',
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                          display: 'inline-block',
+                          marginTop: '4px'
+                        }}>
+                          {req.paymentStatus?.toUpperCase()}
+                        </span>
+                      </td>
+                      <td>
+                        <span style={{ 
+                          fontSize: '0.75rem', 
+                          fontWeight: 700, 
+                          color: statusColor,
+                          background: `${statusColor}15`,
+                          padding: '4px 8px',
+                          borderRadius: '6px',
+                          display: 'inline-block'
+                        }}>
+                          {req.status?.toUpperCase()}
+                        </span>
+                      </td>
+                      <td>
+                        <select
+                          value={req.status}
+                          onChange={async (e) => {
+                            const newStatus = e.target.value;
+                            try {
+                              const { data } = await api.put(`/customizations/${req._id}/status`, { status: newStatus });
+                              if (data.success) {
+                                toast.success(`Order status updated to ${newStatus}`);
+                                fetchCustomRequests();
+                              }
+                            } catch (err) {
+                              toast.error(err.response?.data?.message || 'Failed to update status');
+                            }
+                          }}
+                          className="form-select"
+                          style={{ fontSize: '0.8rem', padding: '0.35rem 0.5rem', height: 'auto', width: 'auto', borderRadius: '8px' }}
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="approved">Approved</option>
+                          <option value="disapproved">Disapproved</option>
+                          <option value="quoted">Quoted</option>
+                          <option value="in-progress">In Progress</option>
+                          <option value="completed">Completed</option>
+                          <option value="rejected">Rejected</option>
+                          <option value="cancelled">Cancelled</option>
+                        </select>
+                      </td>
+                    </tr>
+                  );
                 })
               )}
             </tbody>

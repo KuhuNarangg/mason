@@ -13,7 +13,7 @@ const generateToken = (id) =>
 
 const MAX_LOGIN_ATTEMPTS   = 4;
 const LOGIN_LOCK_MINUTES   = 15;
-const MAX_CODE_ATTEMPTS    = 4;
+const MAX_CODE_ATTEMPTS    = 5;
 const CODE_LOCK_MINUTES    = 2;
 
 /* ── helpers ──────────────────────────────────────── */

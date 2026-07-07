@@ -75,6 +75,20 @@ const Orders = () => {
     }
   };
 
+  const handleCancelCustomRequest = async (requestId) => {
+    if (window.confirm('Are you sure you want to cancel this custom order?')) {
+      try {
+        const { data } = await api.put(`/customizations/general/${requestId}/cancel`);
+        if (data.success) {
+          toast.success('Custom order cancelled successfully');
+          fetchOrders();
+        }
+      } catch (err) {
+        toast.error(err.response?.data?.message || 'Failed to cancel custom order');
+      }
+    }
+  };
+
   const getStatusInfo = (status) => {
     const info = {
       pending: { color: '#f59e0b', icon: <Clock size={16} />, label: 'Pending' },
@@ -326,40 +340,16 @@ const Orders = () => {
         </div>
 
         {/* Tab Selection */}
-        <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #e0e0e0', marginBottom: '2rem', paddingBottom: '0.5rem' }}>
+        <div className="orders-tabs-nav">
           <button 
             onClick={() => setActiveTab('regular')}
-            style={{
-              background: 'none',
-              border: 'none',
-              borderBottom: activeTab === 'regular' ? '2.5px solid var(--rose-gold-dark, #C08A74)' : '2.5px solid transparent',
-              color: activeTab === 'regular' ? 'var(--rose-gold-dark, #C08A74)' : '#666',
-              fontWeight: 700,
-              fontSize: '0.95rem',
-              padding: '0.5rem 1.25rem',
-              cursor: 'pointer',
-              textTransform: 'uppercase',
-              letterSpacing: '1px',
-              transition: 'all 0.2s'
-            }}
+            className={`orders-tab-btn ${activeTab === 'regular' ? 'active' : ''}`}
           >
             Regular Orders ({orders.length})
           </button>
           <button 
             onClick={() => setActiveTab('custom')}
-            style={{
-              background: 'none',
-              border: 'none',
-              borderBottom: activeTab === 'custom' ? '2.5px solid var(--rose-gold-dark, #C08A74)' : '2.5px solid transparent',
-              color: activeTab === 'custom' ? 'var(--rose-gold-dark, #C08A74)' : '#666',
-              fontWeight: 700,
-              fontSize: '0.95rem',
-              padding: '0.5rem 1.25rem',
-              cursor: 'pointer',
-              textTransform: 'uppercase',
-              letterSpacing: '1px',
-              transition: 'all 0.2s'
-            }}
+            className={`orders-tab-btn ${activeTab === 'custom' ? 'active' : ''}`}
           >
             Custom Designs ({customRequests.length})
           </button>
@@ -519,7 +509,7 @@ const Orders = () => {
                             Phone: {order.shippingAddress.phone}
                           </div>
                         </div>
-                        <div className="summary-card mt-3">
+                        <div className="summary-card">
                           <div className="summary-title"><DollarSign size={14}/> Price Details</div>
                           <div className="price-table">
                             <div className="price-row"><span>Subtotal</span><span>{formatPrice(order.subtotal)}</span></div>
@@ -536,7 +526,7 @@ const Orders = () => {
 
                         {/* Order Notes */}
                         {order.customerNotes && (
-                          <div className="summary-card mt-3" style={{ background: '#fdf8f6', border: '1px solid #fbd5c8' }}>
+                          <div className="summary-card" style={{ background: '#fdf8f6', border: '1px solid #fbd5c8', gridColumn: '1 / -1' }}>
                             <div className="summary-title" style={{ color: '#92400e' }}>Order Notes</div>
                             <div className="summary-text" style={{ color: '#92400e', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
                               {order.customerNotes}
@@ -547,11 +537,11 @@ const Orders = () => {
                         {/* Refund Status Banner */}
                         {order.paymentStatus === 'refunded' && (
                           <div style={{
-                            marginTop: '1rem',
                             padding: '1rem 1.25rem',
                             background: '#f0fdf4',
                             border: '1px solid #bbf7d0',
                             borderRadius: '10px',
+                            gridColumn: '1 / -1',
                           }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                               <span style={{ fontSize: '1rem' }}>💚</span>
@@ -648,72 +638,131 @@ const Orders = () => {
                 } else if (req.status === 'completed') {
                   statusLabel = 'Completed';
                   statusColor = '#10b981';
+                } else if (req.status === 'cancelled') {
+                  statusLabel = 'Cancelled';
+                  statusColor = '#6b7280'; // grey
+                }
+
+                const isExpanded = expandedOrderId === req._id;
+                
+                let statusIcon = <Clock size={16} />;
+                if (req.status === 'approved' || req.status === 'completed') {
+                  statusIcon = <CheckCircle2 size={16} />;
+                } else if (req.status === 'disapproved' || req.status === 'rejected' || req.status === 'cancelled') {
+                  statusIcon = <X size={16} />;
                 }
 
                 return (
-                  <div key={req._id} className="order-card-v2 mb-4 p-4" style={{ border: '1px solid #eee', background: 'white' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f0f0f0', paddingBottom: '1rem', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '1rem' }}>
-                      <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          <span style={{ fontSize: '1.25rem' }}>✨</span>
-                          <h4 className="m-0 font-bold" style={{ fontFamily: 'var(--font-heading, serif)', fontSize: '1.15rem' }}>Custom Design Order</h4>
+                  <div key={req._id} className={`order-card-v2 mb-4 ${isExpanded ? 'expanded' : ''}`}>
+                    <div 
+                      className="order-card-header p-4 d-flex justify-between align-center"
+                      onClick={() => setExpandedOrderId(isExpanded ? null : req._id)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <div className="header-grid">
+                        <div className="header-info-item">
+                          <span className="tiny-label">Custom Order ID</span>
+                          <h4 className="m-0 font-bold">CUST_{req._id.toString().slice(-6).toUpperCase()}</h4>
                         </div>
-                        <span className="tiny-label" style={{ display: 'block', marginTop: '0.25rem' }}>
-                          Submitted on {new Date(req.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
-                        </span>
+                        <div className="header-info-item">
+                          <span className="tiny-label">Placed On</span>
+                          <div className="font-medium">{new Date(req.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+                        </div>
+                        <div className="header-info-item">
+                          <span className="tiny-label">Total Amount</span>
+                          <div className="font-bold text-primary">₹{req.totalPrice}</div>
+                        </div>
+                        <div className="header-info-item">
+                          <span className="tiny-label">Status</span>
+                          <div className="status-pill-v2" style={{ '--status-color': statusColor }}>
+                            {statusIcon}
+                            <span>{statusLabel}</span>
+                          </div>
+                        </div>
                       </div>
                       
-                      <div className="status-pill-v2" style={{ '--status-color': statusColor }}>
-                        <span>{statusLabel.toUpperCase()}</span>
+                      <div className="header-actions d-flex align-center gap-3">
+                        <span className="items-count text-muted font-medium">
+                          {req.quantity} custom {req.quantity === 1 ? 'item' : 'items'}
+                        </span>
+                        <button className="btn-toggle">
+                          <ChevronDown size={20} />
+                        </button>
                       </div>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
-                      <div>
-                        <h5 className="section-title mb-2" style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px', color: '#888' }}>Product Details</h5>
-                        <div style={{ background: '#faf9f7', padding: '1rem', borderRadius: '8px', minHeight: '100px' }}>
-                          <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem' }}><strong>Product:</strong> {req.productType} (x{req.quantity})</p>
-                          <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem' }}><strong>Theme:</strong> {req.designType}</p>
-                          <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem' }}><strong>Material:</strong> {req.material}</p>
-                          <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem' }}><strong>Color:</strong> {req.color}</p>
-                        </div>
-                      </div>
+                    <div className="order-card-body">
+                      <div className="p-4" style={{ borderTop: '1px solid #f0f0f0' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
+                          <div>
+                            <h5 className="section-title mb-2" style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px', color: '#888' }}>Product Details</h5>
+                            <div style={{ background: '#faf9f7', padding: '1rem', borderRadius: '8px', minHeight: '100px' }}>
+                              <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem' }}><strong>Product:</strong> {req.productType} (x{req.quantity})</p>
+                              <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem' }}><strong>Theme:</strong> {req.designType}</p>
+                              <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem' }}><strong>Material:</strong> {req.material}</p>
+                              <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem' }}><strong>Color:</strong> {req.color}</p>
+                            </div>
+                          </div>
 
-                      <div>
-                        <h5 className="section-title mb-2" style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px', color: '#888' }}>Artwork & Printing</h5>
-                        <div style={{ background: '#faf9f7', padding: '1rem', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '0.5rem', minHeight: '100px', fontSize: '0.9rem' }}>
-                          <div><strong>Type:</strong> {req.printType}</div>
-                          <div><strong>Placement:</strong> {req.printPlacement}</div>
-                          {req.quoteText && (
-                            <div style={{ marginTop: '0.5rem', fontStyle: 'italic', color: '#555' }}>
-                              "{req.quoteText}"
+                          <div>
+                            <h5 className="section-title mb-2" style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px', color: '#888' }}>Artwork & Printing</h5>
+                            <div style={{ background: '#faf9f7', padding: '1rem', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '0.5rem', minHeight: '100px', fontSize: '0.9rem' }}>
+                              <div><strong>Type:</strong> {req.printType}</div>
+                              <div><strong>Placement:</strong> {req.printPlacement}</div>
+                              {req.quoteText && (
+                                <div style={{ marginTop: '0.5rem', fontStyle: 'italic', color: '#555' }}>
+                                  "{req.quoteText}"
+                                </div>
+                              )}
+                              {req.customDesignUrl && (
+                                <div style={{ marginTop: '0.5rem' }}>
+                                  <a href={req.customDesignUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--ink)' }}>
+                                    <img src={req.customDesignUrl} alt="Uploaded Artwork" style={{ maxWidth: '80px', borderRadius: '4px', border: '1px solid #ccc' }} />
+                                  </a>
+                                </div>
+                              )}
                             </div>
-                          )}
-                          {req.customDesignUrl && (
-                            <div style={{ marginTop: '0.5rem' }}>
-                              <a href={req.customDesignUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--ink)' }}>
-                                <img src={req.customDesignUrl} alt="Uploaded Artwork" style={{ maxWidth: '80px', borderRadius: '4px', border: '1px solid #ccc' }} />
-                              </a>
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                          </div>
 
-                      <div>
-                        <h5 className="section-title mb-2" style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px', color: '#888' }}>Pricing & Notes</h5>
-                        <div style={{ background: '#faf9f7', padding: '1rem', borderRadius: '8px', display: 'flex', flexDirection: 'column', minHeight: '100px', fontSize: '0.9rem' }}>
-                          <p style={{ margin: '0 0 0.5rem 0', fontSize: '1.1rem', fontWeight: 'bold' }}>
-                            Total: ₹{req.totalPrice}
-                          </p>
-                          <p style={{ margin: '0 0 0.5rem 0' }}>
-                            <strong>Payment Status:</strong> <span style={{ color: req.paymentStatus === 'paid' ? 'green' : '#f59e0b', fontWeight: 600 }}>{req.paymentStatus.toUpperCase()}</span>
-                          </p>
-                          {req.notes && (
-                            <div style={{ fontSize: '0.85rem', color: '#555', marginTop: '0.5rem', background: '#eef2ff', padding: '8px', borderRadius: '6px', border: '1px solid #e0e7ff', lineHeight: 1.4 }}>
-                              <strong>Notes:</strong> {req.notes}
+                          <div>
+                            <h5 className="section-title mb-2" style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px', color: '#888' }}>Pricing & Notes</h5>
+                            <div style={{ background: '#faf9f7', padding: '1rem', borderRadius: '8px', display: 'flex', flexDirection: 'column', minHeight: '100px', fontSize: '0.9rem' }}>
+                              <p style={{ margin: '0 0 0.5rem 0', fontSize: '1.1rem', fontWeight: 'bold' }}>
+                                Total: ₹{req.totalPrice}
+                              </p>
+                              <p style={{ margin: '0 0 0.5rem 0' }}>
+                                <strong>Payment Status:</strong> <span style={{ color: req.paymentStatus === 'paid' ? 'green' : '#f59e0b', fontWeight: 600 }}>{req.paymentStatus.toUpperCase()}</span>
+                              </p>
+                              {req.notes && (
+                                <div style={{ fontSize: '0.85rem', color: '#555', marginTop: '0.5rem', background: '#eef2ff', padding: '8px', borderRadius: '6px', border: '1px solid #e0e7ff', lineHeight: 1.4 }}>
+                                  <strong>Notes:</strong> {req.notes}
+                                </div>
+                              )}
                             </div>
-                          )}
+                          </div>
                         </div>
+
+                        {req.status === 'pending' && (
+                          <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid #f0f0f0', marginTop: '1.25rem', paddingTop: '1rem' }}>
+                            <button
+                              onClick={() => handleCancelCustomRequest(req._id)}
+                              className="btn-action-v2"
+                              style={{
+                                background: 'none',
+                                border: '1px solid #dc2626',
+                                color: '#dc2626',
+                                padding: '8px 16px',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                fontSize: '0.85rem',
+                                fontWeight: '600',
+                                transition: 'all 0.2s ease'
+                              }}
+                            >
+                              Cancel Order
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -861,8 +910,9 @@ const Orders = () => {
         .order-card-body { max-height: 0; overflow: hidden; transition: max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
         .expanded .order-card-body { max-height: 5000px; }
         
-        .details-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 3rem; }
-        @media (max-width: 992px) { .details-grid { grid-template-columns: 1fr; gap: 2rem; } }
+        .details-grid { display: flex; flex-direction: column; gap: 2rem; }
+        .address-payment-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        @media (max-width: 768px) { .address-payment-summary { grid-template-columns: 1fr; } }
         
         .section-title { font-size: 0.95rem; font-weight: 800; border-left: 4px solid var(--color-primary); padding-left: 12px; color: #333; }
         
