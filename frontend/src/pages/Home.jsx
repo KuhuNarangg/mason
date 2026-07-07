@@ -235,8 +235,9 @@ const Home = () => {
             ) : (
               <div className="m-cinematic__grid" style={{ 
                 display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
-                gap: '2rem',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 320px))', 
+                justifyContent: 'center',
+                gap: '3rem',
                 alignItems: 'center'
               }}>
                 {cinematicMedia.map((media, i) => (
