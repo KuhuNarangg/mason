@@ -58,11 +58,7 @@ const CategoryPage = () => {
     setSelectedTypes(typeParam ? [typeParam] : []);
   }, [typeParam]);
 
-  // Activate Global Dark Theme for Category Page
-  useEffect(() => {
-    document.body.classList.add('global-dark-theme');
-    return () => document.body.classList.remove('global-dark-theme');
-  }, []);
+
 
   // Keep the Categories sidebar in sync with the ?category= URL param
   // (e.g. when navigating between category links without a full page reload)

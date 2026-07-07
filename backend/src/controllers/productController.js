@@ -2,6 +2,8 @@ const asyncHandler = require('express-async-handler');
 const mongoose = require('mongoose');
 const Product = require('../models/Product');
 const Order = require('../models/Order');
+const RestockNotification = require('../models/RestockNotification');
+const { checkAndNotifyRestocks } = require('../utils/restockHelper');
 
 // @GET /api/v1/products
 const getProducts = asyncHandler(async (req, res) => {
@@ -54,7 +56,24 @@ const getProducts = asyncHandler(async (req, res) => {
   if (featured === 'true') query.isFeatured = true;
   if (trending === 'true') query.isTrending = true;
   if (search) {
-    query.$text = { $search: search };
+    const cleanSearch = search.trim();
+    const searchCondition = {
+      $or: [
+        { name: { $regex: cleanSearch, $options: 'i' } },
+        { brand: { $regex: cleanSearch, $options: 'i' } },
+        { description: { $regex: cleanSearch, $options: 'i' } },
+        { tags: { $in: [new RegExp(cleanSearch, 'i')] } }
+      ]
+    };
+    if (query.$or) {
+      query.$and = [
+        { $or: query.$or },
+        searchCondition
+      ];
+      delete query.$or;
+    } else {
+      query.$or = searchCondition.$or;
+    }
   }
   if (minPrice || maxPrice) {
     query.price = {};
@@ -150,10 +169,94 @@ const createProduct = asyncHandler(async (req, res) => {
 const updateProduct = asyncHandler(async (req, res) => {
   let product = await Product.findById(req.params.id);
   if (!product) { res.status(404); throw new Error('Product not found'); }
+  
+  const oldVariants = JSON.parse(JSON.stringify(product.variants || []));
   Object.assign(product, req.body);
   product.slug = null; // reset slug to regenerate
   const updated = await product.save();
+
+  // Fire-and-forget notification check in background
+  checkAndNotifyRestocks(product._id, oldVariants, updated.variants).catch(err => {
+    console.error('Error triggering restock notification check:', err);
+  });
+
   res.json({ success: true, product: updated });
+});
+
+// @POST /api/v1/products/:id/notify-restock
+const subscribeRestockNotification = asyncHandler(async (req, res) => {
+  const { variantId, size, color, email } = req.body;
+  const productId = req.params.id;
+
+  if (!email || !variantId) {
+    res.status(400);
+    throw new Error('Email and variant ID are required');
+  }
+
+  // Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    res.status(400);
+    throw new Error('Invalid email format');
+  }
+
+  const product = await Product.findById(productId);
+  if (!product) {
+    res.status(404);
+    throw new Error('Product not found');
+  }
+
+  const variant = product.variants.id(variantId);
+  if (!variant) {
+    res.status(404);
+    throw new Error('Variant not found');
+  }
+
+  if (variant.stock > 0) {
+    return res.status(400).json({
+      success: false,
+      message: 'This variant is already in stock!'
+    });
+  }
+
+  // Check compound unique index subscription
+  const existingSub = await RestockNotification.findOne({
+    product: productId,
+    variantId,
+    email: email.toLowerCase()
+  });
+
+  if (existingSub) {
+    if (existingSub.isNotified === false) {
+      return res.json({
+        success: true,
+        alreadySubscribed: true,
+        message: 'You are already subscribed to notifications for this item!'
+      });
+    } else {
+      // Re-activate if it was notified previously (out of stock again)
+      existingSub.isNotified = false;
+      existingSub.notifiedAt = null;
+      await existingSub.save();
+      return res.json({
+        success: true,
+        message: 'Alert reactivated! We will email you when this variant is restocked.'
+      });
+    }
+  }
+
+  await RestockNotification.create({
+    product: productId,
+    variantId,
+    size,
+    color,
+    email: email.toLowerCase()
+  });
+
+  res.json({
+    success: true,
+    message: 'Subscription successful! We will email you when this variant is restocked.'
+  });
 });
 
 // @DELETE /api/v1/products/:id (admin)
@@ -286,5 +389,6 @@ module.exports = {
   addReview, 
   toggleWishlist,
   getWishlistProducts,
-  getRelatedProducts
+  getRelatedProducts,
+  subscribeRestockNotification
 };

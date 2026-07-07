@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { ShoppingBag, Heart, User, Search, Menu, X, Bell, Package, LogOut, LayoutDashboard } from 'lucide-react';
+import { ShoppingBag, Heart, User, Search, Menu, X, Bell, Package, LogOut, LayoutDashboard, ChevronDown } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -7,6 +7,7 @@ import { useNotifications } from '../context/NotificationContext';
 import { useState, useEffect } from 'react';
 import './Navbar.css';
 import logoImg from '../assets/logo.png';
+import api from '../utils/api';
 
 const Navbar = () => {
   const { isAuth, user, logout } = useAuth();
@@ -22,6 +23,41 @@ const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false);
+  const [dbCategories, setDbCategories] = useState([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const { data } = await api.get('/categories');
+        setDbCategories(data.categories || []);
+      } catch (err) {
+        console.error('Failed to fetch navbar categories', err);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (!searchTerm.trim()) {
+        setSuggestions([]);
+        setShowSuggestions(false);
+        return;
+      }
+      try {
+        const { data } = await api.get(`/products?search=${encodeURIComponent(searchTerm.trim())}&limit=5`);
+        setSuggestions(data.products || []);
+        setShowSuggestions(true);
+      } catch (err) {
+        console.error('Failed to fetch search suggestions', err);
+      }
+    };
+    const timer = setTimeout(fetchSuggestions, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   useEffect(() => {
     if (!isHome && window.scrollY > 0) {
@@ -72,8 +108,31 @@ const Navbar = () => {
 
             <nav className="m-navbar__nav desktop-only">
               <Link to="/catalogue" className="m-nav-link" style={{ fontWeight: 600, color: 'var(--color-primary)' }}>Catalogue</Link>
-              <Link to="/category/all?type=dress" className="m-nav-link">Dresses</Link>
-              <Link to="/category/all?type=top" className="m-nav-link">Tops</Link>
+              
+              <div className="m-nav-dropdown-container">
+                <button 
+                  className="m-nav-link" 
+                  style={{ 
+                    background: 'none', 
+                    border: 'none', 
+                    cursor: 'pointer', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '4px',
+                    padding: 'var(--space-2) 0'
+                  }}
+                >
+                  Categories <ChevronDown size={14} />
+                </button>
+                <div className="m-nav-dropdown-menu">
+                  {dbCategories.map(cat => (
+                    <Link key={cat._id} to={`/category/all?category=${cat._id}`} className="m-nav-dropdown-item">
+                      {cat.name}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+              
               <Link to="/customisation" className="m-nav-link">Customize</Link>
             </nav>
           </div>
@@ -81,20 +140,143 @@ const Navbar = () => {
           {/* Center: Brand Name */}
           <div className="m-navbar__center" style={{ overflow: 'visible' }}>
             <Link to="/" className="m-navbar__logo-text" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <img src="/owlnewnobg copy.png" alt="Mason Logo" style={{ height: '68px', width: 'auto', objectFit: 'contain' }} />
+              <img src="/owlnewnobg copy.png" alt="Mason Logo" className="m-navbar__logo-img-center" style={{ width: 'auto', objectFit: 'contain' }} />
               <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', lineHeight: 1.1 }}>
-                <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.65rem', fontWeight: 600, letterSpacing: '0.18em', color: 'var(--ink)', textTransform: 'uppercase', display: 'block' }}>Owl</span>
-                <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.1rem', fontWeight: 600, letterSpacing: '0.18em', color: 'var(--ink)', textTransform: 'uppercase', display: 'block' }}>Stitch</span>
-                <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '0.65rem', fontWeight: 300, fontStyle: 'italic', color: 'var(--ink)', opacity: 0.72, letterSpacing: '0.18em', display: 'block', marginTop: '2px' }}>by Mason</span>
+                <span className="m-logo-text-owl" style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.65rem', fontWeight: 600, letterSpacing: '0.18em', color: 'var(--ink)', textTransform: 'uppercase', display: 'block' }}>Owl</span>
+                <span className="m-logo-text-stitch" style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.1rem', fontWeight: 600, letterSpacing: '0.18em', color: 'var(--ink)', textTransform: 'uppercase', display: 'block' }}>Stitch</span>
+                <span className="m-logo-text-by" style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '0.65rem', fontWeight: 300, fontStyle: 'italic', color: 'var(--ink)', opacity: 0.72, letterSpacing: '0.18em', display: 'block', marginTop: '2px', textTransform: 'none' }}>by Mason</span>
               </div>
             </Link>
           </div>
 
           {/* Right: Actions */}
           <div className="m-navbar__right">
-            <button className="btn-icon" onClick={() => setSearchOpen(!searchOpen)} aria-label="Search">
-              <Search size={20} strokeWidth={1} />
-            </button>
+            <div className="m-search-container" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <button className="btn-icon" onClick={() => setSearchOpen(!searchOpen)} aria-label="Search">
+                {searchOpen ? <X size={20} strokeWidth={1} /> : <Search size={20} strokeWidth={1} />}
+              </button>
+              
+              {searchOpen && (
+                <div className="m-search-dropdown-box" style={{
+                  position: 'absolute',
+                  right: 0,
+                  top: '100%',
+                  marginTop: '10px',
+                  background: 'var(--ivory, #f9f6f0)',
+                  border: '1px solid var(--champagne, #e8dfd8)',
+                  borderRadius: '4px',
+                  boxShadow: '0 8px 24px rgba(44, 36, 33, 0.12)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  width: '280px',
+                  zIndex: 9999
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px' }}>
+                    <input
+                      type="text"
+                      placeholder="Search for apparel..."
+                      className="m-search-input-box"
+                      style={{
+                        border: 'none',
+                        background: 'transparent',
+                        fontFamily: 'inherit',
+                        fontSize: '0.875rem',
+                        color: 'var(--ink, #2c2421)',
+                        outline: 'none',
+                        width: '100%',
+                        padding: '4px 0'
+                      }}
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      onKeyDown={handleSearch}
+                      autoFocus
+                    />
+                    <button 
+                      onClick={() => {
+                        if (searchTerm.trim()) {
+                          navigate(`/category/all?search=${encodeURIComponent(searchTerm.trim())}`);
+                          setSearchOpen(false);
+                        }
+                      }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: 'var(--ink, #2c2421)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        padding: 0
+                      }}
+                    >
+                      <Search size={16} strokeWidth={1.5} />
+                    </button>
+                  </div>
+                  
+                  {/* Suggestions List */}
+                  {showSuggestions && suggestions.length > 0 && (
+                    <div style={{ borderTop: '1px solid var(--champagne, #e8dfd8)', maxHeight: '350px', overflowY: 'auto' }}>
+                      {suggestions.map(item => (
+                        <div 
+                          key={item._id}
+                          onClick={() => {
+                            navigate(`/product/${item.slug}`);
+                            setSearchOpen(false);
+                            setSearchTerm('');
+                            setShowSuggestions(false);
+                          }}
+                          style={{
+                            padding: '10px 12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            cursor: 'pointer',
+                            borderBottom: '1px solid var(--champagne, #e8dfd8)',
+                            transition: 'background 0.2s'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = 'var(--champagne, #e8dfd8)'}
+                          onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                        >
+                          <img 
+                            src={item.thumbnail || (item.images && item.images[0]) || '/placeholder.png'} 
+                            alt={item.name} 
+                            style={{ width: '40px', height: '50px', objectFit: 'cover', borderRadius: '4px' }}
+                          />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: '0.85rem', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--ink, #2c2421)' }}>
+                              {item.name}
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--ink-muted, #737373)' }}>
+                              ₹{item.price?.toLocaleString()}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      <div 
+                        onClick={() => {
+                          if (searchTerm.trim()) {
+                            navigate(`/category/all?search=${encodeURIComponent(searchTerm.trim())}`);
+                            setSearchOpen(false);
+                          }
+                        }}
+                        style={{
+                          padding: '12px',
+                          textAlign: 'center',
+                          fontSize: '0.85rem',
+                          color: 'var(--ink, #2c2421)',
+                          cursor: 'pointer',
+                          fontWeight: 500,
+                          background: 'var(--ivory, #f9f6f0)'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                        onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+                      >
+                        See all results
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
             
             {isAuth && (
               <div className="m-dropdown-wrap desktop-only">
@@ -176,26 +358,7 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Full-screen minimal search overlay */}
-        <div className={`m-search-bar ${searchOpen ? 'open' : ''}`}>
-          <div className="m-navbar__inner" style={{ display: 'flex', justifyContent: 'space-between', gap: '1.5rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
-              <Search size={22} strokeWidth={1} style={{ color: 'var(--ink-muted)' }} />
-              <input
-                type="text"
-                placeholder="What are you looking for?"
-                className="m-search-input"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyDown={handleSearch}
-                autoFocus={searchOpen}
-              />
-            </div>
-            <button className="btn-icon" onClick={() => setSearchOpen(false)} style={{ padding: 0 }}>
-              <X size={26} strokeWidth={1} />
-            </button>
-          </div>
-        </div>
+        {/* Full-screen minimal search overlay removed */}
       </header>
 
       {/* Mobile Menu */}
@@ -216,8 +379,47 @@ const Navbar = () => {
         </div>
         <nav className="m-mobile-menu__nav">
           <Link to="/catalogue" className="m-mobile-link" onClick={() => setMobileMenuOpen(false)} style={{ fontWeight: 600, color: 'var(--color-primary)' }}>Catalogue</Link>
-          <Link to="/category/all?type=dress" className="m-mobile-link" onClick={() => setMobileMenuOpen(false)}>Dresses</Link>
-          <Link to="/category/all?type=top" className="m-mobile-link" onClick={() => setMobileMenuOpen(false)}>Tops</Link>
+          
+          <div className="m-mobile-dropdown-section">
+            <button 
+              className="m-mobile-link" 
+              onClick={() => setMobileCategoriesOpen(!mobileCategoriesOpen)}
+              style={{ 
+                width: '100%', 
+                textAlign: 'left', 
+                background: 'none', 
+                border: 'none', 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center',
+                cursor: 'pointer'
+              }}
+            >
+              <span>Categories</span>
+              <ChevronDown 
+                size={18} 
+                style={{ 
+                  transform: mobileCategoriesOpen ? 'rotate(180deg)' : 'rotate(0deg)', 
+                  transition: 'transform 0.4s var(--ease-expo)' 
+                }} 
+              />
+            </button>
+            
+            <div className={`m-mobile-submenu ${mobileCategoriesOpen ? 'open' : ''}`}>
+              <Link to="/catalogue" className="m-mobile-link sublink" onClick={() => setMobileMenuOpen(false)}>All Categories</Link>
+              {dbCategories.map(cat => (
+                <Link 
+                  key={cat._id} 
+                  to={`/category/all?category=${cat._id}`} 
+                  className="m-mobile-link sublink" 
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {cat.name}
+                </Link>
+              ))}
+            </div>
+          </div>
+
           <Link to="/customisation" className="m-mobile-link" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--rose-gold-dark)', fontWeight: 600 }}>Customise</Link>
         </nav>
         
@@ -237,17 +439,25 @@ const Navbar = () => {
               <Link to="/orders" className="m-mobile-action" onClick={() => setMobileMenuOpen(false)}>
                 <Package size={16} strokeWidth={1} /> My Orders
               </Link>
+              <Link to="/wishlist" className="m-mobile-action" onClick={() => setMobileMenuOpen(false)}>
+                <Heart size={16} strokeWidth={1} /> Wishlist
+              </Link>
               <Link to="/profile" className="m-mobile-action" onClick={() => setMobileMenuOpen(false)}>
-                <User size={16} strokeWidth={1} /> My Account
+                <User size={16} strokeWidth={1} /> Profile
               </Link>
               <button onClick={() => { logout(); navigate('/'); setMobileMenuOpen(false); }} className="m-mobile-action">
                 <LogOut size={16} strokeWidth={1} /> Sign Out
               </button>
             </>
           ) : (
-            <Link to="/login" className="m-mobile-action" onClick={() => setMobileMenuOpen(false)}>
-              <User size={16} strokeWidth={1} /> Sign In
-            </Link>
+            <>
+              <Link to="/wishlist" className="m-mobile-action" onClick={() => setMobileMenuOpen(false)}>
+                <Heart size={16} strokeWidth={1} /> Wishlist
+              </Link>
+              <Link to="/login" className="m-mobile-action" onClick={() => setMobileMenuOpen(false)}>
+                <User size={16} strokeWidth={1} /> Sign In
+              </Link>
+            </>
           )}
         </div>
       </aside>

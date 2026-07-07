@@ -6,7 +6,7 @@ const {
   createVendor, getVendors, getVendorById, approveVendor, rejectVendor, suspendVendor, reinstateVendor, setVendorCommission, deleteVendor,
   getReturns, getReviews, deleteReview, approveReview, getAnalytics,
   getSettlementsOverview, getVendorSettlementDetail, settleVendorPayout,
-  getSettings, updateSettings,
+  getSettings, updateSettings, getRestockNotifications,
 } = require('../controllers/adminController');
 const { getHomeMedia, getAdminHomeMedia, createHomeMedia, deleteHomeMedia } = require('../controllers/homeMediaController');
 const { protect, adminOnly } = require('../middleware/auth');
@@ -55,5 +55,8 @@ router.post('/settlements/vendor/:id/settle', settleVendorPayout);
 /* ── Platform settings ── */
 router.get('/settings',                    getSettings);
 router.put('/settings',                    updateSettings);
+
+/* ── Restock Alerts ── */
+router.get('/restock-notifications',       getRestockNotifications);
 
 module.exports = router;

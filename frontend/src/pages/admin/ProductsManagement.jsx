@@ -205,7 +205,7 @@ const ProductsManagement = () => {
 
 
   const handleEdit = (product) => {
-    navigate(`/admin/products/${product._id}/edit`);
+    navigate(`/admin/products/edit/${product._id}`);
   };
 
   const toggleActive = async (product) => {
@@ -227,6 +227,8 @@ const ProductsManagement = () => {
   };
 
   const getTotalStock = (p) => (p.variants || []).reduce((sum, v) => sum + (v.stock || 0), 0);
+
+
 
   const filteredProducts = useMemo(() => {
     let list = [...products];

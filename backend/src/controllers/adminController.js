@@ -8,6 +8,7 @@ const { createNotification } = require('../utils/notificationHelper');
 const { sendVendorApproved, sendVendorRejected } = require('../utils/emailService');
 const Settlement = require('../models/Settlement');
 const Settings = require('../models/Settings');
+const RestockNotification = require('../models/RestockNotification');
 
 // @GET /api/v1/admin/users
 const getAllUsers = asyncHandler(async (req, res) => {
@@ -712,10 +713,33 @@ const approveReview = asyncHandler(async (req, res) => {
   });
 });
 
+// @GET /api/v1/admin/restock-notifications
+const getRestockNotifications = asyncHandler(async (req, res) => {
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 20;
+  const skip = (page - 1) * limit;
+
+  const total = await RestockNotification.countDocuments({});
+  const notifications = await RestockNotification.find({})
+    .populate('product', 'name thumbnail price slug')
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
+    .lean();
+
+  res.json({
+    success: true,
+    total,
+    page,
+    pages: Math.ceil(total / limit),
+    notifications
+  });
+});
+
 module.exports = {
   getAllUsers, getUserDetail, deleteUser, getDashboardStats, getFailedPayments, manualConfirmOrder,
   createVendor, getVendors, getVendorById, approveVendor, rejectVendor, suspendVendor, reinstateVendor, setVendorCommission, deleteVendor,
   getReturns, getReviews, deleteReview, approveReview, getAnalytics,
   getSettlementsOverview, getVendorSettlementDetail, settleVendorPayout,
-  getSettings, updateSettings,
+  getSettings, updateSettings, getRestockNotifications
 };

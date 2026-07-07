@@ -4,6 +4,7 @@ const Product = require('../models/Product');
 const Order = require('../models/Order');
 const User = require('../models/User');
 const { createNotification } = require('../utils/notificationHelper');
+const { checkAndNotifyRestocks } = require('../utils/restockHelper');
 
 /* ───────────────────────── PROFILE ───────────────────────── */
 
@@ -196,9 +197,16 @@ const updateProduct = asyncHandler(async (req, res) => {
   if (body.category === '') body.category = null;
   if (body.subcategory === '') body.subcategory = null;
 
+  const oldVariants = JSON.parse(JSON.stringify(product.variants || []));
   Object.assign(product, body);
   product.slug = null; // regenerate slug
   const updated = await product.save();
+
+  // Fire-and-forget notification check in background
+  checkAndNotifyRestocks(product._id, oldVariants, updated.variants).catch(err => {
+    console.error('Error triggering restock notification check:', err);
+  });
+
   res.json({ success: true, product: updated });
 });
 
@@ -264,9 +272,16 @@ const updateVariantStock = asyncHandler(async (req, res) => {
   const variant = product.variants.id(variantId);
   if (!variant) { res.status(404); throw new Error('Variant not found'); }
 
+  const oldVariants = JSON.parse(JSON.stringify(product.variants || []));
   variant.stock = stock;
-  await product.save();
-  res.json({ success: true, product });
+  const updated = await product.save();
+
+  // Fire-and-forget notification check in background
+  checkAndNotifyRestocks(product._id, oldVariants, updated.variants).catch(err => {
+    console.error('Error triggering restock notification check:', err);
+  });
+
+  res.json({ success: true, product: updated });
 });
 
 /* ───────────────────────── ORDERS ───────────────────────── */

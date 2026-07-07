@@ -110,7 +110,17 @@ const ProductDetail = () => {
   
   const { cart, addToCart, updateItem, removeItem } = useCart();
   const { toggle, isWishlisted } = useWishlist();
-  const { isAuth } = useAuth();
+  const { isAuth, user } = useAuth();
+
+  const [notifyEmail, setNotifyEmail] = useState('');
+  const [submittingRestock, setSubmittingRestock] = useState(false);
+  const [restockMessage, setRestockMessage] = useState('');
+
+  useEffect(() => {
+    if (user?.email) {
+      setNotifyEmail(user.email);
+    }
+  }, [user]);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -152,6 +162,28 @@ const ProductDetail = () => {
   const handleAddToCart = () => {
     if (currentVariant && !isOutOfStock) {
       addToCart(product._id, selectedSize, selectedColor, 1);
+    }
+  };
+
+  const handleNotifyRestock = async (e) => {
+    e.preventDefault();
+    if (!notifyEmail || !currentVariant) return;
+
+    setSubmittingRestock(true);
+    setRestockMessage('');
+    try {
+      const { data } = await api.post(`/products/${product._id}/notify-restock`, {
+        variantId: currentVariant._id,
+        size: selectedSize,
+        color: selectedColor,
+        email: notifyEmail
+      });
+      setRestockMessage(data.message);
+    } catch (err) {
+      const errMsg = err.response?.data?.message || 'Failed to submit subscription request. Please try again.';
+      setRestockMessage(errMsg);
+    } finally {
+      setSubmittingRestock(false);
     }
   };
 
@@ -363,6 +395,74 @@ const ProductDetail = () => {
               WISHLIST
             </button>
           </div>
+
+          {isOutOfStock && currentVariant && (
+            <div className="restock-notify-box mt-4" style={{
+              background: 'var(--champagne-light, #fdfaf6)',
+              border: '1.5px solid var(--champagne, #e8dfd8)',
+              borderRadius: '6px',
+              padding: '1.25rem',
+              maxWidth: '480px'
+            }}>
+              <p style={{ fontWeight: 600, color: 'var(--ink, #2c2421)', fontSize: '0.95rem', margin: '0 0 0.5rem' }}>
+                Notify me when restocked
+              </p>
+              <p style={{ fontSize: '0.8rem', color: 'var(--ink-muted, #737373)', margin: '0 0 1rem', lineHeight: 1.4 }}>
+                We'll email you as soon as this item (Size: {selectedSize} {selectedColor ? `· Color: ${selectedColor}` : ''}) is available.
+              </p>
+              
+              <form onSubmit={handleNotifyRestock} style={{ display: 'flex', gap: '0.5rem' }}>
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  required
+                  value={notifyEmail}
+                  onChange={(e) => setNotifyEmail(e.target.value)}
+                  style={{
+                    flex: 1,
+                    padding: '8px 12px',
+                    borderRadius: '4px',
+                    border: '1px solid var(--champagne, #e8dfd8)',
+                    fontSize: '0.875rem',
+                    outline: 'none',
+                    background: '#fff',
+                    color: 'var(--ink)'
+                  }}
+                />
+                <button
+                  type="submit"
+                  disabled={submittingRestock}
+                  style={{
+                    background: 'var(--ink, #2c2421)',
+                    color: 'var(--ivory, #f9f6f0)',
+                    padding: '8px 16px',
+                    borderRadius: '4px',
+                    border: 'none',
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'opacity 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.opacity = 0.9}
+                  onMouseLeave={(e) => e.currentTarget.style.opacity = 1}
+                >
+                  {submittingRestock ? 'Submitting...' : 'Submit'}
+                </button>
+              </form>
+              
+              {restockMessage && (
+                <p style={{
+                  fontSize: '0.8rem',
+                  fontWeight: 500,
+                  marginTop: '0.75rem',
+                  color: (restockMessage.includes('already') || restockMessage.includes('reactivated')) ? '#c08a74' : '#16a34a',
+                  margin: '0.75rem 0 0'
+                }}>
+                  {restockMessage}
+                </p>
+              )}
+            </div>
+          )}
 
           <div className="services-box mt-5">
             <div className="service-item">

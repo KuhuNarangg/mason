@@ -178,14 +178,7 @@ const Catalogue = () => {
   // Determine active view mode
   const isGridView = activeCategoryParam || activePriceParam || activeSearchParam;
 
-  useEffect(() => {
-    if (isGridView) {
-      document.body.classList.add('global-dark-theme');
-    } else {
-      document.body.classList.remove('global-dark-theme');
-    }
-    return () => document.body.classList.remove('global-dark-theme');
-  }, [isGridView]);
+
 
   // Filter products dynamically
   const filteredProducts = products.filter(p => {
