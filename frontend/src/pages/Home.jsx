@@ -220,9 +220,9 @@ const Home = () => {
 
       {/* 4.5. THE MASON CINEMATIC EXPERIENCE */}
       {(loading || cinematicMedia.length > 0) && (
-        <section className="m-cinematic" style={{ padding: '6rem 0', background: '#0a0a0a', color: '#fff', overflow: 'hidden' }}>
+        <section className="m-cinematic" style={{ padding: '4rem 0', background: '#0a0a0a', color: '#fff', overflow: 'hidden' }}>
           <div className="container">
-            <div className="reveal-up" style={{ textAlign: 'center', marginBottom: '4rem' }}>
+            <div className="reveal-up" style={{ textAlign: 'center', marginBottom: '2rem' }}>
               <span className="m-label" style={{ color: '#C08A74', letterSpacing: '3px' }}>Visual Lookbook</span>
               <h2 className="m-section-title" style={{ color: '#fff' }}>The Mason <em>Cinematic</em> Experience</h2>
               <p style={{ maxWidth: '600px', margin: '1rem auto 0', color: '#a3a3a3' }}>
@@ -235,9 +235,9 @@ const Home = () => {
             ) : (
               <div className="m-cinematic__grid" style={{ 
                 display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 320px))', 
+                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 250px))', 
                 justifyContent: 'center',
-                gap: '3rem',
+                gap: '2rem',
                 alignItems: 'center'
               }}>
                 {cinematicMedia.map((media, i) => (
