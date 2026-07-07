@@ -294,19 +294,10 @@
     margin-top: var(--space-8);
   }
 
-  .place-order-btn {
-    position: fixed;
-    bottom: var(--mobile-nav-height, 60px);
-    left: 0;
-    width: 100%;
-    margin: 0;
-    z-index: 1001;
-    padding: 1.2rem;
-    box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
-  }
+
   
   .cart-page-container {
-    padding-bottom: calc(var(--space-12) + 60px) !important;
+    padding-bottom: var(--space-12) !important;
   }
 
   .cart-item {
