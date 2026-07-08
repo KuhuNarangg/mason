@@ -113,6 +113,7 @@ app.use('/api/v1/customizations', customizationRoutes);
 app.use('/api/v1/vendor', vendorRoutes);
 app.use('/api/v1/shiprocket', shiprocketRoutes);
 app.use('/api/v1/homemedia', homeMediaRoutes);
+app.use('/api/v1/seo', require('./src/routes/seo'));
 // Public ad redirect — Instagram/Facebook ads point to this URL:
 //   yourbackend.com/api/v1/r/:adId  → logs click → redirects to product page
 app.get('/api/v1/r/:adId', require('./src/controllers/adController').redirectAd);

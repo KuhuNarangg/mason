@@ -7,6 +7,8 @@ import { useWishlist } from '../context/WishlistContext';
 import { useAuth } from '../context/AuthContext';
 import { formatPrice } from '../utils/formatPrice';
 import ProductCard from '../components/ProductCard';
+import SEO from '../components/SEO';
+import { generateProductSchema, generateBreadcrumbSchema } from '../utils/schema';
 import './ProductDetail.css';
 
 // Default size guides by type + gender
@@ -249,6 +251,21 @@ const ProductDetail = () => {
 
   return (
     <div className="container product-detail-container">
+      <SEO 
+        title={product.name} 
+        description={product.description || product.seoDescription} 
+        image={displayImages[0]} 
+        type="product" 
+        url={`/product/${product.slug || product._id}`} 
+        schema={[
+          generateProductSchema(product),
+          generateBreadcrumbSchema([
+            { name: "Home", path: "/" },
+            { name: product.gender, path: `/category/${product.gender}` },
+            { name: product.name, path: `/product/${product.slug || product._id}` }
+          ])
+        ]}
+      />
       <div className="breadcrumbs mb-4">
         <Link to="/">Home</Link> / 
         <Link to={`/category/${product.gender}`}> {product.gender} </Link> / 
@@ -500,10 +517,33 @@ const ProductDetail = () => {
             <p>{product.description}</p>
             <ul className="details-list mt-3 text-muted">
               <li>Premium quality fabric</li>
-              <li>Machine wash safe</li>
               <li>Style: {product.type}</li>
               <li>Brand: {product.brand}</li>
             </ul>
+          </div>
+          
+          <div className="product-care mt-4">
+            <h4 style={{ fontSize: '1.1rem', marginBottom: '10px' }}>Care Instructions</h4>
+            <ul className="details-list text-muted" style={{ fontSize: '0.9rem' }}>
+              <li>Machine wash cold with like colors</li>
+              <li>Do not bleach or dry clean</li>
+              <li>Tumble dry low or hang to dry</li>
+              <li>Iron on reverse side if printed</li>
+            </ul>
+          </div>
+          
+          <div className="product-faqs mt-4" style={{ padding: '15px', background: '#fdfaf6', borderRadius: '8px', border: '1px solid var(--champagne)' }}>
+            <h4 style={{ fontSize: '1.1rem', marginBottom: '10px' }}>Frequently Asked Questions</h4>
+            <div style={{ fontSize: '0.9rem', marginBottom: '10px' }}>
+              <strong>Q: How long does shipping take?</strong>
+              <p className="text-muted mb-2">A: Orders are usually processed within 24 hours. Delivery takes 3-5 business days.</p>
+              
+              <strong>Q: Can I exchange if the size doesn't fit?</strong>
+              <p className="text-muted mb-2">A: Yes! We offer a hassle-free {product.returnWindow || 14}-day exchange policy for unused items.</p>
+              
+              <strong>Q: Are the colors exactly as shown?</strong>
+              <p className="text-muted">A: We try our best to ensure color accuracy, but slight variations may occur due to screen settings.</p>
+            </div>
           </div>
         </div>
       </div>

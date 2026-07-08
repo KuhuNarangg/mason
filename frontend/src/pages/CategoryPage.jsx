@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
 import api from '../utils/api';
 import ProductCard from '../components/ProductCard';
+import SEO from '../components/SEO';
+import { generateCollectionSchema } from '../utils/schema';
 import './CategoryPage.css';
 
 const CategoryPage = () => {
@@ -189,10 +191,21 @@ const CategoryPage = () => {
   } else if (selectedTypes.length === 1 && gender === 'all') {
     const typeName = selectedTypes[0];
     genderTitle = typeName.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') + ' Collection';
+  } else if (gender && gender !== 'all') {
+    genderTitle = `${gender.charAt(0).toUpperCase() + gender.slice(1)}'s Collection`;
   }
+
+  const categoryDesc = `Explore our premium ${genderTitle.toLowerCase()}. Uncompromising quality and elevated silhouettes designed for the modern woman. Shop the latest trends, discover luxurious fabrics, and find your perfect fit with our exclusive buying guide.`;
 
   return (
     <div className="container mt-4 mb-5 fade-in category-page-container">
+      <SEO 
+        title={genderTitle}
+        description={categoryDesc}
+        url={`/category/${gender || 'all'}`}
+        type="website"
+        schema={generateCollectionSchema(genderTitle, categoryDesc, `https://www.owlstitch.com/category/${gender || 'all'}`, products)}
+      />
       {/* Dynamic Header */}
       <div className="category-header d-flex justify-between align-center mb-5 reveal active">
         <div>

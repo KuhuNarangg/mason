@@ -4,6 +4,8 @@ import { ArrowRight } from 'lucide-react';
 import api from '../utils/api';
 import ProductCard from '../components/ProductCard';
 import CustomizeSection from '../components/CustomizeSection';
+import SEO from '../components/SEO';
+import { generateOrganizationSchema } from '../utils/schema';
 import './Home.css';
 
 const Home = () => {
@@ -63,8 +65,6 @@ const Home = () => {
   }, [heroImages.length]);
 
   // Intersection observer for scroll reveals
-  // setTimeout avoids React 18 Strict Mode double-invoke killing the observer
-  // before initial callbacks fire. threshold 0.05 = 5% visible is enough to trigger.
   useEffect(() => {
     let observer;
     const timer = setTimeout(() => {
@@ -96,6 +96,12 @@ const Home = () => {
 
   return (
     <div className="m-home">
+      <SEO 
+        title="Premium Ethnic & Western Wear" 
+        description="Discover luxury ethnic and contemporary women's wear at Owl Stitch by Mason. Explore handcrafted dresses, gowns, kurtis, and customized outfits." 
+        url="/" 
+        schema={generateOrganizationSchema()} 
+      />
       
       {/* 1. CINEMATIC HERO SLIDER */}
       <section className="m-hero">

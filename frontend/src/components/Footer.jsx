@@ -34,31 +34,35 @@ const Footer = () => {
           <div className="m-footer__col">
             <h4 className="m-footer__title">The Collections</h4>
             <nav className="m-footer__nav">
-              <Link to="/category/women">Clothing Edit</Link>
+              <Link to="/category/women">Women's Wear</Link>
+              <Link to="/category/men">Men's Wear</Link>
               <Link to="/category/all?type=ethnic">The Heritage Edit</Link>
               <Link to="/category/all?type=party-wear">Evening Glamour</Link>
-              <Link to="/category/all?type=indo-western">Modern Fusion</Link>
-              <Link to="/category/all">Shop All</Link>
+              <Link to="/catalogue">Editorial Catalogue</Link>
             </nav>
           </div>
 
-          {/* Column 3: Care */}
+          {/* Column 3: Custom & Care */}
           <div className="m-footer__col">
-            <h4 className="m-footer__title">Client Care</h4>
+            <h4 className="m-footer__title">Custom & Care</h4>
             <nav className="m-footer__nav">
-              <Link to="/faq">FAQ & Contact</Link>
-              <Link to="/shipping">Shipping & Delivery</Link>
-              <Link to="/returns">Returns & Exchanges</Link>
-              <Link to="/size-guide">Size Guide</Link>
+              <Link to="/customized-dresses">Custom Dresses</Link>
+              <Link to="/custom-couple-tshirts">Couple T-Shirts</Link>
+              <Link to="/custom-hoodies">Custom Hoodies</Link>
               <Link to="/care">Garment Care</Link>
+              <Link to="/size-guide">Size Guide</Link>
             </nav>
           </div>
 
-          {/* Column 4: About */}
+          {/* Column 4: Support & About */}
           <div className="m-footer__col">
             <h4 className="m-footer__title">The House</h4>
             <nav className="m-footer__nav">
               <Link to="/about">Our Story</Link>
+              <Link to="/contact">Contact Us</Link>
+              <Link to="/faq">FAQs</Link>
+              <Link to="/shipping">Shipping & Delivery</Link>
+              <Link to="/returns">Returns & Exchanges</Link>
             </nav>
           </div>
 

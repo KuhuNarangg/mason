@@ -1,5 +1,7 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import SEO from '../components/SEO';
+import { generateOrganizationSchema } from '../utils/schema';
 import './About.css';
 
 const About = () => {
@@ -21,6 +23,13 @@ const About = () => {
 
   return (
     <div className="about-page">
+      <SEO 
+        title="About Us"
+        description="Learn more about Owl Stitch by Mason. We are a premium women's wear brand built on the belief that every woman deserves to feel extraordinary."
+        url="/about"
+        type="website"
+        schema={generateOrganizationSchema()}
+      />
       
       {/* Hero Section */}
       <section className="about-hero">

@@ -3,6 +3,8 @@ import { useSearchParams } from 'react-router-dom';
 import { Search, ArrowLeft, Filter, X } from 'lucide-react';
 import api from '../utils/api';
 import ProductCard from '../components/ProductCard';
+import SEO from '../components/SEO';
+import { generateCollectionSchema } from '../utils/schema';
 import './Catalogue.css';
 
 const PRICE_CATEGORIES = [
@@ -233,6 +235,13 @@ const Catalogue = () => {
   if (!isGridView) {
     return (
       <div className="catalogue-container fade-in">
+        <SEO 
+          title="Product Catalogue" 
+          description="Browse Owl Stitch Editorial Collections. Find premium ethnic and western wear, including dresses, kurtis, gowns, and accessories." 
+          url="/store" 
+          type="website" 
+          schema={generateCollectionSchema('Product Catalogue', 'Browse Owl Stitch Editorial Collections', 'https://www.owlstitch.com/store', products.slice(0, 50))} 
+        />
         <div className="catalogue-header">
           <h1 className="catalogue-title">Catalogue</h1>
           <p className="catalogue-subtitle">Browse Owl Stitch Editorial Collections</p>
@@ -319,6 +328,13 @@ const Catalogue = () => {
 
   return (
     <div className="catalogue-container fade-in">
+      <SEO 
+        title={activeCategoryObj ? activeCategoryObj.name : activePriceObj ? activePriceObj.label : activeSearchParam ? `Search: ${activeSearchParam}` : 'Catalogue'} 
+        description={`Explore our collection of ${activeCategoryObj ? activeCategoryObj.name : 'premium products'}. Uncompromising quality and elevated silhouettes.`} 
+        url={`/store?category=${activeCategoryParam || ''}&price=${activePriceParam || ''}&search=${activeSearchParam || ''}`} 
+        type="website" 
+        schema={generateCollectionSchema(activeCategoryObj ? activeCategoryObj.name : 'Catalogue', 'Browse our collections', 'https://www.owlstitch.com/store', filteredProducts.slice(0, 50))} 
+      />
       {/* Breadcrumb / Back button */}
       <div className="catalogue-breadcrumbs">
         <button onClick={goBackToLanding} className="breadcrumb-back-btn">

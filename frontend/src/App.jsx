@@ -110,6 +110,10 @@ const StorefrontLayout = () => {
           <Route path="/orders" element={<Orders />} />
           <Route path="/orders/:orderId" element={<Orders />} />
           <Route path="/customisation" element={<Customization />} />
+          <Route path="/customized-dresses" element={<Customization />} />
+          <Route path="/custom-couple-tshirts" element={<Customization />} />
+          <Route path="/custom-hoodies" element={<Customization />} />
+          <Route path="/custom-tshirts" element={<Customization />} />
           
           {/* Policy Pages */}
           <Route path="/contact" element={<Contact />} />

@@ -1,8 +1,17 @@
+import SEO from '../../components/SEO';
+import { generateLocalBusinessSchema } from '../../utils/schema';
 import './PolicyPage.css';
 
 const Contact = () => {
   return (
     <div className="policy-page fade-in">
+      <SEO 
+        title="Contact Us"
+        description="Get in touch with Owl Stitch by Mason. Find our store location, email, phone number, and store hours."
+        url="/contact"
+        type="website"
+        schema={generateLocalBusinessSchema()}
+      />
       <div className="container policy-container">
         <h1 className="policy-title">Contact Us</h1>
         <div className="policy-content">

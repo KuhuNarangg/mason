@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
   Shirt, 
@@ -19,6 +19,7 @@ import {
   Check
 } from 'lucide-react';
 import api from '../utils/api';
+import SEO from '../components/SEO';
 import './Customization.css';
 import toast from 'react-hot-toast';
 import { loadRazorpayScript, openRazorpayCheckout } from '../utils/razorpay';
@@ -31,6 +32,7 @@ const products = [
   { id: 'hoodie', name: 'Premium Hoodie', price: 999, icon: <Layers size={32} /> },
   { id: 'oversized_tshirt', name: 'Oversized T-Shirt', price: 599, icon: <Shirt size={32} /> },
   { id: 'couple_pj', name: 'Couple PJ Set', price: 1299, icon: <Heart size={32} /> },
+  { id: 'custom_dress', name: 'Custom Dress', price: 1499, icon: <Sparkles size={32} /> },
 ];
 
 const designTypes = [
@@ -83,6 +85,7 @@ const placements = [
 const Customization = () => {
   const { user, token } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -103,6 +106,19 @@ const Customization = () => {
     quantity: 1,
     notes: ''
   });
+
+  // Pre-select product type based on URL
+  useEffect(() => {
+    if (location.pathname === '/customized-dresses') {
+      setFormData(prev => ({ ...prev, productType: 'custom_dress' }));
+    } else if (location.pathname === '/custom-couple-tshirts') {
+      setFormData(prev => ({ ...prev, productType: 'couple_tshirts' }));
+    } else if (location.pathname === '/custom-hoodies') {
+      setFormData(prev => ({ ...prev, productType: 'hoodie' }));
+    } else if (location.pathname === '/custom-tshirts') {
+      setFormData(prev => ({ ...prev, productType: 'single_tshirt' }));
+    }
+  }, [location.pathname]);
 
   // Shipping & Payment State
   const [shipping, setShipping] = useState({
@@ -311,8 +327,31 @@ const Customization = () => {
     );
   }
 
+  const getSeoData = () => {
+    switch (location.pathname) {
+      case '/customized-dresses':
+        return { title: 'Customized Dresses', desc: 'Design your own custom dresses online. Choose fabrics, prints, and styles.' };
+      case '/custom-couple-tshirts':
+        return { title: 'Custom Couple T-Shirts', desc: 'Design matching custom couple t-shirts. Perfect for anniversaries and gifts.' };
+      case '/custom-hoodies':
+        return { title: 'Custom Hoodies', desc: 'Create your own premium custom hoodies with unique prints and styles.' };
+      case '/custom-tshirts':
+        return { title: 'Custom T-Shirts', desc: 'Design custom t-shirts online. High-quality prints and premium fabrics.' };
+      default:
+        return { title: 'Custom Apparel Design', desc: 'Create your own unique custom apparel. Choose from t-shirts, hoodies, and dresses.' };
+    }
+  };
+
+  const seoData = getSeoData();
+
   return (
     <div className="cust-container">
+      <SEO 
+        title={seoData.title}
+        description={seoData.desc}
+        url={location.pathname}
+        type="website"
+      />
       {/* Header */}
       <div className="cust-header">
         <h1>Create Your Custom Design</h1>
