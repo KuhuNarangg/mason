@@ -32,7 +32,11 @@ import Privacy from './pages/policies/Privacy';
 import About from './pages/About';
 import SizeGuide from './pages/policies/SizeGuide';
 import GarmentCare from './pages/policies/GarmentCare';
+import FabricGuide from './pages/policies/FabricGuide';
+import CustomizationProcess from './pages/policies/CustomizationProcess';
 import Catalogue from './pages/Catalogue';
+import NotFound from './pages/NotFound';
+import Sitemap from './pages/Sitemap';
 
 // Admin Components
 import { Suspense, lazy } from 'react';
@@ -109,11 +113,16 @@ const StorefrontLayout = () => {
           <Route path="/profile" element={<Profile />} />
           <Route path="/orders" element={<Orders />} />
           <Route path="/orders/:orderId" element={<Orders />} />
+          <Route path="/sitemap" element={<Sitemap />} />
           <Route path="/customisation" element={<Customization />} />
           <Route path="/customized-dresses" element={<Customization />} />
           <Route path="/custom-couple-tshirts" element={<Customization />} />
           <Route path="/custom-hoodies" element={<Customization />} />
           <Route path="/custom-tshirts" element={<Customization />} />
+          <Route path="/customized-kurtis" element={<Customization />} />
+          <Route path="/custom-tailoring" element={<Customization />} />
+          <Route path="/custom-fashion-design" element={<Customization />} />
+          <Route path="/personalized-outfits" element={<Customization />} />
           
           {/* Policy Pages */}
           <Route path="/contact" element={<Contact />} />
@@ -129,8 +138,14 @@ const StorefrontLayout = () => {
           <Route path="/privacy-policy" element={<Privacy />} />
           <Route path="/about" element={<About />} />
           <Route path="/why-owl-stitch" element={<About />} />
+          <Route path="/quality-standards" element={<About />} />
           <Route path="/size-guide" element={<SizeGuide />} />
           <Route path="/care" element={<GarmentCare />} />
+          <Route path="/fabric-guide" element={<FabricGuide />} />
+          <Route path="/customization-process" element={<CustomizationProcess />} />
+          
+          {/* 404 Catch All */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
       <Footer />

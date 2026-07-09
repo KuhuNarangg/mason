@@ -5,7 +5,7 @@ import api from '../utils/api';
 import ProductCard from '../components/ProductCard';
 import CustomizeSection from '../components/CustomizeSection';
 import SEO from '../components/SEO';
-import { generateOrganizationSchema } from '../utils/schema';
+import { generateOrganizationSchema, generateWebSiteSchema } from '../utils/schema';
 import './Home.css';
 
 const Home = () => {
@@ -100,7 +100,7 @@ const Home = () => {
         title="Premium Ethnic & Western Wear" 
         description="Discover luxury ethnic and contemporary women's wear at Owl Stitch by Mason. Explore handcrafted dresses, gowns, kurtis, and customized outfits." 
         url="/" 
-        schema={generateOrganizationSchema()} 
+        schema={[generateOrganizationSchema(), generateWebSiteSchema()]} 
       />
       
       {/* 1. CINEMATIC HERO SLIDER */}

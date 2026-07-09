@@ -155,3 +155,32 @@ export const generateLocalBusinessSchema = () => {
     }
   };
 };
+
+export const generateWebSiteSchema = () => {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Owl Stitch by Mason",
+    "url": "https://www.owlstitch.com",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://www.owlstitch.com/catalogue?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  };
+};
+
+export const generateFAQSchema = (faqs) => {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqs.map(faq => ({
+      "@type": "Question",
+      "name": faq.question,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": faq.answer
+      }
+    }))
+  };
+};
