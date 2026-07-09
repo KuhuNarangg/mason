@@ -34,43 +34,96 @@ const initiateRazorpayRefund = async (paymentId, amountRupees, reason = 'Refund'
 
 // @POST /api/v1/orders
 const createOrder = asyncHandler(async (req, res) => {
-  const { items, shippingAddress, paymentMethod, subtotal, discount, shippingCharge, totalAmount, paymentId, customerNotes } = req.body;
+  const { items, shippingAddress, paymentMethod, customerNotes, couponCode } = req.body;
 
   if (!items || items.length === 0) { res.status(400); throw new Error('No items in order'); }
 
-  // Attach vendor + commission info to each item based on the product it references
-  const productDocs = await Product.find({ _id: { $in: items.map((i) => i.product) } })
-    .select('vendor')
+  // ── Step 1: Fetch all referenced products from the database ──
+  const productIds = items.map(i => i.product);
+  const productDocs = await Product.find({ _id: { $in: productIds } })
     .populate('vendor', 'vendorProfile')
     .lean();
-  const productMap = new Map(productDocs.map((p) => [p._id.toString(), p]));
+  const productMap = new Map(productDocs.map(p => [p._id.toString(), p]));
 
-  const itemsWithVendor = items.map((item) => {
+  // ── Step 2: Validate items and build order items with DB prices ──
+  let subtotal = 0;
+  const itemsWithVendor = [];
+
+  for (const item of items) {
     const product = productMap.get(item.product.toString());
-    const vendor = product?.vendor || null;
+    if (!product) {
+      res.status(400);
+      throw new Error(`Product ${item.product} not found`);
+    }
+
+    // Validate the variant exists and has stock
+    const variant = product.variants.find(
+      v => v.size === item.variantSize && v.color === item.variantColor
+    );
+    if (!variant) {
+      res.status(400);
+      throw new Error(`Variant (${item.variantSize}/${item.variantColor}) not found for "${product.name}"`);
+    }
+    if (variant.stock < item.quantity) {
+      res.status(400);
+      throw new Error(`Insufficient stock for "${product.name}" (${item.variantSize}/${item.variantColor}). Available: ${variant.stock}`);
+    }
+
+    // Use the authoritative price from the database — never the client
+    const dbPrice = product.price;
+    const lineTotal = dbPrice * item.quantity;
+    subtotal += lineTotal;
+
+    const vendor = product.vendor || null;
     const commissionPercent = vendor?.vendorProfile?.commissionPercent ?? 10;
-    const lineTotal = item.price * item.quantity;
     const commissionAmount = vendor ? Math.round((lineTotal * commissionPercent) / 100) : 0;
     const vendorEarning = vendor ? lineTotal - commissionAmount : 0;
 
-    return {
-      ...item,
+    itemsWithVendor.push({
+      product: product._id,
+      name: product.name,
+      thumbnail: product.images?.[0] || product.thumbnail || '',
+      variantSize: item.variantSize,
+      variantColor: item.variantColor,
+      quantity: item.quantity,
+      price: dbPrice,                      // DB price, not client price
+      cgstPercent: product.taxConfig?.cgstPercent || 6,
+      sgstPercent: product.taxConfig?.sgstPercent || 6,
       vendor: vendor?._id || null,
       commissionPercent,
       commissionAmount,
       vendorEarning,
       itemStatus: 'pending',
       itemStatusHistory: [{ status: 'pending', note: 'Order placed' }],
-    };
-  });
+    });
+  }
+
+  // ── Step 3: Shipping charge — calculated server-side ──
+  const shippingCharge = subtotal > 1000 ? 0 : 99;
+
+  // ── Step 4: Apply coupon discount server-side (if provided) ──
+  let discount = 0;
+  if (couponCode) {
+    const Coupon = require('../models/Coupon');
+    const coupon = await Coupon.findOne({ code: couponCode.toUpperCase(), isActive: true });
+    if (coupon && new Date() <= new Date(coupon.expiryDate) && subtotal >= coupon.minOrderAmount) {
+      if (coupon.discountType === 'percentage') {
+        discount = Math.round((subtotal * coupon.discountValue) / 100);
+      } else {
+        discount = coupon.discountValue;
+      }
+    }
+  }
+
+  // ── Step 5: Final total — the single source of truth ──
+  const totalAmount = subtotal - discount + shippingCharge;
 
   const order = await Order.create({
     user: req.user._id,
     items: itemsWithVendor,
     shippingAddress,
     paymentMethod,
-    paymentStatus: paymentId ? 'paid' : 'pending',
-    paymentId,
+    paymentStatus: 'pending',
     subtotal,
     discount,
     shippingCharge,
@@ -81,7 +134,7 @@ const createOrder = asyncHandler(async (req, res) => {
 
   // Decrement stock for each ordered item
   await Promise.all(
-    items.map(async (item) => {
+    itemsWithVendor.map(async (item) => {
       await Product.updateOne(
         {
           _id: item.product,
@@ -118,7 +171,7 @@ const createOrder = asyncHandler(async (req, res) => {
       email: populatedUser.email,
       orderNumber: order.orderNumber,
       totalAmount: order.totalAmount,
-      items,
+      items: itemsWithVendor,
     }).catch(() => {});
 
     sendAdminNewOrder({
@@ -127,7 +180,7 @@ const createOrder = asyncHandler(async (req, res) => {
       customerEmail: populatedUser.email,
       totalAmount: order.totalAmount,
       paymentMethod,
-      items,
+      items: itemsWithVendor,
     }).catch(() => {});
   }
 

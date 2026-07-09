@@ -153,22 +153,15 @@ const Checkout = () => {
       const orderData = {
         items: cart.items.map(item => ({
           product: item.product._id,
-          name: item.product.name,
-          thumbnail: item.product.images?.[0] || item.product.thumbnail,
           variantSize: item.variantSize,
           variantColor: item.variantColor,
           quantity: item.quantity,
-          price: item.price,
-          cgstPercent: item.cgstPercent,
-          sgstPercent: item.sgstPercent,
+          // No price fields — backend calculates from DB
         })),
         shippingAddress: shipping,
         paymentMethod,
-        subtotal: totalAmount,
-        discount,
-        shippingCharge: shipping_charge,
-        totalAmount: finalAmount,
         customerNotes,
+        couponCode: discount > 0 ? coupon : undefined,
       };
 
       // Step 1 — Create the DB order (paymentStatus: pending for Razorpay)
