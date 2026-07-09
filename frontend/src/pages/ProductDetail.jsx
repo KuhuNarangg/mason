@@ -257,6 +257,7 @@ const ProductDetail = () => {
         image={displayImages[0]} 
         type="product" 
         url={`/product/${product.slug || product._id}`} 
+        product={product}
         schema={[
           generateProductSchema(product),
           generateBreadcrumbSchema([
@@ -279,14 +280,22 @@ const ProductDetail = () => {
               <img 
                 key={idx} 
                 src={img} 
-                alt={`${product.name} ${idx}`} 
+                alt={`${product.name} thumbnail ${idx}`} 
+                title={`${product.name} - View ${idx + 1}`}
                 className={`thumbnail ${activeImage === idx ? 'active' : ''}`}
+                loading="lazy"
                 onClick={() => setActiveImage(idx)}
               />
             ))}
           </div>
           <div className="main-image-wrap">
-            <img src={displayImages[activeImage] || displayImages[0] || 'https://placehold.co/400?text=No+Image'} alt={product.name} className="main-image" />
+            <img 
+              src={displayImages[activeImage] || displayImages[0] || 'https://placehold.co/400?text=No+Image'} 
+              alt={product.name} 
+              title={product.name}
+              className="main-image" 
+              loading="eager"
+            />
           </div>
         </div>
 

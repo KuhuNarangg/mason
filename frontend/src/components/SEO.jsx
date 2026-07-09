@@ -9,7 +9,8 @@ const SEO = ({
   image = "/og-image.jpg", 
   url, 
   schema, 
-  canonical 
+  canonical,
+  product
 }) => {
   const siteUrl = typeof window !== 'undefined' ? window.location.origin : 'https://www.owlstitch.com';
   const fullUrl = url ? `${siteUrl}${url}` : siteUrl;
@@ -42,6 +43,16 @@ const SEO = ({
       <meta name="twitter:title" content={title ? `${title} | ${name}` : name} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={fullImage} />
+
+      {/* Pinterest Rich Pins (Product) */}
+      {type === 'product' && product && (
+        <>
+          <meta property="product:price:amount" content={product.salePrice || product.price} />
+          <meta property="product:price:currency" content="INR" />
+          <meta property="product:brand" content={product.brand || 'Owl Stitch'} />
+          <meta property="product:availability" content={product.stock > 0 ? 'in stock' : 'out of stock'} />
+        </>
+      )}
 
       {/* Schema.org JSON-LD */}
       {schema && (

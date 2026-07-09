@@ -122,9 +122,13 @@ const StorefrontLayout = () => {
           <Route path="/terms-of-use" element={<TermsOfUse />} />
           <Route path="/track-order" element={<TrackOrder />} />
           <Route path="/shipping" element={<Shipping />} />
+          <Route path="/shipping-policy" element={<Shipping />} />
           <Route path="/returns" element={<Returns />} />
+          <Route path="/return-policy" element={<Returns />} />
           <Route path="/privacy" element={<Privacy />} />
+          <Route path="/privacy-policy" element={<Privacy />} />
           <Route path="/about" element={<About />} />
+          <Route path="/why-owl-stitch" element={<About />} />
           <Route path="/size-guide" element={<SizeGuide />} />
           <Route path="/care" element={<GarmentCare />} />
         </Routes>

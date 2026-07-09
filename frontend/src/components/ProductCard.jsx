@@ -59,6 +59,7 @@ const ProductCard = ({ product }) => {
           key={currentImg}
           src={currentImg}
           alt={product.name}
+          title={product.name}
           className={`product-image primary ${imgLoaded ? 'loaded' : ''}`}
           loading="lazy"
           onLoad={() => setImgLoaded(true)}
