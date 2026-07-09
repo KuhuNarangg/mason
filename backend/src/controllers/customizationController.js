@@ -48,7 +48,7 @@ const createGeneralRequest = asyncHandler(async (req, res) => {
     notes: notes || '',
     shippingAddress,
     paymentMethod,
-    status: paymentMethod === 'cod' ? 'approved' : 'pending',
+    status: 'pending',
   });
 
   // Razorpay order creation for online payment
