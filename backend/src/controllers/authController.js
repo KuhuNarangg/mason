@@ -20,6 +20,7 @@ const CODE_LOCK_MINUTES    = 2;
 const safeUser = (u) => ({
   _id: u._id, name: u.name, email: u.email,
   role: u.role, avatar: u.avatar,
+  wishlist: u.wishlist || [],
   vendorStatus: u.vendorStatus,
   vendorProfile: u.role === 'vendor' ? u.vendorProfile : undefined,
 });
