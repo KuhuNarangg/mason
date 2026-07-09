@@ -378,30 +378,13 @@ const ProductDetail = () => {
 
           <div className="action-buttons mt-5">
             {cartItem ? (
-              <div className="qty-controls-wrap">
-                <div className="qty-controls">
-                  <button
-                    className="qty-btn"
-                    onClick={() => cartItem.quantity > 1 ? updateItem(cartItem._id, cartItem.quantity - 1) : removeItem(cartItem._id)}
-                    aria-label="Decrease quantity"
-                  >
-                    −
-                  </button>
-                  <span className="qty-value">{cartItem.quantity}</span>
-                  <button
-                    className="qty-btn"
-                    onClick={() => updateItem(cartItem._id, cartItem.quantity + 1)}
-                    disabled={cartItem.quantity >= (currentVariant?.stock || 1)}
-                    aria-label="Increase quantity"
-                  >
-                    +
-                  </button>
-                </div>
-                <span className="qty-in-bag-label">
-                  <ShoppingBag size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
-                  In your bag
-                </span>
-              </div>
+              <button
+                className="btn btn-primary add-to-bag-btn"
+                onClick={() => navigate('/cart')}
+              >
+                <ShoppingBag size={18} />
+                GO TO BAG
+              </button>
             ) : (
               <button
                 className="btn btn-primary add-to-bag-btn"

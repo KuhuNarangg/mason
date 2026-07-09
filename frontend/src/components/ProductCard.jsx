@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Heart, ShoppingBag, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -7,8 +7,9 @@ import { formatPrice } from '../utils/formatPrice';
 import './ProductCard.css';
 
 const ProductCard = ({ product }) => {
-  const { addToCart } = useCart();
+  const { cart, addToCart } = useCart();
   const { toggle, isWishlisted } = useWishlist();
+  const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
   const [currentImgIndex, setCurrentImgIndex] = useState(0);
@@ -16,10 +17,13 @@ const ProductCard = ({ product }) => {
   const wishlisted = isWishlisted(product._id);
   const inStock = product.variants.some(v => v.stock > 0);
   const firstVariant = product.variants.find(v => v.stock > 0) || product.variants[0];
+  const inCart = cart?.items?.some(i => i.product?._id === product._id);
 
   const handleAddToCart = (e) => {
     e.preventDefault();
-    if (inStock && firstVariant) {
+    if (inCart) {
+      navigate('/cart');
+    } else if (inStock && firstVariant) {
       addToCart(product._id, firstVariant.size, firstVariant.color, 1);
     }
   };
@@ -114,10 +118,10 @@ const ProductCard = ({ product }) => {
           <button
             className="quick-add-btn"
             onClick={handleAddToCart}
-            disabled={!inStock}
+            disabled={!inStock && !inCart}
           >
             <ShoppingBag size={16} />
-            {inStock ? 'Add to Bag' : 'Out of Stock'}
+            {inCart ? 'Go to Bag' : inStock ? 'Add to Bag' : 'Out of Stock'}
           </button>
         </div>
       </div>
