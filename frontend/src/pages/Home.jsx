@@ -434,7 +434,6 @@ const Home = () => {
           <div className="container" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <img src="/home1.jpg" alt="Lifestyle" style={{ width: '100%', borderRadius: '8px' }} loading="lazy" />
             <img src="/home2.jpg" alt="Lifestyle" style={{ width: '100%', borderRadius: '8px' }} loading="lazy" />
-            <img src="/home3.jpg" alt="Lifestyle" style={{ width: '100%', borderRadius: '8px' }} loading="lazy" />
           </div>
         </section>
       </div>
