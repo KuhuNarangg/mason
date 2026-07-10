@@ -120,6 +120,16 @@ exports.generateGoogleMerchantFeed = async (req, res, next) => {
         item.ele('g:gtin').txt(product.sku).up(); // or mpn
         item.ele('g:mpn').txt(product.sku).up();
       }
+
+      // Google Product Taxonomy Mapping
+      let taxonomyId = '166'; // Default: Apparel & Accessories > Clothing
+      if (product.type) {
+        const type = product.type.toLowerCase();
+        if (type.includes('dress')) taxonomyId = '2271'; // Dresses
+        else if (type.includes('top') || type.includes('shirt') || type.includes('kurta')) taxonomyId = '212'; // Shirts & Tops
+        else if (type.includes('hoodie')) taxonomyId = '212'; // Activewear/Tops
+      }
+      item.ele('g:google_product_category').txt(taxonomyId).up();
     });
 
     const xml = feed.end({ prettyPrint: true });

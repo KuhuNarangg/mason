@@ -447,6 +447,39 @@ const CategoryPage = () => {
         </div>
       </div>
 
+      {/* GEO Comparison Block */}
+      <section className="category-geo-block mt-5 pt-4" style={{ borderTop: '1px solid #eee' }}>
+        <h3 className="font-heading mb-4" style={{ fontSize: '1.5rem', textAlign: 'center' }}>Fabric Guide: {genderTitle}</h3>
+        <div className="table-responsive">
+          <table className="table" style={{ borderCollapse: 'collapse', width: '100%', fontSize: '0.9rem' }}>
+            <thead>
+              <tr style={{ background: '#fdfaf6', borderBottom: '2px solid var(--champagne)' }}>
+                <th style={{ padding: '12px', textAlign: 'left' }}>Fabric</th>
+                <th style={{ padding: '12px', textAlign: 'left' }}>Best For</th>
+                <th style={{ padding: '12px', textAlign: 'left' }}>Care Requirements</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style={{ borderBottom: '1px solid #eee' }}>
+                <td style={{ padding: '12px' }}><strong>Pure Silk</strong></td>
+                <td style={{ padding: '12px', color: '#666' }}>Evening wear, luxury events, winter layers</td>
+                <td style={{ padding: '12px', color: '#666' }}>Dry clean only, store in cloth bags</td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid #eee' }}>
+                <td style={{ padding: '12px' }}><strong>Organic Cotton</strong></td>
+                <td style={{ padding: '12px', color: '#666' }}>Daily wear, summer, casual outings</td>
+                <td style={{ padding: '12px', color: '#666' }}>Machine wash cold, tumble dry low</td>
+              </tr>
+              <tr>
+                <td style={{ padding: '12px' }}><strong>Linen Blends</strong></td>
+                <td style={{ padding: '12px', color: '#666' }}>Resort wear, professional summer wear</td>
+                <td style={{ padding: '12px', color: '#666' }}>Hand wash or gentle cycle, iron while damp</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       {/* Cross-Linking Section */}
       <section className="category-cross-links mt-5 pt-4" style={{ borderTop: '1px solid #eee' }}>
         <h3 className="font-heading mb-3" style={{ fontSize: '1.5rem', textAlign: 'center' }}>Discover More</h3>

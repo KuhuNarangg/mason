@@ -146,6 +146,12 @@ const About = () => {
         <Link to="/category/women" className="btn btn-primary">
           Shop The Collection
         </Link>
+        {/* Reusable CTA */}
+        <div className="cta-banner mt-5 text-center p-5 reveal-up" style={{ background: 'var(--champagne)', borderRadius: '12px' }}>
+          <h3 className="font-heading mb-3">Ready to design your own?</h3>
+          <p className="text-muted mb-4">Experience our quality firsthand with a custom-tailored outfit.</p>
+          <Link to="/custom-tailoring" className="btn btn-primary">Customize Now</Link>
+        </div>
       </section>
 
     </div>

@@ -530,7 +530,34 @@ const ProductDetail = () => {
 
           <div className="product-description mt-5">
             <h3>Product Details</h3>
-            <p>{product.description}</p>
+            <p>
+              {(() => {
+                const desc = product.description || '';
+                // Auto-link keywords for internal SEO
+                const keywords = {
+                  'silk': '/category/women?types=kurta',
+                  'cotton': '/category/women?types=top',
+                  'dresses': '/category/women?types=dress',
+                  'custom tailoring': '/custom-tailoring'
+                };
+                
+                let renderedDesc = [desc];
+                Object.keys(keywords).forEach(kw => {
+                  const regex = new RegExp(`\\b(${kw})\\b`, 'gi');
+                  renderedDesc = renderedDesc.flatMap(part => {
+                    if (typeof part !== 'string') return part;
+                    const splits = part.split(regex);
+                    return splits.map((s, i) => {
+                      if (s.toLowerCase() === kw) {
+                        return <Link key={`${kw}-${i}`} to={keywords[kw]} style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>{s}</Link>;
+                      }
+                      return s;
+                    });
+                  });
+                });
+                return renderedDesc;
+              })()}
+            </p>
             <ul className="details-list mt-3 text-muted">
               <li>Premium quality fabric</li>
               <li>Style: {product.type}</li>
@@ -624,14 +651,30 @@ const ProductDetail = () => {
       </div>
 
       {relatedProducts.length > 0 && (
-        <section className="related-products-section">
+        <section className="related-products-section mt-5" style={{ background: '#fdfaf6', padding: '3rem 0', borderTop: '1px solid #eee' }}>
+          <div className="section-header-center">
+            <h2 className="section-title text-center">Complete The Look</h2>
+            <div className="ethnic-accent"></div>
+            <p className="section-subtitle text-center text-muted">Curated outfit suggestions to pair with this piece</p>
+          </div>
+          <div className="premium-product-grid px-4">
+            {/* Show up to 4 related products as outfit suggestions */}
+            {relatedProducts.slice(0, 4).map(p => (
+              <ProductCard key={p._id} product={p} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {relatedProducts.length > 4 && (
+        <section className="related-products-section mt-5">
           <div className="section-header-center">
             <h2 className="section-title text-center">You May Also Like</h2>
             <div className="ethnic-accent"></div>
-            <p className="section-subtitle text-center text-muted">Handpicked recommendations based on this product</p>
+            <p className="section-subtitle text-center text-muted">More pieces from this collection</p>
           </div>
-          <div className="premium-product-grid">
-            {relatedProducts.map(p => (
+          <div className="premium-product-grid px-4">
+            {relatedProducts.slice(4, 8).map(p => (
               <ProductCard key={p._id} product={p} />
             ))}
           </div>

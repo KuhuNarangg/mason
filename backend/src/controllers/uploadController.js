@@ -15,20 +15,33 @@ const uploadImage = asyncHandler(async (req, res) => {
     throw new Error('No file provided');
   }
 
+  // Generate an SEO-friendly filename if a slug or name is provided
+  const baseName = req.body.slug || req.body.name ? (req.body.slug || req.body.name).toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'product-image';
+  const timestamp = Date.now();
+  const publicId = `${baseName}-${timestamp}`;
+
   try {
     // Upload to Cloudinary
     const result = await cloudinary.uploader.upload_stream(
       {
         folder: 'clothing-web/products',
         resource_type: 'auto',
+        public_id: publicId,
       },
       (error, result) => {
         if (error) {
           return res.status(error.http_code || 500).json({ success: false, message: `Cloudinary error: ${error.message}` });
         }
+        
+        // Inject f_auto,q_auto for optimal WebP/AVIF delivery and performance
+        let optimizedUrl = result.secure_url;
+        if (optimizedUrl.includes('/upload/')) {
+          optimizedUrl = optimizedUrl.replace('/upload/', '/upload/f_auto,q_auto/');
+        }
+
         res.json({
           success: true,
-          url: result.secure_url,
+          url: optimizedUrl,
           publicId: result.public_id,
         });
       }
@@ -40,3 +53,4 @@ const uploadImage = asyncHandler(async (req, res) => {
 });
 
 module.exports = { uploadImage };
+

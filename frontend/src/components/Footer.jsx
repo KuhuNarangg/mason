@@ -68,6 +68,19 @@ const Footer = () => {
 
         </div>
 
+        {/* Local SEO Cities */}
+        <div className="m-footer__local-seo mt-4 pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+          <h4 className="m-footer__title mb-3" style={{ fontSize: '0.9rem' }}>Shop Custom Tailoring Across India</h4>
+          <div className="d-flex flex-wrap gap-3" style={{ fontSize: '0.8rem' }}>
+            <Link to="/custom-tailoring?city=delhi" className="text-muted text-decoration-none hover-white">Custom Tailoring in Delhi</Link>
+            <Link to="/custom-tailoring?city=mumbai" className="text-muted text-decoration-none hover-white">Custom Tailoring in Mumbai</Link>
+            <Link to="/custom-tailoring?city=bangalore" className="text-muted text-decoration-none hover-white">Custom Tailoring in Bangalore</Link>
+            <Link to="/custom-tailoring?city=hyderabad" className="text-muted text-decoration-none hover-white">Custom Tailoring in Hyderabad</Link>
+            <Link to="/custom-tailoring?city=chennai" className="text-muted text-decoration-none hover-white">Custom Tailoring in Chennai</Link>
+            <Link to="/custom-tailoring?city=pune" className="text-muted text-decoration-none hover-white">Custom Tailoring in Pune</Link>
+          </div>
+        </div>
+
         {/* Footer Bottom */}
         <div className="m-footer__bottom">
           <p className="m-footer__copyright">&copy; {new Date().getFullYear()} Owl Stitch by Mason. All rights reserved.</p>

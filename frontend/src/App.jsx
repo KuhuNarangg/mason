@@ -34,6 +34,7 @@ import SizeGuide from './pages/policies/SizeGuide';
 import GarmentCare from './pages/policies/GarmentCare';
 import FabricGuide from './pages/policies/FabricGuide';
 import CustomizationProcess from './pages/policies/CustomizationProcess';
+import QualityStandards from './pages/policies/QualityStandards';
 import Catalogue from './pages/Catalogue';
 import NotFound from './pages/NotFound';
 import Sitemap from './pages/Sitemap';
@@ -138,7 +139,7 @@ const StorefrontLayout = () => {
           <Route path="/privacy-policy" element={<Privacy />} />
           <Route path="/about" element={<About />} />
           <Route path="/why-owl-stitch" element={<About />} />
-          <Route path="/quality-standards" element={<About />} />
+          <Route path="/quality-standards" element={<QualityStandards />} />
           <Route path="/size-guide" element={<SizeGuide />} />
           <Route path="/care" element={<GarmentCare />} />
           <Route path="/fabric-guide" element={<FabricGuide />} />
