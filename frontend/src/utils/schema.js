@@ -184,3 +184,63 @@ export const generateFAQSchema = (faqs) => {
     }))
   };
 };
+
+export const generateProductGroupSchema = (product) => {
+  if (!product?.variants || product.variants.length === 0) return null;
+
+  const prices = product.variants.map(v => v.price || product.price).filter(Boolean);
+  const lowPrice = Math.min(...prices);
+  const highPrice = Math.max(...prices);
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "ProductGroup",
+    "name": product.name,
+    "description": product.description || product.seoDescription,
+    "url": `https://www.owlstitch.com/product/${product.slug || product._id}`,
+    "brand": {
+      "@type": "Brand",
+      "name": product.brand || "Owl Stitch"
+    },
+    "productGroupID": product.sku || product._id,
+    "vpiies": "color",
+    "hasVariant": product.variants.map(v => ({
+      "@type": "Product",
+      "name": `${product.name} - ${v.size} / ${v.color}`,
+      "color": v.color,
+      "size": v.size,
+      "sku": `${product.sku || product._id}-${v.size}-${v.color}`,
+      "offers": {
+        "@type": "Offer",
+        "priceCurrency": "INR",
+        "price": v.price || product.price,
+        "availability": v.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
+      }
+    })),
+    "offers": {
+      "@type": "AggregateOffer",
+      "lowPrice": lowPrice,
+      "highPrice": highPrice,
+      "priceCurrency": "INR",
+      "offerCount": product.variants.length,
+      "availability": product.variants.some(v => v.stock > 0) ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
+    }
+  };
+};
+
+export const generateImageObjectSchema = (product) => {
+  if (!product?.images || product.images.length === 0) return null;
+
+  return product.images.map(img => ({
+    "@context": "https://schema.org",
+    "@type": "ImageObject",
+    "contentUrl": img.startsWith('http') ? img : `https://www.owlstitch.com${img}`,
+    "name": product.name,
+    "description": `${product.name} by ${product.brand || 'Owl Stitch'}`,
+    "representativeOfPage": false,
+    "creator": {
+      "@type": "Organization",
+      "name": "Owl Stitch by Mason"
+    }
+  }));
+};

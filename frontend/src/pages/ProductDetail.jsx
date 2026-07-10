@@ -8,7 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { formatPrice } from '../utils/formatPrice';
 import ProductCard from '../components/ProductCard';
 import SEO from '../components/SEO';
-import { generateProductSchema, generateBreadcrumbSchema } from '../utils/schema';
+import { generateProductSchema, generateBreadcrumbSchema, generateProductGroupSchema, generateImageObjectSchema } from '../utils/schema';
 import './ProductDetail.css';
 
 // Default size guides by type + gender
@@ -264,7 +264,9 @@ const ProductDetail = () => {
             { name: "Home", path: "/" },
             { name: product.gender, path: `/category/${product.gender}` },
             { name: product.name, path: `/product/${product.slug || product._id}` }
-          ])
+          ]),
+          generateProductGroupSchema(product),
+          ...(generateImageObjectSchema(product) || [])
         ]}
       />
       <div className="breadcrumbs mb-4">

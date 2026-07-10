@@ -10,7 +10,10 @@ const SEO = ({
   url, 
   schema, 
   canonical,
-  product
+  product,
+  noindex = false,
+  prevPage,
+  nextPage
 }) => {
   const siteUrl = typeof window !== 'undefined' ? window.location.origin : 'https://www.owlstitch.com';
   const fullUrl = url ? `${siteUrl}${url}` : siteUrl;
@@ -23,6 +26,13 @@ const SEO = ({
       <title>{title ? `${title} | ${name}` : name}</title>
       <meta name='description' content={description} />
       <link rel="canonical" href={canonicalUrl} />
+      
+      {/* Faceted navigation: noindex filtered/parameterized pages */}
+      {noindex && <meta name="robots" content="noindex, follow" />}
+      
+      {/* Pagination SEO: rel=prev / rel=next */}
+      {prevPage && <link rel="prev" href={`${siteUrl}${prevPage}`} />}
+      {nextPage && <link rel="next" href={`${siteUrl}${nextPage}`} />}
       
       {/* Hreflang Tags for international SEO strategy */}
       <link rel="alternate" hreflang="en-IN" href={`https://www.owlstitch.in${url || ''}`} />
@@ -54,11 +64,18 @@ const SEO = ({
         </>
       )}
 
-      {/* Schema.org JSON-LD */}
-      {schema && (
-        <script type="application/ld+json">
-          {JSON.stringify(schema)}
-        </script>
+      {/* Schema.org JSON-LD — supports single schema or an array */}
+      {schema && (Array.isArray(schema)
+        ? schema.filter(Boolean).map((s, i) => (
+            <script key={i} type="application/ld+json">
+              {JSON.stringify(s)}
+            </script>
+          ))
+        : (
+            <script type="application/ld+json">
+              {JSON.stringify(schema)}
+            </script>
+          )
       )}
     </Helmet>
   );

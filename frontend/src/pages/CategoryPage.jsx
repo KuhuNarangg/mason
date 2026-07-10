@@ -197,14 +197,25 @@ const CategoryPage = () => {
 
   const categoryDesc = `Explore our premium ${genderTitle.toLowerCase()}. Uncompromising quality and elevated silhouettes designed for the modern woman. Shop the latest trends, discover luxurious fabrics, and find your perfect fit with our exclusive buying guide.`;
 
+  // Faceted navigation SEO: if any filters are active, noindex the page and
+  // point the canonical back to the clean base URL to prevent index bloat.
+  const hasActiveFilters = selectedTypes.length > 0 || selectedBrands.length > 0 || 
+    selectedColors.length > 0 || selectedSizes.length > 0 || 
+    priceRange.min || priceRange.max || discountRange.min || discountRange.max || 
+    minRating || inStockOnly || selectedCategories.length > 0 || searchQuery;
+
+  const baseUrl = `/category/${gender || 'all'}`;
+
   return (
     <div className="container mt-4 mb-5 fade-in category-page-container">
       <SEO 
         title={genderTitle}
         description={categoryDesc}
-        url={`/category/${gender || 'all'}`}
+        url={baseUrl}
+        canonical={baseUrl}
         type="website"
-        schema={generateCollectionSchema(genderTitle, categoryDesc, `https://www.owlstitch.com/category/${gender || 'all'}`, products)}
+        noindex={!!hasActiveFilters}
+        schema={generateCollectionSchema(genderTitle, categoryDesc, `https://www.owlstitch.com${baseUrl}`, products)}
       />
       {/* Dynamic Header */}
       <div className="category-header d-flex justify-between align-center mb-5 reveal active">
