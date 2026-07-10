@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
 import api from '../utils/api';
 import ProductCard from '../components/ProductCard';
+import Breadcrumbs from '../components/Breadcrumbs';
 import SEO from '../components/SEO';
 import { generateCollectionSchema } from '../utils/schema';
 import './CategoryPage.css';
@@ -217,6 +218,11 @@ const CategoryPage = () => {
         noindex={!!hasActiveFilters}
         schema={generateCollectionSchema(genderTitle, categoryDesc, `https://www.owlstitch.com${baseUrl}`, products)}
       />
+      <Breadcrumbs crumbs={[
+        { name: "Home", path: "/" },
+        { name: "Collections", path: "/category/all" },
+        { name: genderTitle, path: baseUrl }
+      ]} />
       {/* Dynamic Header */}
       <div className="category-header d-flex justify-between align-center mb-5 reveal active">
         <div>
@@ -440,6 +446,19 @@ const CategoryPage = () => {
           )}
         </div>
       </div>
+
+      {/* Cross-Linking Section */}
+      <section className="category-cross-links mt-5 pt-4" style={{ borderTop: '1px solid #eee' }}>
+        <h3 className="font-heading mb-3" style={{ fontSize: '1.5rem', textAlign: 'center' }}>Discover More</h3>
+        <p className="text-center text-muted mb-4">Complete your look with our other premium collections</p>
+        <div className="d-flex flex-wrap justify-center gap-3">
+          <Link to="/category/women" className="btn btn-outline" style={{ borderRadius: '30px' }}>Women's Collection</Link>
+          <Link to="/category/men" className="btn btn-outline" style={{ borderRadius: '30px' }}>Men's Collection</Link>
+          <Link to="/custom-tailoring" className="btn btn-outline" style={{ borderRadius: '30px', borderColor: 'var(--color-primary)', color: 'var(--color-primary)' }}>Custom Tailoring</Link>
+          <Link to="/custom-couple-tshirts" className="btn btn-outline" style={{ borderRadius: '30px' }}>Couple Outfits</Link>
+          <Link to="/customized-dresses" className="btn btn-outline" style={{ borderRadius: '30px' }}>Custom Dresses</Link>
+        </div>
+      </section>
     </div>
   );
 };

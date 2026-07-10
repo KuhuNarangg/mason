@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import SEO from '../components/SEO';
+import Breadcrumbs from '../components/Breadcrumbs';
 import { generateOrganizationSchema } from '../utils/schema';
 import './About.css';
 
@@ -31,6 +32,13 @@ const About = () => {
         schema={generateOrganizationSchema()}
       />
       
+      <div className="container mt-4" style={{ position: 'relative', zIndex: 10 }}>
+        <Breadcrumbs crumbs={[
+          { name: "Home", path: "/" },
+          { name: "About Us", path: "/about" }
+        ]} />
+      </div>
+
       {/* Hero Section */}
       <section className="about-hero">
         <div className="about-hero-content reveal-up">

@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import api from '../utils/api';
 import SEO from '../components/SEO';
+import Breadcrumbs from '../components/Breadcrumbs';
 import './Customization.css';
 import toast from 'react-hot-toast';
 import { loadRazorpayScript, openRazorpayCheckout } from '../utils/razorpay';
@@ -352,6 +353,10 @@ const Customization = () => {
         url={location.pathname}
         type="website"
       />
+      <Breadcrumbs crumbs={[
+        { name: "Home", path: "/" },
+        { name: seoData.title, path: location.pathname }
+      ]} />
       {/* Header */}
       <div className="cust-header">
         <h1>Create Your Custom Design</h1>

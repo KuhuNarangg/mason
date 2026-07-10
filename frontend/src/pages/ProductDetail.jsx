@@ -7,6 +7,7 @@ import { useWishlist } from '../context/WishlistContext';
 import { useAuth } from '../context/AuthContext';
 import { formatPrice } from '../utils/formatPrice';
 import ProductCard from '../components/ProductCard';
+import Breadcrumbs from '../components/Breadcrumbs';
 import SEO from '../components/SEO';
 import { generateProductSchema, generateBreadcrumbSchema, generateProductGroupSchema, generateImageObjectSchema } from '../utils/schema';
 import './ProductDetail.css';
@@ -102,6 +103,7 @@ const ProductDetail = () => {
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
   const [relatedProducts, setRelatedProducts] = useState([]);
+  const [recentlyViewed, setRecentlyViewed] = useState([]);
   const [showSizeGuide, setShowSizeGuide] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewRating, setReviewRating] = useState(5);
@@ -143,6 +145,26 @@ const ProductDetail = () => {
           const relRes = await api.get(`/products/${data.product._id}/related?limit=8`);
           setRelatedProducts(relRes.data.products);
         } catch { setRelatedProducts([]); }
+
+        // Recently Viewed Logic
+        try {
+          const viewed = JSON.parse(localStorage.getItem('recentlyViewed') || '[]');
+          const newViewed = viewed.filter(p => p._id !== data.product._id);
+          newViewed.unshift({
+            _id: data.product._id,
+            name: data.product.name,
+            slug: data.product.slug || data.product._id,
+            thumbnail: data.product.images?.[0] || data.product.thumbnail,
+            price: data.product.price,
+            salePrice: data.product.salePrice,
+            brand: data.product.brand
+          });
+          const limitedViewed = newViewed.slice(0, 10); // Keep last 10
+          localStorage.setItem('recentlyViewed', JSON.stringify(limitedViewed));
+          setRecentlyViewed(limitedViewed.filter(p => p._id !== data.product._id)); // Don't show current product in recently viewed
+        } catch (err) {
+          console.error('Recently viewed error', err);
+        }
 
       } catch (err) {
         console.error('Failed to fetch product', err);
@@ -269,11 +291,11 @@ const ProductDetail = () => {
           ...(generateImageObjectSchema(product) || [])
         ]}
       />
-      <div className="breadcrumbs mb-4">
-        <Link to="/">Home</Link> / 
-        <Link to={`/category/${product.gender}`}> {product.gender} </Link> / 
-        <span className="text-muted"> {product.name}</span>
-      </div>
+      <Breadcrumbs crumbs={[
+        { name: "Home", path: "/" },
+        { name: product.gender, path: `/category/${product.gender}` },
+        { name: product.name, path: `/product/${product.slug || product._id}` }
+      ]} />
 
       <div className="product-detail-grid">
         <div className="product-gallery">
@@ -615,6 +637,22 @@ const ProductDetail = () => {
           </div>
         </section>
       )}
+
+      {recentlyViewed.length > 0 && (
+        <section className="related-products-section mt-5">
+          <div className="section-header-center">
+            <h2 className="section-title text-center">Recently Viewed</h2>
+            <div className="ethnic-accent"></div>
+            <p className="section-subtitle text-center text-muted">Pick up where you left off</p>
+          </div>
+          <div className="premium-product-grid">
+            {recentlyViewed.map(p => (
+              <ProductCard key={p._id} product={p} />
+            ))}
+          </div>
+        </section>
+      )}
+
       {showSizeGuide && (
         <div className="size-guide-overlay" onClick={() => setShowSizeGuide(false)}>
           <div className="size-guide-modal" onClick={(e) => e.stopPropagation()}>
