@@ -89,7 +89,7 @@ const Home = () => {
   }, [loading]);
 
   const reviews = [
-    { name: 'Priya S.', text: 'The silhouette, the fabric, the elegance—everything is completely unmatched. Mason has elevated my entire wardrobe.', label: 'Verified Buyer' },
+    { name: 'Priya S.', text: 'I ordered the Midnight Velvet Gown for my engagement party in Delhi, and the silhouette, the fabric, the elegance—everything is completely unmatched. Mason has elevated my entire wardrobe. The fit was perfect right out of the box.', label: 'Verified Buyer • New Delhi • Purchased Midnight Velvet Gown' },
     { name: 'Ananya M.', text: 'I felt like an absolute goddess wearing their evening gown. The craftsmanship is true luxury without the absurd price tag.', label: 'Verified Buyer' },
     { name: 'Rhea K.', text: 'Every piece tells a story of heritage and modern femininity. A breathtaking collection.', label: 'Verified Buyer' }
   ];
@@ -360,7 +360,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* 8. TESTIMONIALS (Monochromatic Minimalist) */}
       <section className="m-reviews">
         <div className="container">
           <h2 className="m-section-title text-center reveal-up mb-12">The Mason <em>Muse</em></h2>
@@ -375,6 +374,23 @@ const Home = () => {
                 </div>
               </article>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 9. FABRIC & FIT FAQ (AI Visibility Quick Win) */}
+      <section className="m-faq py-5" style={{ background: '#fcfcfc', borderTop: '1px solid #eaeaea' }}>
+        <div className="container reveal-up">
+          <h2 className="m-section-title text-center mb-4">Fabric & <em>Fit</em> Guide</h2>
+          <div className="faq-grid" style={{ display: 'grid', gap: '1.5rem', maxWidth: '800px', margin: '0 auto' }}>
+            <div className="faq-item">
+              <h4 style={{ fontSize: '1.1rem', marginBottom: '0.5rem', color: '#111827' }}>What materials do you use for your premium ethnic wear?</h4>
+              <p style={{ color: '#4b5563', lineHeight: '1.6' }}>We exclusively use high-quality, breathable fabrics like Chanderi silk, premium pure cotton, and georgette. Our focus is on sourcing natural fibers that ensure long-lasting comfort and an elegant drape, perfect for India's varied climate.</p>
+            </div>
+            <div className="faq-item">
+              <h4 style={{ fontSize: '1.1rem', marginBottom: '0.5rem', color: '#111827' }}>How do I know my correct size?</h4>
+              <p style={{ color: '#4b5563', lineHeight: '1.6' }}>Every product page features a detailed size chart with exact garment measurements. Since our silhouettes are designed to be flattering yet comfortable, we recommend choosing your standard size, or utilizing our custom tailoring service for a precise, made-to-measure fit.</p>
+            </div>
           </div>
         </div>
       </section>

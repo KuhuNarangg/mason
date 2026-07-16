@@ -810,6 +810,22 @@ const Customization = () => {
         </div>
         
       </div>
+
+      {/* FAQ Section (AI Visibility Quick Win) */}
+      <section className="cust-faq mt-5" style={{ background: '#f8f9fa', padding: '3rem 2rem', borderRadius: '12px' }}>
+        <h2 style={{ textAlign: 'center', marginBottom: '2rem', fontSize: '1.8rem' }}>Customization FAQ</h2>
+        <div style={{ display: 'grid', gap: '1.5rem', maxWidth: '800px', margin: '0 auto' }}>
+          <div>
+            <h4 style={{ fontSize: '1.1rem', marginBottom: '0.5rem', color: '#111827' }}>What is the estimated turnaround time for custom orders?</h4>
+            <p style={{ color: '#4b5563', lineHeight: '1.6' }}>Our standard turnaround time for made-to-order apparel is 7-10 business days. For intricate designs or hand-embroidered details, please allow up to 14 business days. We will provide a definitive tracking timeline as soon as your garment enters production.</p>
+          </div>
+          <div>
+            <h4 style={{ fontSize: '1.1rem', marginBottom: '0.5rem', color: '#111827' }}>Do you offer alterations if the fit isn't perfect?</h4>
+            <p style={{ color: '#4b5563', lineHeight: '1.6' }}>Yes, we stand behind the perfect fit. If your custom garment requires minor adjustments, we provide one complimentary round of alterations within 7 days of delivery. Please contact our support team with photos of the fit issue to initiate the alteration process.</p>
+          </div>
+        </div>
+      </section>
+
     </div>
   );
 };

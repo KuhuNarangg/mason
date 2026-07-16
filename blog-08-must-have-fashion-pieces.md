@@ -19,6 +19,11 @@ structuredDataType: "Article"
 
 ---
 
+*By **Neha Sharma**, Lead Fashion Designer at Owl Stitch*  
+*With over 12 years of experience in textile design and garment construction for top Indian luxury houses, Neha specializes in blending traditional Indian aesthetics with modern, functional silhouettes.*
+
+---
+
 Every year brings new fashion trends, but most of them are fleeting. The real skill in building a great wardrobe is distinguishing between pieces that are merely trendy and pieces that are genuinely essential — garments that will earn their place in your wardrobe by being worn repeatedly across multiple contexts and occasions.
 
 This guide covers the must-have fashion pieces for Indian women in 2026 — pieces that are both on-trend and genuinely useful, selected from the perspective of a woman navigating modern Indian life across its full spectrum: professional, social, festive, and everyday.
