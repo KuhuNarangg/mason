@@ -97,8 +97,8 @@ const Home = () => {
   return (
     <div className="m-home">
       <SEO 
-        title="Premium Ethnic & Western Wear" 
-        description="Discover luxury ethnic and contemporary women's wear at Owl Stitch by Mason. Explore handcrafted dresses, gowns, kurtis, and customized outfits." 
+        title="Custom Tailoring & Heritage Ethnic Wear | Owl Stitch by Mason" 
+        description="Discover premium custom tailoring, heritage ethnic outfits, and modern women's wear at Owl Stitch by Mason. Shop handcrafted dresses and custom designs." 
         url="/" 
         schema={[generateOrganizationSchema(), generateWebSiteSchema()]} 
       />
@@ -185,8 +185,8 @@ const Home = () => {
       <section className="m-collections container">
         <div className="m-collections__grid">
           <div className="m-col-text reveal-up">
-            <h2 className="m-section-title">Curated <em>Elegance</em></h2>
-            <p className="m-col-text__desc">Discover our signature edits, designed to empower and inspire. From breathtaking evening wear to timeless heritage pieces, find the silhouette that speaks to your soul.</p>
+            <h2 className="m-section-title">Custom <em>Tailoring</em> & Heritage Wear</h2>
+            <p className="m-col-text__desc">Discover our signature edits by Mason, designed to empower and inspire. From breathtaking evening wear to timeless heritage pieces, find the silhouette that speaks to your soul.</p>
             <Link to="/category/all" className="btn-ghost">Explore All Collections</Link>
           </div>
 
