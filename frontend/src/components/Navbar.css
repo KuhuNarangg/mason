@@ -54,6 +54,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  transform: translateY(-5px);
 }
 
 .m-navbar__nav {
@@ -485,6 +486,9 @@
 }
 
 @media (min-width: 768px) {
+  .m-navbar__center {
+    transform: translateY(-8px);
+  }
   .m-navbar__logo-img-center {
     height: 105px;
   }
