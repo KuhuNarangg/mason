@@ -13,7 +13,7 @@ const Footer = () => {
           {/* Column 1: Brand */}
           <div className="m-footer__col m-footer__col--brand">
             <Link to="/" className="m-footer__logo" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem' }}>
-              <img src="/logofinalnobg.png" alt="Mason Logo" style={{ height: '68px', width: 'auto', objectFit: 'contain' }} />
+              <img src="/logofinalnobg.png" alt="Mason Logo" style={{ height: '76px', width: 'auto', objectFit: 'contain' }} />
               <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', lineHeight: 1.1 }}>
                 <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.65rem', fontWeight: 600, letterSpacing: '0.18em', color: 'var(--ink)', textTransform: 'uppercase', display: 'block' }}>Owl</span>
                 <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.1rem', fontWeight: 600, letterSpacing: '0.18em', color: 'var(--ink)', textTransform: 'uppercase', display: 'block' }}>Stitch</span>
