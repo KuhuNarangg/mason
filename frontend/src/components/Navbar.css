@@ -466,7 +466,7 @@
 
 /* Responsive Logo styles */
 .m-navbar__logo-img-center {
-  height: 58px;
+  height: 75px;
   width: auto;
   object-fit: contain;
   display: block;
@@ -474,27 +474,27 @@
 }
 
 .m-logo-text-owl {
-  font-size: 1.3rem !important;
+  font-size: 1.5rem !important;
 }
 .m-logo-text-stitch {
-  font-size: 0.9rem !important;
+  font-size: 1.05rem !important;
 }
 .m-logo-text-by {
-  font-size: 0.55rem !important;
+  font-size: 0.65rem !important;
 }
 
 @media (min-width: 768px) {
   .m-navbar__logo-img-center {
-    height: 78px;
+    height: 98px;
   }
   .m-logo-text-owl {
-    font-size: 1.65rem !important;
+    font-size: 2.1rem !important;
   }
   .m-logo-text-stitch {
-    font-size: 1.1rem !important;
+    font-size: 1.4rem !important;
   }
   .m-logo-text-by {
-    font-size: 0.65rem !important;
+    font-size: 0.8rem !important;
   }
 }
 

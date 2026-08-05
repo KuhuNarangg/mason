@@ -12,12 +12,12 @@ const Footer = () => {
           
           {/* Column 1: Brand */}
           <div className="m-footer__col m-footer__col--brand">
-            <Link to="/" className="m-footer__logo" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem' }}>
-              <img src="/logofinalnobg.png" alt="Mason Logo" style={{ height: '78px', width: 'auto', objectFit: 'contain' }} />
+            <Link to="/" className="m-footer__logo" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1rem' }}>
+              <img src="/logofinalnobg.png" alt="Mason Logo" style={{ height: '98px', width: 'auto', objectFit: 'contain' }} />
               <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', lineHeight: 1.1 }}>
-                <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.65rem', fontWeight: 600, letterSpacing: '0.18em', color: 'var(--ink)', textTransform: 'uppercase', display: 'block' }}>Owl</span>
-                <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.1rem', fontWeight: 600, letterSpacing: '0.18em', color: 'var(--ink)', textTransform: 'uppercase', display: 'block' }}>Stitch</span>
-                <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '0.65rem', fontWeight: 300, fontStyle: 'italic', color: 'var(--ink)', opacity: 0.72, letterSpacing: '0.18em', display: 'block', marginTop: '2px' }}>by Mason</span>
+                <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '2.1rem', fontWeight: 600, letterSpacing: '0.18em', color: 'var(--ink)', textTransform: 'uppercase', display: 'block' }}>Owl</span>
+                <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.4rem', fontWeight: 600, letterSpacing: '0.18em', color: 'var(--ink)', textTransform: 'uppercase', display: 'block' }}>Stitch</span>
+                <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '0.8rem', fontWeight: 300, fontStyle: 'italic', color: 'var(--ink)', opacity: 0.72, letterSpacing: '0.18em', display: 'block', marginTop: '2px' }}>by Mason</span>
               </div>
             </Link>
             <p className="m-footer__desc">

@@ -365,12 +365,12 @@ const Navbar = () => {
       <div className={`m-mobile-veil ${mobileMenuOpen ? 'show' : ''}`} onClick={() => setMobileMenuOpen(false)} />
       <aside className={`m-mobile-menu ${mobileMenuOpen ? 'show' : ''}`}>
         <div className="m-mobile-menu__head">
-          <Link to="/" onClick={() => setMobileMenuOpen(false)} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <img src="/logofinalnobg.png" alt="Mason Logo" style={{ height: '78px', width: 'auto', objectFit: 'contain' }} />
+          <Link to="/" onClick={() => setMobileMenuOpen(false)} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <img src="/logofinalnobg.png" alt="Mason Logo" style={{ height: '98px', width: 'auto', objectFit: 'contain' }} />
             <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', lineHeight: 1.1 }}>
-              <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.65rem', fontWeight: 600, letterSpacing: '0.18em', color: 'var(--ink)', textTransform: 'uppercase', display: 'block' }}>Owl</span>
-              <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.1rem', fontWeight: 600, letterSpacing: '0.18em', color: 'var(--ink)', textTransform: 'uppercase', display: 'block' }}>Stitch</span>
-              <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '0.65rem', fontWeight: 300, fontStyle: 'italic', color: 'var(--ink)', opacity: 0.72, letterSpacing: '0.18em', display: 'block', marginTop: '2px' }}>by Mason</span>
+              <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '2.1rem', fontWeight: 600, letterSpacing: '0.18em', color: 'var(--ink)', textTransform: 'uppercase', display: 'block' }}>Owl</span>
+              <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.4rem', fontWeight: 600, letterSpacing: '0.18em', color: 'var(--ink)', textTransform: 'uppercase', display: 'block' }}>Stitch</span>
+              <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '0.8rem', fontWeight: 300, fontStyle: 'italic', color: 'var(--ink)', opacity: 0.72, letterSpacing: '0.18em', display: 'block', marginTop: '2px' }}>by Mason</span>
             </div>
           </Link>
           <button className="btn-icon" onClick={() => setMobileMenuOpen(false)}>
