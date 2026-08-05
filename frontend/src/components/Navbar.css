@@ -466,7 +466,7 @@
 
 /* Responsive Logo styles */
 .m-navbar__logo-img-center {
-  height: 56px;
+  height: 66px;
   width: auto;
   object-fit: contain;
   display: block;
@@ -485,7 +485,7 @@
 
 @media (min-width: 768px) {
   .m-navbar__logo-img-center {
-    height: 76px;
+    height: 88px;
   }
   .m-logo-text-owl {
     font-size: 1.65rem !important;
