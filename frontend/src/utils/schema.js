@@ -4,7 +4,7 @@ export const generateOrganizationSchema = () => {
     "@type": "Organization",
     "name": "Owl Stitch by Mason",
     "url": "https://www.owlstitch.com",
-    "logo": "https://www.owlstitch.com/logo-new.png",
+    "logo": "https://www.owlstitch.com/logofinalnobg.png",
     "contactPoint": {
       "@type": "ContactPoint",
       "telephone": "+91-816-8776809",

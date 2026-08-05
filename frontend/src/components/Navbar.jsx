@@ -140,7 +140,7 @@ const Navbar = () => {
           {/* Center: Brand Name */}
           <div className="m-navbar__center" style={{ overflow: 'visible' }}>
             <Link to="/" className="m-navbar__logo-text" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <img src="/owlnewnobg copy.png" alt="Mason Logo" className="m-navbar__logo-img-center" style={{ width: 'auto', objectFit: 'contain' }} />
+              <img src="/logofinalnobg.png" alt="Mason Logo" className="m-navbar__logo-img-center" style={{ width: 'auto', objectFit: 'contain' }} />
               <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', lineHeight: 1.1 }}>
                 <span className="m-logo-text-owl" style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.65rem', fontWeight: 600, letterSpacing: '0.18em', color: 'var(--ink)', textTransform: 'uppercase', display: 'block' }}>Owl</span>
                 <span className="m-logo-text-stitch" style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.1rem', fontWeight: 600, letterSpacing: '0.18em', color: 'var(--ink)', textTransform: 'uppercase', display: 'block' }}>Stitch</span>
@@ -366,7 +366,7 @@ const Navbar = () => {
       <aside className={`m-mobile-menu ${mobileMenuOpen ? 'show' : ''}`}>
         <div className="m-mobile-menu__head">
           <Link to="/" onClick={() => setMobileMenuOpen(false)} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <img src="/owlnewnobg copy.png" alt="Mason Logo" style={{ height: '68px', width: 'auto', objectFit: 'contain' }} />
+            <img src="/logofinalnobg.png" alt="Mason Logo" style={{ height: '78px', width: 'auto', objectFit: 'contain' }} />
             <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', lineHeight: 1.1 }}>
               <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.65rem', fontWeight: 600, letterSpacing: '0.18em', color: 'var(--ink)', textTransform: 'uppercase', display: 'block' }}>Owl</span>
               <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.1rem', fontWeight: 600, letterSpacing: '0.18em', color: 'var(--ink)', textTransform: 'uppercase', display: 'block' }}>Stitch</span>
