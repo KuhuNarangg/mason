@@ -466,11 +466,12 @@
 
 /* Responsive Logo styles */
 .m-navbar__logo-img-center {
-  height: 66px;
+  height: 76px;
   width: auto;
   object-fit: contain;
   display: block;
-  transition: height 0.3s ease;
+  filter: contrast(1.05) drop-shadow(0 1px 2px rgba(44, 36, 33, 0.12));
+  transition: height 0.3s ease, transform 0.3s ease;
 }
 
 .m-logo-text-owl {
@@ -485,7 +486,7 @@
 
 @media (min-width: 768px) {
   .m-navbar__logo-img-center {
-    height: 88px;
+    height: 105px;
   }
   .m-logo-text-owl {
     font-size: 1.65rem !important;
