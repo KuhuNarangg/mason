@@ -72,43 +72,50 @@ const createOrder = asyncHandler(async (req, res) => {
     }
 
     // Determine authoritative price from database — fallback to originalPrice & discount if price is missing/null/NaN
-    let dbPrice = Number(product.price);
-    if (isNaN(dbPrice) || dbPrice === null || dbPrice === undefined || dbPrice <= 0) {
-      const orig = Number(product.originalPrice) || 0;
-      const disc = Number(product.discount) || 0;
-      dbPrice = Math.round(orig * (1 - disc / 100)) || orig || Number(item.price) || 0;
+    let dbPrice = 0;
+    if (typeof product.price === 'number' && !isNaN(product.price) && product.price > 0) {
+      dbPrice = product.price;
+    } else if (typeof product.originalPrice === 'number' && !isNaN(product.originalPrice) && product.originalPrice > 0) {
+      const disc = (typeof product.discount === 'number' && !isNaN(product.discount)) ? product.discount : 0;
+      dbPrice = Math.round(product.originalPrice * (1 - disc / 100));
+    } else if (item.price && !isNaN(Number(item.price)) && Number(item.price) > 0) {
+      dbPrice = Number(item.price);
     }
-    dbPrice = Math.max(0, Math.round(dbPrice));
+    dbPrice = (isNaN(dbPrice) || dbPrice < 0) ? 0 : Math.round(dbPrice);
 
     const lineTotal = dbPrice * qty;
-    subtotal += lineTotal;
+    if (!isNaN(lineTotal)) {
+      subtotal += lineTotal;
+    }
 
     const vendor = product.vendor || null;
-    const commissionPercent = Number(vendor?.vendorProfile?.commissionPercent ?? 10) || 10;
+    const commissionPercent = (vendor?.vendorProfile?.commissionPercent && !isNaN(Number(vendor.vendorProfile.commissionPercent)))
+      ? Number(vendor.vendorProfile.commissionPercent)
+      : 10;
     const commissionAmount = vendor ? Math.round((lineTotal * commissionPercent) / 100) : 0;
-    const vendorEarning = vendor ? Math.max(0, lineTotal - commissionAmount) : 0;
+    const vendorEarning = vendor ? Math.max(0, lineTotal - (isNaN(commissionAmount) ? 0 : commissionAmount)) : 0;
 
     itemsWithVendor.push({
       product: product._id,
       name: product.name || 'Product',
       thumbnail: product.thumbnail || product.images?.[0] || '',
-      variantSize: item.variantSize,
-      variantColor: item.variantColor,
+      variantSize: item.variantSize || 'Standard',
+      variantColor: item.variantColor || 'Standard',
       quantity: qty,
       price: dbPrice,
       cgstPercent: Number(product.taxConfig?.cgstPercent ?? 6) || 6,
       sgstPercent: Number(product.taxConfig?.sgstPercent ?? 6) || 6,
       vendor: vendor?._id || null,
-      commissionPercent,
-      commissionAmount,
-      vendorEarning,
+      commissionPercent: isNaN(commissionPercent) ? 10 : commissionPercent,
+      commissionAmount: isNaN(commissionAmount) ? 0 : commissionAmount,
+      vendorEarning: isNaN(vendorEarning) ? 0 : vendorEarning,
       itemStatus: 'pending',
       itemStatusHistory: [{ status: 'pending', note: 'Order placed' }],
     });
   }
 
   // ── Step 3: Shipping charge — calculated server-side ──
-  subtotal = Math.round(subtotal || 0);
+  subtotal = (isNaN(subtotal) || subtotal < 0) ? 0 : Math.round(subtotal);
   const shippingCharge = subtotal > 1000 ? 0 : (subtotal > 0 ? 99 : 0);
 
   // ── Step 4: Apply coupon discount server-side (if provided) ──
@@ -124,10 +131,11 @@ const createOrder = asyncHandler(async (req, res) => {
       }
     }
   }
-  discount = Math.min(discount, subtotal);
+  discount = (isNaN(discount) || discount < 0) ? 0 : Math.min(discount, subtotal);
 
   // ── Step 5: Final total — the single source of truth ──
-  const totalAmount = Math.max(0, subtotal - discount + shippingCharge);
+  const calcTotal = subtotal - discount + shippingCharge;
+  const totalAmount = (isNaN(calcTotal) || calcTotal < 0) ? 0 : Math.round(calcTotal);
 
   const order = await Order.create({
     user: req.user._id,
