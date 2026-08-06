@@ -450,6 +450,14 @@ const vendorSetPassword = asyncHandler(async (req, res) => {
   user.vendorSetupExpires = undefined;
   await user.save();
 
+  res.json({
+    success: true,
+    message: 'Password set successfully',
+    token: generateToken(user._id),
+    user: safeUser(user),
+  });
+});
+
 /* ── @POST /api/v1/auth/forgot-password ───────────── */
 const forgotPassword = asyncHandler(async (req, res) => {
   const { email } = req.body;
