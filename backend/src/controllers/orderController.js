@@ -39,7 +39,7 @@ const createOrder = asyncHandler(async (req, res) => {
   if (!items || items.length === 0) { res.status(400); throw new Error('No items in order'); }
 
   // ── Step 1: Fetch all referenced products from the database ──
-  const productIds = items.map(i => i.product);
+  const productIds = items.map(i => (typeof i.product === 'object' && i.product?._id ? i.product._id.toString() : String(i.product)));
   const productDocs = await Product.find({ _id: { $in: productIds } })
     .populate('vendor', 'vendorProfile')
     .lean();
@@ -50,45 +50,54 @@ const createOrder = asyncHandler(async (req, res) => {
   const itemsWithVendor = [];
 
   for (const item of items) {
-    const product = productMap.get(item.product.toString());
+    const prodId = typeof item.product === 'object' && item.product?._id ? item.product._id.toString() : String(item.product);
+    const product = productMap.get(prodId);
     if (!product) {
       res.status(400);
-      throw new Error(`Product ${item.product} not found`);
+      throw new Error(`Product ${prodId} not found`);
     }
 
     // Validate the variant exists and has stock
-    const variant = product.variants.find(
+    const variant = product.variants?.find(
       v => v.size === item.variantSize && v.color === item.variantColor
     );
     if (!variant) {
       res.status(400);
       throw new Error(`Variant (${item.variantSize}/${item.variantColor}) not found for "${product.name}"`);
     }
-    if (variant.stock < item.quantity) {
+    const qty = Number(item.quantity) || 1;
+    if (variant.stock < qty) {
       res.status(400);
       throw new Error(`Insufficient stock for "${product.name}" (${item.variantSize}/${item.variantColor}). Available: ${variant.stock}`);
     }
 
-    // Use the authoritative price from the database — never the client
-    const dbPrice = product.price;
-    const lineTotal = dbPrice * item.quantity;
+    // Determine authoritative price from database — fallback to originalPrice & discount if price is missing/null/NaN
+    let dbPrice = Number(product.price);
+    if (isNaN(dbPrice) || dbPrice === null || dbPrice === undefined || dbPrice <= 0) {
+      const orig = Number(product.originalPrice) || 0;
+      const disc = Number(product.discount) || 0;
+      dbPrice = Math.round(orig * (1 - disc / 100)) || orig || Number(item.price) || 0;
+    }
+    dbPrice = Math.max(0, Math.round(dbPrice));
+
+    const lineTotal = dbPrice * qty;
     subtotal += lineTotal;
 
     const vendor = product.vendor || null;
-    const commissionPercent = vendor?.vendorProfile?.commissionPercent ?? 10;
+    const commissionPercent = Number(vendor?.vendorProfile?.commissionPercent ?? 10) || 10;
     const commissionAmount = vendor ? Math.round((lineTotal * commissionPercent) / 100) : 0;
-    const vendorEarning = vendor ? lineTotal - commissionAmount : 0;
+    const vendorEarning = vendor ? Math.max(0, lineTotal - commissionAmount) : 0;
 
     itemsWithVendor.push({
       product: product._id,
-      name: product.name,
-      thumbnail: product.images?.[0] || product.thumbnail || '',
+      name: product.name || 'Product',
+      thumbnail: product.thumbnail || product.images?.[0] || '',
       variantSize: item.variantSize,
       variantColor: item.variantColor,
-      quantity: item.quantity,
-      price: dbPrice,                      // DB price, not client price
-      cgstPercent: product.taxConfig?.cgstPercent || 6,
-      sgstPercent: product.taxConfig?.sgstPercent || 6,
+      quantity: qty,
+      price: dbPrice,
+      cgstPercent: Number(product.taxConfig?.cgstPercent ?? 6) || 6,
+      sgstPercent: Number(product.taxConfig?.sgstPercent ?? 6) || 6,
       vendor: vendor?._id || null,
       commissionPercent,
       commissionAmount,
@@ -99,24 +108,26 @@ const createOrder = asyncHandler(async (req, res) => {
   }
 
   // ── Step 3: Shipping charge — calculated server-side ──
-  const shippingCharge = subtotal > 1000 ? 0 : 99;
+  subtotal = Math.round(subtotal || 0);
+  const shippingCharge = subtotal > 1000 ? 0 : (subtotal > 0 ? 99 : 0);
 
   // ── Step 4: Apply coupon discount server-side (if provided) ──
   let discount = 0;
   if (couponCode) {
     const Coupon = require('../models/Coupon');
-    const coupon = await Coupon.findOne({ code: couponCode.toUpperCase(), isActive: true });
-    if (coupon && new Date() <= new Date(coupon.expiryDate) && subtotal >= coupon.minOrderAmount) {
+    const coupon = await Coupon.findOne({ code: String(couponCode).toUpperCase(), isActive: true });
+    if (coupon && new Date() <= new Date(coupon.expiryDate) && subtotal >= (coupon.minOrderAmount || 0)) {
       if (coupon.discountType === 'percentage') {
-        discount = Math.round((subtotal * coupon.discountValue) / 100);
+        discount = Math.round((subtotal * (coupon.discountValue || 0)) / 100);
       } else {
-        discount = coupon.discountValue;
+        discount = Number(coupon.discountValue) || 0;
       }
     }
   }
+  discount = Math.min(discount, subtotal);
 
   // ── Step 5: Final total — the single source of truth ──
-  const totalAmount = subtotal - discount + shippingCharge;
+  const totalAmount = Math.max(0, subtotal - discount + shippingCharge);
 
   const order = await Order.create({
     user: req.user._id,

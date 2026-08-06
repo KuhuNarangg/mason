@@ -152,11 +152,11 @@ const Checkout = () => {
 
       const orderData = {
         items: cart.items.map(item => ({
-          product: item.product._id,
+          product: typeof item.product === 'object' && item.product?._id ? item.product._id : item.product,
           variantSize: item.variantSize,
           variantColor: item.variantColor,
           quantity: item.quantity,
-          // No price fields — backend calculates from DB
+          price: item.price || item.product?.price || item.product?.originalPrice,
         })),
         shippingAddress: shipping,
         paymentMethod,
