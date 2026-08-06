@@ -14,10 +14,11 @@ const ProductCard = ({ product }) => {
   const [imgLoaded, setImgLoaded] = useState(false);
   const [currentImgIndex, setCurrentImgIndex] = useState(0);
 
-  const wishlisted = isWishlisted(product._id);
-  const inStock = product.variants.some(v => v.stock > 0);
-  const firstVariant = product.variants.find(v => v.stock > 0) || product.variants[0];
-  const inCart = cart?.items?.some(i => i.product?._id === product._id);
+  const wishlisted = isWishlisted(product?._id);
+  const variants = product?.variants || [];
+  const inStock = variants.some(v => v.stock > 0);
+  const firstVariant = variants.find(v => v.stock > 0) || variants[0];
+  const inCart = cart?.items?.some(i => i.product?._id === product?._id);
 
   const handleAddToCart = (e) => {
     e.preventDefault();
@@ -30,12 +31,12 @@ const ProductCard = ({ product }) => {
 
   const handleWishlist = (e) => {
     e.preventDefault();
-    toggle(product._id);
+    if (product?._id) toggle(product._id);
   };
 
   const NO_IMAGE = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22300%22%20height%3D%22400%22%20viewBox%3D%220%200%20300%20400%22%3E%3Crect%20fill%3D%22%23F5EDE4%22%20width%3D%22300%22%20height%3D%22400%22%2F%3E%3Ctext%20fill%3D%22%23A99B90%22%20font-family%3D%22serif%22%20font-size%3D%2216%22%20x%3D%2250%25%22%20y%3D%2250%25%22%20text-anchor%3D%22middle%22%20dy%3D%225%22%3ENo%20Image%3C%2Ftext%3E%3C%2Fsvg%3E';
 
-  const images = product.images?.length > 0 ? product.images : [NO_IMAGE];
+  const images = product?.images?.length > 0 ? product.images : [NO_IMAGE];
   const currentImg = images[currentImgIndex] || NO_IMAGE;
 
   const handleNextImage = (e) => {
@@ -50,9 +51,11 @@ const ProductCard = ({ product }) => {
     setCurrentImgIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
   };
 
+  if (!product) return null;
+
   return (
     <Link
-      to={`/product/${product.slug}`}
+      to={`/product/${product.slug || product._id}`}
       className="mason-product-card"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}

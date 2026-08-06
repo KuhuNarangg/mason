@@ -178,9 +178,10 @@ const ProductDetail = () => {
   if (loading) return <div className="container product-detail-container text-center">Loading product details...</div>;
   if (!product) return <div className="container product-detail-container text-center"><h2>Product not found</h2><p>The product you are looking for does not exist or has been removed.</p></div>;
 
-  const uniqueSizes = [...new Set(product.variants.map(v => v.size))];
-  const uniqueColors = [...new Set(product.variants.map(v => v.color))];
-  const currentVariant = product.variants.find(v => v.size === selectedSize && v.color === selectedColor);
+  const variants = product.variants || [];
+  const uniqueSizes = [...new Set(variants.map(v => v.size).filter(Boolean))];
+  const uniqueColors = [...new Set(variants.map(v => v.color).filter(Boolean))];
+  const currentVariant = variants.find(v => v.size === selectedSize && v.color === selectedColor) || variants[0];
   const isOutOfStock = !currentVariant || currentVariant.stock === 0;
 
   const handleAddToCart = () => {
@@ -349,7 +350,7 @@ const ProductDetail = () => {
             </div>
             <div className="size-options">
               {uniqueSizes.map(size => {
-                const hasStock = product.variants.some(v => v.size === size && v.stock > 0);
+                const hasStock = variants.some(v => v.size === size && v.stock > 0);
                 return (
                   <button 
                     key={size}
@@ -368,7 +369,7 @@ const ProductDetail = () => {
             <div className="mb-2"><span className="font-weight-bold">Select Color:</span> <span style={{ color: 'var(--rose-gold)' }}>{selectedColor}</span></div>
             <div className="color-options">
               {uniqueColors.map(color => {
-                const hex = product.variants.find(v => v.color === color)?.colorHex || '#ccc';
+                const hex = variants.find(v => v.color === color)?.colorHex || '#ccc';
                 const isLight = (() => {
                   const h = hex.replace('#', '');
                   if (h.length !== 6) return false;
