@@ -5,11 +5,14 @@ const {
   getMe, updateProfile, addAddress, deleteAddress, changePassword,
   changeEmail, changeAccessCode,
   vendorRegister, vendorCheckSetupToken, vendorSetPassword,
+  forgotPassword, resetPasswordWithOtp,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
 
 router.post('/register',            register);
 router.post('/login',               login);
+router.post('/forgot-password',     forgotPassword);
+router.post('/reset-password-otp', resetPasswordWithOtp);
 router.get('/check-role',           checkRole);
 router.post('/google',              googleAuth);
 router.post('/vendor-register',     vendorRegister);

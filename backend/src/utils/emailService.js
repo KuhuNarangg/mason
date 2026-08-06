@@ -317,6 +317,24 @@ const sendVendorRejected = async ({ name, email, businessName, reason }) => {
   });
 };
 
+/* ── Password Reset OTP ──────────────────────────────── */
+const sendPasswordResetOtp = async ({ email, name, otp }) => {
+  await sendEmail({
+    to: email,
+    subject: '🔒 Password Reset OTP — Owl Stitch by Mason',
+    html: wrap(`
+      <h2 style="color:#0f172a;margin:0 0 12px;font-size:1.2rem;">Password Reset Request</h2>
+      <p style="color:#374151;line-height:1.6;margin:0 0 16px;font-size:0.9rem;">Hello ${name || 'Valued Customer'},</p>
+      <p style="color:#374151;line-height:1.6;margin:0 0 20px;font-size:0.9rem;">We received a request to reset your password for your Owl Stitch by Mason account. Your 6-digit Verification OTP is:</p>
+      
+      <div style="background:#FAF6F1;border:1px solid #EAD8C7;border-radius:8px;padding:20px;text-align:center;margin-bottom:20px;">
+        <span style="font-family:monospace;font-size:2.2rem;font-weight:700;letter-spacing:10px;color:#C08A74;">${otp}</span>
+      </div>
+      
+      <p style="color:#6b7280;line-height:1.5;margin:0;font-size:0.82rem;">This OTP is valid for <strong>10 minutes</strong>. If you did not request a password reset, please ignore this email.</p>`),
+  });
+};
+
 module.exports = {
   sendEmail,
   sendAccountLockoutAlert,
@@ -334,4 +352,5 @@ module.exports = {
   sendVendorRegistrationReceived,
   sendVendorApproved,
   sendVendorRejected,
+  sendPasswordResetOtp,
 };

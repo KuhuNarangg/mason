@@ -75,6 +75,10 @@ const userSchema = new mongoose.Schema(
     /* ── Vendor "set password" token (sent after admin approval) ── */
     vendorSetupToken:   { type: String, select: false },
     vendorSetupExpires: { type: Date, select: false },
+
+    /* ── Password Reset OTP ── */
+    resetPasswordOtp:        { type: String, select: false },
+    resetPasswordOtpExpires: { type: Date, select: false },
   },
   { timestamps: true }
 );

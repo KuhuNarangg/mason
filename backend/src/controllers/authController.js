@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
-const { sendWelcomeEmail, sendAccountLockoutAlert, sendVendorRegistrationReceived } = require('../utils/emailService');
+const { sendWelcomeEmail, sendAccountLockoutAlert, sendVendorRegistrationReceived, sendPasswordResetOtp } = require('../utils/emailService');
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -450,11 +450,69 @@ const vendorSetPassword = asyncHandler(async (req, res) => {
   user.vendorSetupExpires = undefined;
   await user.save();
 
+/* ── @POST /api/v1/auth/forgot-password ───────────── */
+const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    res.status(400); throw new Error('Email address is required');
+  }
+  const cleanEmail = email.toLowerCase().trim();
+  const user = await User.findOne({ email: cleanEmail });
+
+  if (!user) {
+    res.status(404); throw new Error('No account registered with this email address');
+  }
+
+  /* Generate a random 6-digit OTP */
+  const otp = String(Math.floor(100000 + Math.random() * 900000));
+  const hashedOtp = crypto.createHash('sha256').update(otp).digest('hex');
+
+  user.resetPasswordOtp = hashedOtp;
+  user.resetPasswordOtpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+  await user.save();
+
+  await sendPasswordResetOtp({ email: user.email, name: user.name, otp });
+
   res.json({
     success: true,
-    message: 'Password set successfully',
-    token: generateToken(user._id),
-    user: safeUser(user),
+    message: `A 6-digit OTP has been sent to ${user.email}`,
+  });
+});
+
+/* ── @POST /api/v1/auth/reset-password-otp ────────── */
+const resetPasswordWithOtp = asyncHandler(async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+  if (!email || !otp || !newPassword) {
+    res.status(400); throw new Error('Email, OTP, and new password are required');
+  }
+  if (newPassword.length < 6) {
+    res.status(400); throw new Error('Password must be at least 6 characters');
+  }
+
+  const cleanEmail = email.toLowerCase().trim();
+  const hashedOtp = crypto.createHash('sha256').update(String(otp).trim()).digest('hex');
+
+  const user = await User.findOne({
+    email: cleanEmail,
+    resetPasswordOtp: hashedOtp,
+    resetPasswordOtpExpires: { $gt: Date.now() },
+  }).select('+resetPasswordOtp +resetPasswordOtpExpires');
+
+  if (!user) {
+    res.status(400); throw new Error('Invalid or expired OTP. Please request a new OTP.');
+  }
+
+  user.password = newPassword;
+  user.resetPasswordOtp = undefined;
+  user.resetPasswordOtpExpires = undefined;
+  user.loginAttempts = 0;
+  user.loginLockUntil = undefined;
+
+  await user.save();
+
+  res.json({
+    success: true,
+    message: 'Password reset successfully! You can now log in with your new password.',
   });
 });
 
@@ -463,4 +521,5 @@ module.exports = {
   getMe, updateProfile, addAddress, deleteAddress, changePassword,
   changeEmail, changeAccessCode,
   vendorRegister, vendorCheckSetupToken, vendorSetPassword,
+  forgotPassword, resetPasswordWithOtp,
 };
