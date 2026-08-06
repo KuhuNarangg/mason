@@ -34,7 +34,17 @@ const initiateRazorpayRefund = async (paymentId, amountRupees, reason = 'Refund'
 
 // @POST /api/v1/orders
 const createOrder = asyncHandler(async (req, res) => {
-  const { items, shippingAddress, paymentMethod, customerNotes, couponCode } = req.body;
+  const {
+    items,
+    shippingAddress,
+    paymentMethod,
+    customerNotes,
+    couponCode,
+    subtotal: bodySubtotal,
+    discount: bodyDiscount,
+    shippingCharge: bodyShippingCharge,
+    totalAmount: bodyTotalAmount,
+  } = req.body;
 
   if (!items || items.length === 0) { res.status(400); throw new Error('No items in order'); }
 
@@ -46,7 +56,7 @@ const createOrder = asyncHandler(async (req, res) => {
   const productMap = new Map(productDocs.map(p => [p._id.toString(), p]));
 
   // ── Step 2: Validate items and build order items with DB prices ──
-  let subtotal = 0;
+  let calculatedSubtotal = 0;
   const itemsWithVendor = [];
 
   for (const item of items) {
@@ -85,7 +95,7 @@ const createOrder = asyncHandler(async (req, res) => {
 
     const lineTotal = dbPrice * qty;
     if (!isNaN(lineTotal)) {
-      subtotal += lineTotal;
+      calculatedSubtotal += lineTotal;
     }
 
     const vendor = product.vendor || null;
@@ -114,9 +124,20 @@ const createOrder = asyncHandler(async (req, res) => {
     });
   }
 
-  // ── Step 3: Shipping charge — calculated server-side ──
-  subtotal = (isNaN(subtotal) || subtotal < 0) ? 0 : Math.round(subtotal);
-  const shippingCharge = subtotal > 1000 ? 0 : (subtotal > 0 ? 99 : 0);
+  // ── Step 3: Subtotal & Shipping charge — guaranteed non-null numbers ──
+  let subtotal = Math.round(Number(calculatedSubtotal));
+  if (isNaN(subtotal) || subtotal < 0) {
+    if (typeof bodySubtotal === 'number' && !isNaN(bodySubtotal) && bodySubtotal >= 0) {
+      subtotal = Math.round(bodySubtotal);
+    } else {
+      subtotal = 0;
+    }
+  }
+
+  let shippingCharge = subtotal > 1000 ? 0 : (subtotal > 0 ? 99 : 0);
+  if (typeof bodyShippingCharge === 'number' && !isNaN(bodyShippingCharge) && bodyShippingCharge >= 0) {
+    shippingCharge = Math.round(bodyShippingCharge);
+  }
 
   // ── Step 4: Apply coupon discount server-side (if provided) ──
   let discount = 0;
@@ -131,11 +152,25 @@ const createOrder = asyncHandler(async (req, res) => {
       }
     }
   }
-  discount = (isNaN(discount) || discount < 0) ? 0 : Math.min(discount, subtotal);
+  if (isNaN(discount) || discount < 0) {
+    if (typeof bodyDiscount === 'number' && !isNaN(bodyDiscount) && bodyDiscount >= 0) {
+      discount = Math.round(bodyDiscount);
+    } else {
+      discount = 0;
+    }
+  }
+  discount = Math.min(discount, subtotal);
 
-  // ── Step 5: Final total — the single source of truth ──
+  // ── Step 5: Final total — single source of truth ──
   const calcTotal = subtotal - discount + shippingCharge;
-  const totalAmount = (isNaN(calcTotal) || calcTotal < 0) ? 0 : Math.round(calcTotal);
+  let totalAmount = Math.round(Number(calcTotal));
+  if (isNaN(totalAmount) || totalAmount < 0) {
+    if (typeof bodyTotalAmount === 'number' && !isNaN(bodyTotalAmount) && bodyTotalAmount >= 0) {
+      totalAmount = Math.round(bodyTotalAmount);
+    } else {
+      totalAmount = 0;
+    }
+  }
 
   const order = await Order.create({
     user: req.user._id,

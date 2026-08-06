@@ -76,10 +76,28 @@ const orderSchema = new mongoose.Schema(
     },
     trackingUrl: { type: String, default: '' },
     billUrl: { type: String, default: '' },
-    subtotal: { type: Number, required: true, default: 0 },
-    discount: { type: Number, default: 0 },
-    shippingCharge: { type: Number, default: 0 },
-    totalAmount: { type: Number, required: true, default: 0 },
+    subtotal: {
+      type: Number,
+      required: [true, 'Order subtotal is required'],
+      default: 0,
+      set: (v) => (v === null || v === undefined || isNaN(Number(v))) ? 0 : Math.round(Number(v))
+    },
+    discount: {
+      type: Number,
+      default: 0,
+      set: (v) => (v === null || v === undefined || isNaN(Number(v))) ? 0 : Math.round(Number(v))
+    },
+    shippingCharge: {
+      type: Number,
+      default: 0,
+      set: (v) => (v === null || v === undefined || isNaN(Number(v))) ? 0 : Math.round(Number(v))
+    },
+    totalAmount: {
+      type: Number,
+      required: [true, 'Order total amount is required'],
+      default: 0,
+      set: (v) => (v === null || v === undefined || isNaN(Number(v))) ? 0 : Math.round(Number(v))
+    },
     customerNotes: { type: String, default: '' },
     notes: { type: String },
     adminNotes: { type: String, default: '' },

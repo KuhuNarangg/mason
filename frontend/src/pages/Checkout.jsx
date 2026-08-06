@@ -151,17 +151,24 @@ const Checkout = () => {
       }
 
       const orderData = {
-        items: cart.items.map(item => ({
-          product: typeof item.product === 'object' && item.product?._id ? item.product._id : item.product,
-          variantSize: item.variantSize,
-          variantColor: item.variantColor,
-          quantity: item.quantity,
-          price: item.price || item.product?.price || item.product?.originalPrice,
-        })),
+        items: cart.items.map(item => {
+          const itemPrice = Number(item.price || item.product?.price || item.product?.originalPrice || 0);
+          return {
+            product: typeof item.product === 'object' && item.product?._id ? item.product._id : item.product,
+            variantSize: item.variantSize,
+            variantColor: item.variantColor,
+            quantity: Number(item.quantity) || 1,
+            price: (isNaN(itemPrice) || itemPrice < 0) ? 0 : Math.round(itemPrice),
+          };
+        }),
         shippingAddress: shipping,
         paymentMethod,
         customerNotes,
         couponCode: discount > 0 ? coupon : undefined,
+        subtotal: Math.round(Number(totalAmount) || 0),
+        discount: Math.round(Number(discount) || 0),
+        shippingCharge: Math.round(Number(shipping_charge) || 0),
+        totalAmount: Math.round(Number(finalAmount) || 0),
       };
 
       // Step 1 — Create the DB order (paymentStatus: pending for Razorpay)
