@@ -328,6 +328,8 @@ const Chatbot = () => {
                 >
                   📝 Leave a Query
                 </button>
+                <button onClick={() => handleSuggestionClick("What can I pair with a white skirt?")}>What can I pair with a white skirt?</button>
+                <button onClick={() => handleSuggestionClick("Do you provide Cash on Delivery (COD)?")}>Do you provide Cash on Delivery (COD)?</button>
                 <button onClick={() => handleSuggestionClick("Show me your latest ethnic wear")}>Show me your latest ethnic wear</button>
                 <button onClick={() => handleSuggestionClick("Can you customize couple t-shirts?")}>Can you customize couple t-shirts?</button>
                 <button onClick={() => handleSuggestionClick("What is your return policy?")}>What is your return policy?</button>
