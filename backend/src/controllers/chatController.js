@@ -44,23 +44,44 @@ const tools = [
   }
 ];
 
-// Tool Execution Functions
+// Helper function: Execute search_products tool
 const executeSearchProducts = async (args) => {
   try {
-    const query = args.query;
-    // Perform regex search on Product model for robustness (avoids $text index crashes)
+    const rawQuery = args.query || '';
+    
+    // Stopwords filter to handle conversational queries like "show me your latest ethnic wear"
+    const stopWords = ['show', 'me', 'your', 'latest', 'the', 'a', 'an', 'products', 'collection', 'items', 'do', 'you', 'have', 'any', 'wear'];
+    const keywords = rawQuery.toLowerCase()
+      .split(/\s+/)
+      .map(w => w.replace(/[^a-z0-9]/gi, ''))
+      .filter(w => w.length > 2 && !stopWords.includes(w));
+
+    let searchConditions = [];
+    if (keywords.length > 0) {
+      searchConditions = keywords.map(kw => ({
+        $or: [
+          { name: { $regex: kw, $options: 'i' } },
+          { description: { $regex: kw, $options: 'i' } },
+          { tags: { $regex: kw, $options: 'i' } },
+          { type: { $regex: kw, $options: 'i' } }
+        ]
+      }));
+    } else {
+      searchConditions = [{
+        $or: [
+          { name: { $regex: rawQuery, $options: 'i' } },
+          { description: { $regex: rawQuery, $options: 'i' } }
+        ]
+      }];
+    }
+
     const products = await Product.find({
-      $or: [
-        { name: { $regex: query, $options: 'i' } },
-        { description: { $regex: query, $options: 'i' } },
-        { tags: { $regex: query, $options: 'i' } },
-        { type: { $regex: query, $options: 'i' } }
-      ],
-      isActive: true
-    }).limit(5).lean();
+      isActive: true,
+      $or: searchConditions.flatMap(sc => sc.$or)
+    }).limit(6).lean();
 
     if (products.length === 0) {
-      return JSON.stringify({ result: "No products found matching the query." });
+      return JSON.stringify({ result: "No matching products found in database." });
     }
 
     return JSON.stringify(products.map(p => ({
@@ -76,31 +97,26 @@ const executeSearchProducts = async (args) => {
   }
 };
 
+// Helper function: Execute get_product_details tool
 const executeGetProductDetails = async (args) => {
   try {
     const productName = args.product_name;
     const product = await Product.findOne({
-      name: { $regex: new RegExp('^' + productName + '$', 'i') },
+      name: { $regex: productName, $options: 'i' },
       isActive: true
     }).lean();
 
-    if (!product) return JSON.stringify({ result: "Product not found." });
+    if (!product) {
+      return JSON.stringify({ result: "Product details not found." });
+    }
 
-    // Format the response for the LLM
     return JSON.stringify({
       name: product.name,
-      description: product.description,
       price: product.price,
-      originalPrice: product.originalPrice,
-      isCustomizable: product.type === 'custom-tailoring' || product.description.toLowerCase().includes('custom'), // basic check
-      availableVariants: product.variants.map(v => ({
-        size: v.size,
-        color: v.color,
-        stock: v.stock
-      })),
-      sizeGuide: product.sizeGuide || [],
-      isReturnable: product.isReturnable,
-      tags: product.tags
+      description: product.description,
+      variants: product.variants || [],
+      isCustomizable: product.type === 'custom-tailoring' || (product.description && product.description.toLowerCase().includes('custom')),
+      tags: product.tags || []
     });
   } catch (error) {
     console.error("Error in get_product_details tool:", error);
@@ -130,6 +146,7 @@ GENERAL:
 
 // Main Chat Controller
 exports.handleChat = async (req, res) => {
+  let groqMessages = [];
   try {
     const { messages } = req.body;
     
@@ -138,7 +155,7 @@ exports.handleChat = async (req, res) => {
     }
 
     // Prepare messages array for Groq
-    const groqMessages = [
+    groqMessages = [
       { role: 'system', content: SYSTEM_PROMPT },
       ...messages.map(m => ({
         role: m.role, // 'user' or 'assistant'
@@ -248,7 +265,7 @@ exports.handleChat = async (req, res) => {
       
       return res.status(200).json({ 
         success: true, 
-        message: "I found some information but had trouble fetching the exact details right now. Please ask me about a specific product!" 
+        message: "I couldn't confirm that from our current product information. You can leave a query with our team, and one of our representatives will get in touch with you." 
       });
     }
 
