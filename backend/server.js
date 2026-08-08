@@ -25,7 +25,7 @@ const customizationRoutes = require('./src/routes/customizations');
 const vendorRoutes = require('./src/routes/vendor');
 const shiprocketRoutes = require('./src/routes/shiprocket');
 const homeMediaRoutes = require('./src/routes/homeMedia');
-
+const chatRoutes = require('./src/routes/chat');
 connectDB();
 
 const app = express();
@@ -114,6 +114,7 @@ app.use('/api/v1/vendor', vendorRoutes);
 app.use('/api/v1/shiprocket', shiprocketRoutes);
 app.use('/api/v1/homemedia', homeMediaRoutes);
 app.use('/api/v1/seo', require('./src/routes/seo'));
+app.use('/api/v1/chat', chatRoutes);
 // Public ad redirect — Instagram/Facebook ads point to this URL:
 //   yourbackend.com/api/v1/r/:adId  → logs click → redirects to product page
 app.get('/api/v1/r/:adId', require('./src/controllers/adController').redirectAd);

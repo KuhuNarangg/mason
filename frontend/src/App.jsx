@@ -9,6 +9,7 @@ import ScrollToTop from './components/ScrollToTop';
 
 // Store Pages
 import Home from './pages/Home';
+import Chatbot from './components/Chatbot';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import VendorRegister from './pages/VendorRegister';
@@ -215,6 +216,7 @@ function App() {
             {/* Main Storefront */}
             <Route path="/*" element={<StorefrontLayout />} />
           </Routes>
+          <Chatbot />
         </NotificationProvider>
       </WishlistProvider>
     </CartProvider>
