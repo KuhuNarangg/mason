@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
-import { Bot, MessageSquare, X, Send, Minus, Loader } from 'lucide-react';
+import { Bot, MessageSquare, X, Send, Minus, Loader, FileText, SendHorizontal } from 'lucide-react';
 import api from '../utils/api';
+import { useAuth } from '../context/AuthContext';
 import './Chatbot.css';
 
 const Chatbot = () => {
+  const { user, isAuth } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState([
@@ -12,7 +14,25 @@ const Chatbot = () => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
+
+  // Leave a Query Form state
+  const [showQueryForm, setShowQueryForm] = useState(false);
+  const [queryName, setQueryName] = useState('');
+  const [queryEmail, setQueryEmail] = useState('');
+  const [queryPhone, setQueryPhone] = useState('');
+  const [queryMessage, setQueryMessage] = useState('');
+  const [isSubmittingQuery, setIsSubmittingQuery] = useState(false);
+
   const messagesEndRef = useRef(null);
+
+  // Pre-fill user data when user changes or query form opens
+  useEffect(() => {
+    if (isAuth && user) {
+      setQueryName(user.name || '');
+      setQueryEmail(user.email || '');
+      setQueryPhone(user.phone || '');
+    }
+  }, [isAuth, user, showQueryForm]);
 
   const toggleChat = () => {
     if (isOpen && !isMinimized) {
@@ -26,6 +46,7 @@ const Chatbot = () => {
   const closeChat = () => {
     setIsOpen(false);
     setIsMinimized(false);
+    setShowQueryForm(false);
   };
 
   const scrollToBottom = () => {
@@ -34,7 +55,7 @@ const Chatbot = () => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, isLoading]);
+  }, [messages, isLoading, showQueryForm]);
 
   // Tooltip interval logic
   useEffect(() => {
@@ -43,13 +64,11 @@ const Chatbot = () => {
       return;
     }
     
-    // Show tooltip randomly every 15-20 seconds
     const interval = setInterval(() => {
       setShowTooltip(true);
-      setTimeout(() => setShowTooltip(false), 5000); // Hide after 5s
+      setTimeout(() => setShowTooltip(false), 5000);
     }, 15000);
     
-    // Show it once shortly after load
     const initialTimer = setTimeout(() => {
       setShowTooltip(true);
       setTimeout(() => setShowTooltip(false), 5000);
@@ -76,20 +95,64 @@ const Chatbot = () => {
       if (response.data.success) {
         setMessages(prev => [...prev, { role: 'assistant', content: response.data.message }]);
       } else {
-        setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I am having trouble connecting to my brain right now. Please try again later.' }]);
+        setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I am having trouble connecting right now. Please try again later.' }]);
       }
     } catch (error) {
       console.error("Chat Error:", error);
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, there was an error processing your request. Our styling servers might be busy.' }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, there was an error processing your request. You can leave a query with our team if needed.' }]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const openQueryModal = (initialMessage = '') => {
+    // Determine last user message if no initialMessage passed
+    let lastMsg = initialMessage;
+    if (!lastMsg) {
+      const userMsgs = messages.filter(m => m.role === 'user');
+      if (userMsgs.length > 0) {
+        lastMsg = userMsgs[userMsgs.length - 1].content;
+      }
+    }
+    setQueryMessage(lastMsg || '');
+    setShowQueryForm(true);
+  };
+
+  const handleQuerySubmit = async (e) => {
+    e.preventDefault();
+    if (!queryName.trim() || !queryEmail.trim() || !queryMessage.trim()) return;
+
+    setIsSubmittingQuery(true);
+    try {
+      const payload = {
+        name: queryName.trim(),
+        email: queryEmail.trim(),
+        phone: queryPhone.trim(),
+        query: queryMessage.trim(),
+        source: 'AI Chatbot'
+      };
+
+      await api.post('/queries', payload);
+
+      setShowQueryForm(false);
+      setMessages(prev => [
+        ...prev,
+        {
+          role: 'assistant',
+          content: 'Thank you! Your query has been submitted to our team. One of our representatives will get in touch with you shortly.'
+        }
+      ]);
+    } catch (error) {
+      console.error("Query Submit Error:", error);
+      alert('Failed to submit query. Please try again.');
+    } finally {
+      setIsSubmittingQuery(false);
     }
   };
 
   // Format markdown in response (bolding product names/prices)
   const formatMessage = (text) => {
     if (!text) return '';
-    // Basic bold formatting for **text**
     const parts = text.split(/(\*\*.*?\*\*)/g);
     return parts.map((part, i) => {
       if (part.startsWith('**') && part.endsWith('**')) {
@@ -101,9 +164,8 @@ const Chatbot = () => {
 
   const handleSuggestionClick = (suggestion) => {
     setInput(suggestion);
-    // Use setTimeout to allow state update before submitting
     setTimeout(() => {
-      document.querySelector('.mason-chat-input-area button').click();
+      document.querySelector('.mason-chat-input-area button')?.click();
     }, 10);
   };
 
@@ -146,45 +208,151 @@ const Chatbot = () => {
       {/* Chat Body */}
       {!isMinimized && (
         <>
-          <div className="mason-chat-messages">
-            {messages.map((msg, index) => (
-              <div key={index} className={`mason-chat-message ${msg.role}`}>
-                <div className="mason-chat-bubble">
-                  {formatMessage(msg.content)}
-                </div>
+          {showQueryForm ? (
+            /* In-Chat Escalation Form */
+            <div className="mason-chat-query-form-view">
+              <div className="mason-query-form-header">
+                <h4>Leave a Query 📝</h4>
+                <button onClick={() => setShowQueryForm(false)} className="close-query-btn">
+                  <X size={16} />
+                </button>
               </div>
-            ))}
-            {isLoading && (
-              <div className="mason-chat-message assistant">
-                <div className="mason-chat-bubble loading-bubble">
-                  <Loader size={16} className="animate-spin" />
-                  <span>Styling...</span>
+              <p className="mason-query-form-desc">
+                {isAuth && user ? (
+                  <>Logged in as <strong>{user.name}</strong> ({user.email}). Leave your query below!</>
+                ) : (
+                  <>Please leave your details below and a team representative will contact you.</>
+                )}
+              </p>
+
+              <form onSubmit={handleQuerySubmit} className="mason-query-form">
+                {!isAuth && (
+                  <>
+                    <div className="query-field">
+                      <label>Name *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Your full name"
+                        value={queryName}
+                        onChange={(e) => setQueryName(e.target.value)}
+                      />
+                    </div>
+                    <div className="query-field">
+                      <label>Email *</label>
+                      <input
+                        type="email"
+                        required
+                        placeholder="your.email@example.com"
+                        value={queryEmail}
+                        onChange={(e) => setQueryEmail(e.target.value)}
+                      />
+                    </div>
+                  </>
+                )}
+
+                <div className="query-field">
+                  <label>Phone Number (Optional)</label>
+                  <input
+                    type="tel"
+                    placeholder="+91 Mobile number"
+                    value={queryPhone}
+                    onChange={(e) => setQueryPhone(e.target.value)}
+                  />
                 </div>
+
+                <div className="query-field">
+                  <label>Query / Message *</label>
+                  <textarea
+                    required
+                    rows={3}
+                    placeholder="Describe your question or customization request..."
+                    value={queryMessage}
+                    onChange={(e) => setQueryMessage(e.target.value)}
+                  />
+                </div>
+
+                <div className="query-form-actions">
+                  <button type="button" className="btn-cancel-query" onClick={() => setShowQueryForm(false)}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn-submit-query" disabled={isSubmittingQuery}>
+                    {isSubmittingQuery ? 'Submitting...' : 'Submit Query'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          ) : (
+            /* Normal Chat View */
+            <>
+              <div className="mason-chat-messages">
+                {messages.map((msg, index) => {
+                  const isAssistant = msg.role === 'assistant';
+                  const showsQueryOption = isAssistant && (
+                    msg.content.toLowerCase().includes('leave a query') ||
+                    msg.content.toLowerCase().includes('couldn\'t confirm') ||
+                    msg.content.toLowerCase().includes('trouble') ||
+                    msg.content.toLowerCase().includes('contact details')
+                  );
+
+                  return (
+                    <div key={index} className={`mason-chat-message ${msg.role}`}>
+                      <div className="mason-chat-bubble">
+                        {formatMessage(msg.content)}
+
+                        {/* Inline Escalation Action Button */}
+                        {showsQueryOption && (
+                          <button
+                            className="inline-query-btn"
+                            onClick={() => openQueryModal()}
+                          >
+                            📝 Leave a Query for Representative
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {isLoading && (
+                  <div className="mason-chat-message assistant">
+                    <div className="mason-chat-bubble loading-bubble">
+                      <Loader size={16} className="animate-spin" />
+                      <span>Styling...</span>
+                    </div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
               </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
 
-          {/* Fixed Suggested Questions */}
-          <div className="mason-chat-suggestions-fixed">
-            <button onClick={() => handleSuggestionClick("Show me your latest ethnic wear")}>Show me your latest ethnic wear</button>
-            <button onClick={() => handleSuggestionClick("Can you customize couple t-shirts?")}>Can you customize couple t-shirts?</button>
-            <button onClick={() => handleSuggestionClick("What is your return policy?")}>What is your return policy?</button>
-          </div>
+              {/* Fixed Suggested Questions & Escalation Quick Button */}
+              <div className="mason-chat-suggestions-fixed">
+                <button
+                  className="leave-query-action-btn"
+                  onClick={() => openQueryModal()}
+                >
+                  📝 Leave a Query
+                </button>
+                <button onClick={() => handleSuggestionClick("Show me your latest ethnic wear")}>Show me your latest ethnic wear</button>
+                <button onClick={() => handleSuggestionClick("Can you customize couple t-shirts?")}>Can you customize couple t-shirts?</button>
+                <button onClick={() => handleSuggestionClick("What is your return policy?")}>What is your return policy?</button>
+              </div>
 
-          {/* Input Area */}
-          <form className="mason-chat-input-area" onSubmit={handleSend}>
-            <input 
-              type="text" 
-              placeholder="Ask about outfits, sizes, or customizations..." 
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              disabled={isLoading}
-            />
-            <button type="submit" disabled={!input.trim() || isLoading} aria-label="Send">
-              <Send size={18} />
-            </button>
-          </form>
+              {/* Input Area */}
+              <form className="mason-chat-input-area" onSubmit={handleSend}>
+                <input 
+                  type="text" 
+                  placeholder="Ask about outfits, sizes, or customizations..." 
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  disabled={isLoading}
+                />
+                <button type="submit" disabled={!input.trim() || isLoading} aria-label="Send">
+                  <Send size={18} />
+                </button>
+              </form>
+            </>
+          )}
         </>
       )}
     </div>

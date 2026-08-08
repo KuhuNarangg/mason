@@ -2448,3 +2448,93 @@
     max-width: 100%;
   }
 }
+
+/* Queries Management Additions */
+.user-type-tag {
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.user-type-tag.registered {
+  background-color: #e0f2fe;
+  color: #0369a1;
+}
+.user-type-tag.guest {
+  background-color: #f1f5f9;
+  color: #64748b;
+}
+
+.source-tag {
+  background-color: #fef3c7;
+  color: #92400e;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.query-text-box {
+  font-size: 0.88rem;
+  line-height: 1.4;
+  color: #1e293b;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.query-product-tag {
+  margin-top: 6px;
+  font-size: 0.78rem;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  color: #475569;
+}
+
+.status-select {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid #cbd5e1;
+  outline: none;
+  cursor: pointer;
+}
+.status-select-new {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border-color: #fca5a5;
+}
+.status-select-in-progress {
+  background-color: #fffbebf;
+  color: #d97706;
+  border-color: #fcd34d;
+}
+.status-select-resolved {
+  background-color: #f0fdf4;
+  color: #16a34a;
+  border-color: #86efac;
+}
+
+.admin-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.admin-modal {
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 480px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}

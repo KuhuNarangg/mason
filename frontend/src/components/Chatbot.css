@@ -325,6 +325,139 @@
   background-color: var(--rose-gold);
 }
 
+/* In-Chat Query Form View */
+.mason-chat-query-form-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  background-color: var(--ivory);
+  overflow-y: auto;
+}
+
+.mason-query-form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.mason-query-form-header h4 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  color: var(--ink);
+}
+
+.close-query-btn {
+  background: none;
+  border: none;
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+
+.mason-query-form-desc {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.mason-query-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.query-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.query-field label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.query-field input, .query-field textarea {
+  padding: 8px 12px;
+  border: 1px solid var(--beige);
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  outline: none;
+  background-color: var(--white);
+}
+
+.query-field input:focus, .query-field textarea:focus {
+  border-color: var(--rose-gold);
+}
+
+.query-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.btn-cancel-query {
+  background: none;
+  border: 1px solid var(--beige);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: var(--ink-soft);
+}
+
+.btn-submit-query {
+  background-color: var(--rose-gold);
+  color: var(--white);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-submit-query:hover {
+  background-color: var(--rose-gold-dark);
+}
+
+.inline-query-btn {
+  display: block;
+  margin-top: 8px;
+  background-color: var(--ivory);
+  border: 1px dashed var(--rose-gold);
+  color: var(--rose-gold-dark);
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.inline-query-btn:hover {
+  background-color: var(--rose-gold);
+  color: var(--white);
+  border-style: solid;
+}
+
+.leave-query-action-btn {
+  background-color: var(--rose-gold) !important;
+  color: var(--white) !important;
+  font-weight: 600 !important;
+  border: none !important;
+}
+
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
   .mason-chat-container {

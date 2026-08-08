@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Package, Users, ShoppingCart, LogOut,
   Tags, Ticket, Store, Menu, X, Scissors,
   Award, RotateCcw, Star, BarChart3, Wallet, Settings as SettingsIcon,
-  Boxes, UserCog, Film, Bell
+  Boxes, UserCog, Film, Bell, HelpCircle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import '../pages/admin/admin-pages.css';
@@ -24,6 +24,7 @@ const navItems = [
   { name: 'Settlements', path: '/admin/settlements', icon: Wallet },
   { name: 'Analytics',  path: '/admin/analytics',    icon: BarChart3 },
   { name: 'Customs',    path: '/admin/customizations', icon: Scissors },
+  { name: 'Queries',    path: '/admin/queries',      icon: HelpCircle },
   { name: 'Cinematic',  path: '/admin/homemedia',    icon: Film },
   { name: 'Settings',   path: '/admin/settings',     icon: SettingsIcon },
 ];

@@ -64,6 +64,7 @@ const VendorSettlements = lazy(() => import('./pages/admin/VendorSettlements'));
 const PlatformSettings = lazy(() => import('./pages/admin/PlatformSettings'));
 const HomeMediaManagement = lazy(() => import('./pages/admin/HomeMediaManagement'));
 const RestockAlerts = lazy(() => import('./pages/admin/RestockAlerts'));
+const QueriesManagement = lazy(() => import('./pages/admin/QueriesManagement'));
 
 const VendorLayout = lazy(() => import('./components/VendorLayout'));
 const VendorDashboard = lazy(() => import('./pages/vendor/VendorDashboard'));
@@ -188,6 +189,7 @@ function App() {
                     <Route path="settlements" element={<VendorSettlements />} />
                     <Route path="settings" element={<PlatformSettings />} />
                     <Route path="homemedia" element={<HomeMediaManagement />} />
+                    <Route path="queries" element={<QueriesManagement />} />
                   </Route>
                 </Routes>
               </Suspense>
