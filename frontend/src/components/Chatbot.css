@@ -2,7 +2,7 @@
 .mason-chat-container {
   position: fixed;
   bottom: 24px;
-  left: 24px;
+  right: 24px;
   width: 350px;
   max-height: 600px;
   height: 80vh;
@@ -47,6 +47,64 @@
 .mason-chat-fab:hover {
   transform: scale(1.05);
   background-color: var(--ink-soft);
+}
+
+/* Launcher Container & Tooltip */
+.mason-chat-launcher-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  z-index: 9999;
+}
+
+.mason-chat-tooltip {
+  background-color: var(--white);
+  color: var(--ink);
+  padding: 8px 16px;
+  border-radius: 20px;
+  border-bottom-left-radius: 4px;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  margin-right: 16px;
+  opacity: 0;
+  transform: translateX(-10px) translateY(-10px);
+  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  pointer-events: none;
+  position: absolute;
+  bottom: 60px;
+  right: 30px;
+  white-space: nowrap;
+}
+
+.mason-chat-tooltip.visible {
+  opacity: 1;
+  transform: translateX(0) translateY(0);
+}
+
+/* Animations for Bot */
+.animated-bot {
+  animation: floatBot 3s ease-in-out infinite;
+}
+
+@keyframes floatBot {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+  100% { transform: translateY(0px); }
+}
+
+.bot-icon-wobble {
+  animation: wobble 4s ease-in-out infinite;
+}
+
+@keyframes wobble {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-5deg); }
+  75% { transform: rotate(5deg); }
 }
 
 /* Header */
@@ -169,6 +227,41 @@
   border-bottom-left-radius: 4px;
 }
 
+/* Fixed Suggested Questions */
+.mason-chat-suggestions-fixed {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  padding: 10px 16px;
+  background-color: var(--white);
+  border-top: 1px solid var(--beige);
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none; /* Firefox */
+}
+
+.mason-chat-suggestions-fixed::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+.mason-chat-suggestions-fixed button {
+  background-color: var(--ivory);
+  border: 1px solid var(--rose-gold);
+  color: var(--rose-gold-dark);
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 0.8rem;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.mason-chat-suggestions-fixed button:hover {
+  background-color: var(--rose-gold);
+  color: var(--white);
+}
+
 .loading-bubble {
   display: flex;
   align-items: center;
@@ -238,15 +331,25 @@
 @media (max-width: 768px) {
   .mason-chat-container {
     width: calc(100vw - 32px);
-    left: 16px;
+    right: 16px;
     bottom: 80px; /* Above mobile bottom nav */
     z-index: 1000;
   }
   
-  .mason-chat-fab {
-    left: 16px;
+  .mason-chat-launcher-container {
+    right: 16px;
     bottom: 80px;
+  }
+
+  .mason-chat-fab {
     width: 50px;
     height: 50px;
+  }
+  
+  .mason-chat-tooltip {
+    bottom: 50px;
+    right: 20px;
+    font-size: 0.8rem;
+    padding: 6px 12px;
   }
 }

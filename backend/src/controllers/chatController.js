@@ -48,37 +48,27 @@ const tools = [
 const executeSearchProducts = async (args) => {
   try {
     const query = args.query;
-    // Perform text search on Product model
-    const products = await Product.find(
-      { $text: { $search: query }, isActive: true },
-      { score: { $meta: 'textScore' } }
-    )
-    .sort({ score: { $meta: 'textScore' } })
-    .limit(5)
-    .lean();
+    // Perform regex search on Product model for robustness (avoids $text index crashes)
+    const products = await Product.find({
+      $or: [
+        { name: { $regex: query, $options: 'i' } },
+        { description: { $regex: query, $options: 'i' } },
+        { tags: { $regex: query, $options: 'i' } },
+        { type: { $regex: query, $options: 'i' } }
+      ],
+      isActive: true
+    }).limit(5).lean();
 
     if (products.length === 0) {
-      // Fallback to basic regex if text search fails
-      const fallbackProducts = await Product.find({
-        name: { $regex: query, $options: 'i' },
-        isActive: true
-      }).limit(5).lean();
-      
-      if (fallbackProducts.length === 0) return JSON.stringify({ result: "No products found matching the query." });
-      
-      return JSON.stringify(fallbackProducts.map(p => ({
-        name: p.name,
-        price: p.price,
-        slug: p.slug,
-        type: p.type
-      })));
+      return JSON.stringify({ result: "No products found matching the query." });
     }
 
     return JSON.stringify(products.map(p => ({
       name: p.name,
       price: p.price,
       slug: p.slug,
-      type: p.type
+      type: p.type,
+      isCustomizable: p.type === 'custom-tailoring' || (p.description && p.description.toLowerCase().includes('custom'))
     })));
   } catch (error) {
     console.error("Error in search_products tool:", error);
@@ -122,9 +112,12 @@ const executeGetProductDetails = async (args) => {
 const SYSTEM_PROMPT = `You are Mason's AI fashion assistant. 
 Your purpose is to help users with Mason products, clothing, outfits, customization, availability, sizing, colors, and Mason website information. 
 For product-specific information, ALWAYS use the provided tools (search_products, get_product_details) to query the Mason database. NEVER invent or hallucinate prices, colors, sizes, stock, or products.
+If the user makes a typo in their search, infer the correct clothing term before calling tools.
 If you need to know if a product exists or is in stock, use a tool first before answering.
+You also know the store policies:
+- Return Policy: Returns allowed within 7 days. Must be unused with original Security Seal Tag attached. Custom-made items and final sale items are non-returnable. Refunds take up to 10 business days after inspection. Original shipping charges are non-refundable. Contact customercare@owlstitch.com for support.
 If a question is unrelated to Mason, fashion, clothing, outfits, or the Mason website (e.g. politics, coding, weather), you MUST politely refuse to answer and state: "I'm Mason's fashion assistant, so I can only help with Mason products, clothing, outfits, customization, and website-related questions."
-Keep responses concise, friendly, and formatted nicely (use markdown bolding for product names or prices).`;
+Keep responses concise, friendly, and formatted nicely (use markdown bolding for product names). ALL prices are in Indian Rupees (₹), DO NOT use Dollars ($).`;
 
 // Main Chat Controller
 exports.handleChat = async (req, res) => {
@@ -145,7 +138,7 @@ exports.handleChat = async (req, res) => {
     ];
 
     let response = await groq.chat.completions.create({
-      model: 'llama-3.1-70b-versatile',
+      model: 'llama-3.3-70b-versatile',
       messages: groqMessages,
       tools: tools,
       tool_choice: 'auto',
@@ -186,7 +179,7 @@ exports.handleChat = async (req, res) => {
 
       // Call Groq again with the tool responses
       response = await groq.chat.completions.create({
-        model: 'llama-3.1-70b-versatile',
+        model: 'llama-3.3-70b-versatile',
         messages: groqMessages,
         tools: tools,
         tool_choice: 'auto',
@@ -205,6 +198,51 @@ exports.handleChat = async (req, res) => {
 
   } catch (error) {
     console.error("Chatbot Error:", error);
+    
+    // Check if it's a Groq tool use failure (hallucinated XML tags)
+    if (error?.error?.error?.code === 'tool_use_failed') {
+      const failedGen = error.error.error.failed_generation;
+      
+      // Try to manually extract the tool call if the model used XML format by mistake
+      if (failedGen && failedGen.includes('<function=')) {
+        try {
+          // Extracts: <function=search_products {"query": "skirt"}</function> or similar
+          const match = failedGen.match(/<function=([a-zA-Z0-9_]+)[^\{]*(\{.*?\})/s);
+          if (match) {
+            const funcName = match[1];
+            const funcArgs = JSON.parse(match[2]);
+            
+            // Execute it manually
+            let funcRes;
+            if (funcName === 'search_products') funcRes = await executeSearchProducts(funcArgs);
+            else if (funcName === 'get_product_details') funcRes = await executeGetProductDetails(funcArgs);
+            
+            if (funcRes) {
+              // Feed it back to the model manually
+              const newResponse = await groq.chat.completions.create({
+                model: 'llama-3.3-70b-versatile',
+                messages: [
+                  ...groqMessages,
+                  { role: 'assistant', content: "Let me check that for you." },
+                  { role: 'tool', tool_call_id: 'call_fallback', name: funcName, content: funcRes }
+                ],
+                max_tokens: 500,
+              });
+              
+              return res.status(200).json({ success: true, message: newResponse.choices[0].message.content });
+            }
+          }
+        } catch (e) {
+          console.error("Regex parsing fallback failed:", e);
+        }
+      }
+      
+      return res.status(200).json({ 
+        success: true, 
+        message: "I found some information but had trouble fetching the exact details right now. Please ask me about a specific product!" 
+      });
+    }
+
     res.status(500).json({ success: false, message: "Failed to process chat request." });
   }
 };
