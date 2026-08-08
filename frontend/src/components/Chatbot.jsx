@@ -152,6 +152,8 @@ const Chatbot = () => {
                 <div className="mason-chat-bubble">
                   {formatMessage(msg.content)}
                 </div>
+              </div>
+            ))}
             {isLoading && (
               <div className="mason-chat-message assistant">
                 <div className="mason-chat-bubble loading-bubble">
