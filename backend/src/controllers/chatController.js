@@ -49,12 +49,23 @@ const executeSearchProducts = async (args) => {
   try {
     const rawQuery = args.query || '';
     
-    // Stopwords filter to handle conversational queries like "show me your latest ethnic wear"
+    // Stopwords filter to handle conversational queries like "do you have skirts"
     const stopWords = ['show', 'me', 'your', 'latest', 'the', 'a', 'an', 'products', 'collection', 'items', 'do', 'you', 'have', 'any', 'wear'];
-    const keywords = rawQuery.toLowerCase()
+    const rawWords = rawQuery.toLowerCase()
       .split(/\s+/)
       .map(w => w.replace(/[^a-z0-9]/gi, ''))
       .filter(w => w.length > 2 && !stopWords.includes(w));
+
+    // Stemming logic: Add singular forms for plurals (e.g. "skirts" -> "skirt", "dresses" -> "dress")
+    const keywords = [];
+    rawWords.forEach(w => {
+      keywords.push(w);
+      if (w.endsWith('es') && w.length > 4) {
+        keywords.push(w.slice(0, -2));
+      } else if (w.endsWith('s') && w.length > 3) {
+        keywords.push(w.slice(0, -1));
+      }
+    });
 
     let searchConditions = [];
     if (keywords.length > 0) {
@@ -63,7 +74,8 @@ const executeSearchProducts = async (args) => {
           { name: { $regex: kw, $options: 'i' } },
           { description: { $regex: kw, $options: 'i' } },
           { tags: { $regex: kw, $options: 'i' } },
-          { type: { $regex: kw, $options: 'i' } }
+          { type: { $regex: kw, $options: 'i' } },
+          { brand: { $regex: kw, $options: 'i' } }
         ]
       }));
     } else {
@@ -84,13 +96,22 @@ const executeSearchProducts = async (args) => {
       return JSON.stringify({ result: "No matching products found in database." });
     }
 
-    return JSON.stringify(products.map(p => ({
-      name: p.name,
-      price: p.price,
-      slug: p.slug,
-      type: p.type,
-      isCustomizable: p.type === 'custom-tailoring' || (p.description && p.description.toLowerCase().includes('custom'))
-    })));
+    return JSON.stringify(products.map(p => {
+      const colors = [...new Set((p.variants || []).map(v => v.color).filter(Boolean))];
+      const sizes = [...new Set((p.variants || []).map(v => v.size).filter(Boolean))];
+      const totalStock = (p.variants || []).reduce((acc, v) => acc + (v.stock || 0), 0);
+
+      return {
+        name: p.name,
+        price: `₹${p.price}`,
+        type: p.type,
+        brand: p.brand,
+        colors: colors.length > 0 ? colors : ['Standard'],
+        sizes: sizes.length > 0 ? sizes : ['Standard'],
+        inStock: totalStock > 0,
+        isCustomizable: p.type === 'custom-tailoring' || (p.description && p.description.toLowerCase().includes('custom'))
+      };
+    }));
   } catch (error) {
     console.error("Error in search_products tool:", error);
     return JSON.stringify({ error: "Failed to search products." });
