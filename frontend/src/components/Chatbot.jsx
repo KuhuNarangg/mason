@@ -286,13 +286,28 @@ const Chatbot = () => {
             /* Normal Chat View */
             <>
               <div className="mason-chat-messages">
-                {messages.map((msg, index) => (
-                  <div key={index} className={`mason-chat-message ${msg.role}`}>
-                    <div className="mason-chat-bubble">
-                      {formatMessage(msg.content)}
+                {messages.map((msg, index) => {
+                  const isAssistant = msg.role === 'assistant';
+                  const offersQuery = isAssistant && (
+                    msg.content.toLowerCase().includes("couldn't confirm") ||
+                    msg.content.toLowerCase().includes("leave a query") ||
+                    msg.content.toLowerCase().includes("contact details")
+                  );
+
+                  return (
+                    <div key={index} className={`mason-chat-message ${msg.role}`}>
+                      <div className="mason-chat-bubble">
+                        {formatMessage(msg.content)}
+
+                        {offersQuery && (
+                          <button className="inline-query-btn" onClick={() => openQueryModal()}>
+                            📝 Leave a Query for Representative
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
 
                 {isLoading && (
                   <div className="mason-chat-message assistant">
