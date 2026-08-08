@@ -26,9 +26,7 @@
 
 /* Floating Action Button */
 .mason-chat-fab {
-  position: fixed;
-  bottom: 24px;
-  left: 24px;
+  position: relative;
   width: 60px;
   height: 60px;
   border-radius: 50%;
@@ -76,8 +74,8 @@
   transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   pointer-events: none;
   position: absolute;
-  bottom: 60px;
-  right: 30px;
+  bottom: 70px;
+  right: 0px;
   white-space: nowrap;
 }
 
