@@ -188,13 +188,29 @@ exports.handleChat = async (req, res) => {
       }))
     ];
 
-    let response = await groq.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
-      messages: groqMessages,
-      tools: tools,
-      tool_choice: 'auto',
-      max_tokens: 500,
-    });
+    let response;
+    try {
+      response = await groq.chat.completions.create({
+        model: 'llama-3.1-8b-instant',
+        messages: groqMessages,
+        tools: tools,
+        tool_choice: 'auto',
+        max_tokens: 500,
+      });
+    } catch (err) {
+      if (err?.error?.error?.code === 'rate_limit_exceeded' || err?.status === 429) {
+        console.warn("Primary model rate limited, falling back to mixtral-8x7b-32768");
+        response = await groq.chat.completions.create({
+          model: 'mixtral-8x7b-32768',
+          messages: groqMessages,
+          tools: tools,
+          tool_choice: 'auto',
+          max_tokens: 500,
+        });
+      } else {
+        throw err;
+      }
+    }
 
     let responseMessage = response.choices[0].message;
     let toolCalls = responseMessage.tool_calls;
@@ -230,7 +246,7 @@ exports.handleChat = async (req, res) => {
 
       // Call Groq again with the tool responses
       response = await groq.chat.completions.create({
-        model: 'llama-3.3-70b-versatile',
+        model: 'llama-3.1-8b-instant',
         messages: groqMessages,
         tools: tools,
         tool_choice: 'auto',
@@ -271,7 +287,7 @@ exports.handleChat = async (req, res) => {
             if (funcRes) {
               // Feed it back to the model manually
               const newResponse = await groq.chat.completions.create({
-                model: 'llama-3.3-70b-versatile',
+                model: 'llama-3.1-8b-instant',
                 messages: [
                   ...groqMessages,
                   { role: 'assistant', content: "Let me check that for you." },
