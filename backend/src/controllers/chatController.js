@@ -87,13 +87,18 @@ const executeSearchProducts = async (args) => {
       }];
     }
 
-    const products = await Product.find({
+    let products = await Product.find({
       isActive: true,
       $or: searchConditions.flatMap(sc => sc.$or)
     }).limit(6).lean();
 
+    // Fallback: If specific search yields 0 items, fetch the 6 newest active products from Mason store
     if (products.length === 0) {
-      return JSON.stringify({ result: "No matching products found in database." });
+      products = await Product.find({ isActive: true }).sort({ createdAt: -1 }).limit(6).lean();
+    }
+
+    if (products.length === 0) {
+      return JSON.stringify({ result: "No products currently available in database." });
     }
 
     return JSON.stringify(products.map(p => {
