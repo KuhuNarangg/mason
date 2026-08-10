@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import api from '../utils/api';
 import './ShopByCategoriesSection.css';
 
@@ -65,6 +65,8 @@ const DEFAULT_CATEGORIES = [
 const ShopByCategoriesSection = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isPaused, setIsPaused] = useState(false);
+  const scrollRef = useRef(null);
 
   useEffect(() => {
     const fetchCategoryData = async () => {
@@ -85,12 +87,10 @@ const ShopByCategoriesSection = () => {
         }
 
         if (fetchedTree.length > 0) {
-          // Enhance DB categories with product images if cat.image is missing
           const enhanced = fetchedTree.map((cat, idx) => {
             let catImage = cat.image;
 
             if (!catImage) {
-              // Try to find a matching product image for this category
               const matchingProd = fetchedProducts.find(
                 p => (p.category === cat._id || p.type === cat.slug || (p.type && cat.name && p.type.toLowerCase().includes(cat.name.toLowerCase())))
               );
@@ -124,6 +124,35 @@ const ShopByCategoriesSection = () => {
     fetchCategoryData();
   }, []);
 
+  // Smooth scroll handler
+  const handleScroll = (direction) => {
+    if (scrollRef.current) {
+      const scrollAmount = 320;
+      scrollRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  // Automatic slow scrolling interval
+  useEffect(() => {
+    if (isPaused || loading || categories.length === 0) return;
+
+    const interval = setInterval(() => {
+      if (scrollRef.current) {
+        const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+        if (scrollLeft + clientWidth >= scrollWidth - 15) {
+          scrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+        } else {
+          scrollRef.current.scrollBy({ left: 310, behavior: 'smooth' });
+        }
+      }
+    }, 3500);
+
+    return () => clearInterval(interval);
+  }, [isPaused, loading, categories]);
+
   const getCategoryUrl = (cat) => {
     if (cat.slug === 'custom-tailoring') return '/customisation';
     const params = new URLSearchParams();
@@ -138,7 +167,11 @@ const ShopByCategoriesSection = () => {
   };
 
   return (
-    <section className="m-shop-categories reveal-up">
+    <section 
+      className="m-shop-categories reveal-up"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
       <div className="container">
         {/* Section Header */}
         <div className="m-shop-categories__header">
@@ -150,69 +183,87 @@ const ShopByCategoriesSection = () => {
             <h2 className="m-section-title">
               Shop by <em>Category</em>
             </h2>
-            <p className="m-shop-categories__subtitle">
-              Explore our luxury edits — from bespoke tailored gowns to heritage ethnic silhouettes.
-            </p>
           </div>
 
-          <Link to="/categories" className="m-nav-link-cta m-shop-categories__view-all">
-            View All Categories <ArrowRight size={14} strokeWidth={1.5} />
-          </Link>
+          {/* Controls: Left / Right Arrows & View All */}
+          <div className="m-shop-categories__controls">
+            <div className="m-slider-arrows">
+              <button 
+                className="m-slider-arrow" 
+                onClick={() => handleScroll('left')}
+                aria-label="Previous Category"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <button 
+                className="m-slider-arrow" 
+                onClick={() => handleScroll('right')}
+                aria-label="Next Category"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+
+            <Link to="/categories" className="m-nav-link-cta m-shop-categories__view-all">
+              View All <ArrowRight size={14} strokeWidth={1.5} />
+            </Link>
+          </div>
         </div>
 
-        {/* Categories Grid */}
+        {/* Single-Row Scrollable Track */}
         {loading ? (
           <div className="m-loading-state">
             <div className="spinner" />
           </div>
         ) : (
-          <div className="m-shop-categories__grid">
-            {categories.map((cat, index) => (
-              <Link
-                key={cat._id || cat.slug || index}
-                to={getCategoryUrl(cat)}
-                className={`m-category-card m-category-card--${(index % 5) === 0 ? 'large' : 'standard'} reveal-up`}
-                style={{ transitionDelay: `${index * 0.08}s` }}
-              >
-                <div className="m-category-card__bg-wrap">
-                  <img
-                    src={cat.image || '/home1.jpg'}
-                    alt={cat.name}
-                    className="m-category-card__img"
-                    loading="lazy"
-                    onError={(e) => {
-                      e.target.src = DEFAULT_CATEGORIES[index % DEFAULT_CATEGORIES.length].image;
-                    }}
-                  />
-                  <div className="m-category-card__overlay" />
-                </div>
-
-                <div className="m-category-card__content">
-                  <div className="m-category-card__tags">
-                    <span className="m-category-card__tag">
-                      {cat.gender === 'women' ? "Women's Edit" : (cat.gender === 'men' ? "Men's Edit" : "Signature Edit")}
-                    </span>
+          <div className="m-shop-categories__scroll-wrap">
+            <div className="m-shop-categories__track" ref={scrollRef}>
+              {categories.map((cat, index) => (
+                <Link
+                  key={cat._id || cat.slug || index}
+                  to={getCategoryUrl(cat)}
+                  className="m-category-card"
+                >
+                  <div className="m-category-card__bg-wrap">
+                    <img
+                      src={cat.image || '/home1.jpg'}
+                      alt={cat.name}
+                      className="m-category-card__img"
+                      loading="lazy"
+                      onError={(e) => {
+                        e.target.src = DEFAULT_CATEGORIES[index % DEFAULT_CATEGORIES.length].image;
+                      }}
+                    />
+                    <div className="m-category-card__overlay" />
                   </div>
 
-                  <h3 className="m-category-card__title">{cat.name}</h3>
-
-                  {cat.subcategories && cat.subcategories.length > 0 && (
-                    <div className="m-category-card__subs">
-                      {cat.subcategories.slice(0, 3).map((sub, sIdx) => (
-                        <span key={sIdx} className="m-category-card__sub-pill">
-                          {sub.name || sub}
-                        </span>
-                      ))}
+                  <div className="m-category-card__content">
+                    <div className="m-category-card__tags">
+                      <span className="m-category-card__tag">
+                        {cat.gender === 'women' ? "Women's" : (cat.gender === 'men' ? "Men's" : "Signature")}
+                      </span>
                     </div>
-                  )}
 
-                  <div className="m-category-card__action">
-                    <span>Explore Collection</span>
-                    <ArrowRight size={14} className="m-category-card__arrow" />
+                    <h3 className="m-category-card__title">{cat.name}</h3>
+
+                    {cat.subcategories && cat.subcategories.length > 0 && (
+                      <div className="m-category-card__subs">
+                        {cat.subcategories.slice(0, 2).map((sub, sIdx) => (
+                          <span key={sIdx} className="m-category-card__sub-pill">
+                            {sub.name || sub}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="m-category-card__action">
+                      <span>Explore</span>
+                      <ArrowRight size={14} className="m-category-card__arrow" />
+                    </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              ))}
+            </div>
           </div>
         )}
       </div>
