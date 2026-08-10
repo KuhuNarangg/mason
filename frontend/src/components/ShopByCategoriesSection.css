@@ -1,4 +1,4 @@
-/* Shop By Categories Section - Single Row Carousel */
+/* Shop By Categories Section - High Performance GPU Optimized Carousel */
 .m-shop-categories {
   padding: 3.5rem 0;
   background-color: var(--ivory, #FAF8F5);
@@ -6,6 +6,7 @@
   border-bottom: 1px solid var(--beige, #EAE5D9);
   position: relative;
   overflow: hidden;
+  contain: layout style paint;
 }
 
 .m-shop-categories__header {
@@ -54,15 +55,16 @@
   justify-content: center;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+  transition: background 0.2s ease, transform 0.2s ease;
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 .m-slider-arrow:hover {
   background: var(--rose-gold, #C08A74);
   color: var(--white, #FFFFFF);
   border-color: var(--rose-gold, #C08A74);
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(192, 138, 116, 0.3);
+  transform: scale(1.05) translateZ(0);
 }
 
 .m-shop-categories__view-all {
@@ -97,8 +99,11 @@
   overflow-x: auto;
   scroll-behavior: smooth;
   padding: 0.5rem 0.25rem 1rem 0.25rem;
+  -webkit-overflow-scrolling: touch;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE/Edge */
+  contain: layout style paint;
+  will-change: scroll-position;
 }
 
 .m-shop-categories__track::-webkit-scrollbar {
@@ -107,9 +112,9 @@
 
 /* Compact Category Card for Single Row Slider */
 .m-category-card {
-  flex: 0 0 290px;
-  width: 290px;
-  height: 350px;
+  flex: 0 0 280px;
+  width: 280px;
+  height: 340px;
   position: relative;
   border-radius: 16px;
   overflow: hidden;
@@ -119,13 +124,15 @@
   text-decoration: none;
   color: var(--white, #FFFFFF);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 .m-category-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.14);
+  transform: translateY(-5px) translateZ(0);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.12);
 }
 
 .m-category-card__bg-wrap {
@@ -142,11 +149,13 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.7s cubic-bezier(0.25, 1, 0.5, 1);
+  transition: transform 0.5s ease;
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 .m-category-card:hover .m-category-card__img {
-  transform: scale(1.08);
+  transform: scale(1.06) translateZ(0);
 }
 
 .m-category-card__overlay {
@@ -161,26 +170,17 @@
     rgba(0, 0, 0, 0.35) 50%, 
     rgba(0, 0, 0, 0.85) 100%
   );
-  transition: background 0.4s ease;
-}
-
-.m-category-card:hover .m-category-card__overlay {
-  background: linear-gradient(
-    180deg, 
-    rgba(0, 0, 0, 0.1) 0%, 
-    rgba(0, 0, 0, 0.45) 40%, 
-    rgba(0, 0, 0, 0.92) 100%
-  );
+  transition: opacity 0.3s ease;
 }
 
 /* Card Content */
 .m-category-card__content {
   position: relative;
   z-index: 2;
-  padding: 1.5rem 1.25rem;
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.35rem;
 }
 
 .m-category-card__tags {
@@ -194,19 +194,17 @@
   text-transform: uppercase;
   letter-spacing: 0.1em;
   font-weight: 600;
-  color: var(--rose-gold-light, #E8C3B5);
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  color: #FFFFFF;
+  background: rgba(0, 0, 0, 0.45);
   padding: 3px 8px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
 }
 
 .m-category-card__title {
   margin: 0;
   font-family: var(--font-display, 'Playfair Display', Georgia, serif);
-  font-size: 1.35rem;
+  font-size: 1.3rem;
   font-weight: 600;
   color: #FFFFFF;
   line-height: 1.2;
@@ -221,11 +219,11 @@
 }
 
 .m-category-card__sub-pill {
-  font-size: 0.7rem;
-  background: rgba(255, 255, 255, 0.12);
+  font-size: 0.68rem;
+  background: rgba(255, 255, 255, 0.15);
   color: rgba(255, 255, 255, 0.9);
   padding: 2px 7px;
-  border-radius: 10px;
+  border-radius: 8px;
   font-weight: 400;
 }
 
@@ -233,18 +231,18 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: #FFFFFF;
-  margin-top: 0.4rem;
+  margin-top: 0.3rem;
   opacity: 0.85;
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition: opacity 0.2s ease;
 }
 
 .m-category-card__arrow {
-  transition: transform 0.3s ease;
+  transition: transform 0.2s ease;
 }
 
 .m-category-card:hover .m-category-card__action {
@@ -259,18 +257,18 @@
 /* Mobile Responsiveness */
 @media (max-width: 640px) {
   .m-shop-categories {
-    padding: 2.5rem 0;
+    padding: 2.25rem 0;
   }
   .m-shop-categories__header {
     margin-bottom: 1.25rem;
   }
   .m-category-card {
-    flex: 0 0 240px;
-    width: 240px;
-    height: 300px;
+    flex: 0 0 230px;
+    width: 230px;
+    height: 290px;
   }
   .m-category-card__title {
-    font-size: 1.2rem;
+    font-size: 1.15rem;
   }
   .m-slider-arrow {
     width: 36px;

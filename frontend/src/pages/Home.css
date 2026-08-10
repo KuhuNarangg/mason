@@ -28,6 +28,13 @@
 .m-home {
   background: var(--ivory);
   overflow: hidden;
+  will-change: scroll-position;
+}
+
+/* GPU Performance Compositing */
+.reveal-up {
+  will-change: opacity, transform;
+  transform: translateZ(0);
 }
 
 /* Base Component Styles */

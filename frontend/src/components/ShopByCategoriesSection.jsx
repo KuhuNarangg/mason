@@ -135,12 +135,25 @@ const ShopByCategoriesSection = () => {
     }
   };
 
-  // Automatic slow scrolling interval
+  // Automatic slow scrolling interval — pauses on hover or page scrolling for silky smooth 60fps performance
   useEffect(() => {
     if (isPaused || loading || categories.length === 0) return;
 
+    let isScrollingWindow = false;
+    let scrollTimer = null;
+
+    const handleWindowScroll = () => {
+      isScrollingWindow = true;
+      clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(() => {
+        isScrollingWindow = false;
+      }, 1200);
+    };
+
+    window.addEventListener('scroll', handleWindowScroll, { passive: true });
+
     const interval = setInterval(() => {
-      if (scrollRef.current) {
+      if (!isScrollingWindow && scrollRef.current) {
         const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
         if (scrollLeft + clientWidth >= scrollWidth - 15) {
           scrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
@@ -148,9 +161,13 @@ const ShopByCategoriesSection = () => {
           scrollRef.current.scrollBy({ left: 310, behavior: 'smooth' });
         }
       }
-    }, 3500);
+    }, 4200);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      clearTimeout(scrollTimer);
+      window.removeEventListener('scroll', handleWindowScroll);
+    };
   }, [isPaused, loading, categories]);
 
   const getCategoryUrl = (cat) => {
