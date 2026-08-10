@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Heart, ShoppingBag, Truck, RotateCcw, Star, X, Ruler, ShieldCheck, Ban } from 'lucide-react';
+import { Heart, ShoppingBag, Truck, RotateCcw, Star, X, Ruler, ShieldCheck, Ban, Camera, Sparkles } from 'lucide-react';
 import api from '../utils/api';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -9,6 +9,7 @@ import { formatPrice } from '../utils/formatPrice';
 import ProductCard from '../components/ProductCard';
 import Breadcrumbs from '../components/Breadcrumbs';
 import SEO from '../components/SEO';
+import VirtualTryOnModal from '../components/VirtualTryOnModal';
 import { generateProductSchema, generateBreadcrumbSchema, generateProductGroupSchema, generateImageObjectSchema } from '../utils/schema';
 import './ProductDetail.css';
 
@@ -108,6 +109,7 @@ const ProductDetail = () => {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
+  const [isTryOnOpen, setIsTryOnOpen] = useState(false);
   const [reviewPhotos, setReviewPhotos] = useState([]);
   const [submittingReview, setSubmittingReview] = useState(false);
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
@@ -427,6 +429,16 @@ const ProductDetail = () => {
             >
               <Heart size={18} fill={wishlisted ? 'currentColor' : 'none'} />
               WISHLIST
+            </button>
+
+            <button
+              className="btn btn-virtual-tryon"
+              onClick={() => setIsTryOnOpen(true)}
+              title="Open AR Virtual Fitting Room"
+            >
+              <Camera size={18} className="tryon-camera-icon" />
+              <span>TRY IT ON YOURSELF</span>
+              <Sparkles size={14} className="tryon-sparkle-badge" />
             </button>
           </div>
 
@@ -827,6 +839,13 @@ const ProductDetail = () => {
             </div>
           </div>
         </div>
+      )}
+      {/* Virtual Fitting Room AR Modal */}
+      {isTryOnOpen && (
+        <VirtualTryOnModal 
+          product={product} 
+          onClose={() => setIsTryOnOpen(false)} 
+        />
       )}
     </div>
   );
