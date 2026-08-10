@@ -229,6 +229,24 @@ const createGroqCompletion = async (groqMessages) => {
       return response;
     } catch (err) {
       console.warn(`Groq completion with model ${model} failed:`, err?.message || err);
+      
+      // Catch tool_use_failed (Groq 400 XML generation error)
+      if (err?.error?.error?.code === 'tool_use_failed') {
+        const failedGen = err?.error?.error?.failed_generation || '';
+        return {
+          isToolUseFailed: true,
+          failedGen: failedGen,
+          choices: [
+            {
+              message: {
+                role: 'assistant',
+                content: failedGen
+              }
+            }
+          ]
+        };
+      }
+
       lastError = err;
     }
   }
@@ -237,11 +255,12 @@ const createGroqCompletion = async (groqMessages) => {
 
 // Parse and clean any inline hallucinated <function=...> tags from model output
 const parseAndCleanInlineToolCalls = async (rawContent, productTrackerMap) => {
-  if (!rawContent || !rawContent.includes('<function=')) {
+  if (!rawContent || (!rawContent.includes('<function=') && !rawContent.includes('search_products'))) {
     return rawContent;
   }
 
-  const funcMatches = [...rawContent.matchAll(/<function=([a-zA-Z0-9_]+)>?\s*(\{.*?\})\s*<\/function>/gs)];
+  // Extracts: <function=search_products={"query": "dresses"}</function> or <function=search_products={"query": "dresses"}> or similar
+  const funcMatches = [...rawContent.matchAll(/<function=([a-zA-Z0-9_]+)=?\s*(\{.*?\})\s*(?:<\/function>)?/gs)];
 
   for (const match of funcMatches) {
     const funcName = match[1];
@@ -253,13 +272,33 @@ const parseAndCleanInlineToolCalls = async (rawContent, productTrackerMap) => {
         await executeGetProductDetails(funcArgs, productTrackerMap);
       }
     } catch (err) {
-      console.error("Error parsing inline tool call match:", err);
+      // Direct query extract fallback if JSON parsing failed
+      const qMatch = match[2].match(/"query"\s*:\s*"([^"]+)"/);
+      if (qMatch) {
+        await executeSearchProducts({ query: qMatch[1] }, productTrackerMap);
+      }
     }
   }
 
+  // Fallback: if query extracted directly from raw string
+  if (productTrackerMap.size === 0) {
+    const qMatch = rawContent.match(/"query"\s*:\s*"([^"]+)"/);
+    if (qMatch) {
+      await executeSearchProducts({ query: qMatch[1] }, productTrackerMap);
+    }
+  }
+
+  // Strip out function tags & JSON snippets
   let cleaned = rawContent.replace(/<function=.*?>.*?<\/function>/gs, '');
   cleaned = cleaned.replace(/<function=.*?>/gs, '');
+  cleaned = cleaned.replace(/<function=.*?$/gs, '');
   cleaned = cleaned.replace(/\n\s*\n\s*\n/g, '\n\n').trim();
+
+  // If text became empty after stripping code tags, provide a friendly default string
+  if (!cleaned) {
+    cleaned = "Here are matching options from our collection:";
+  }
+
   return cleaned;
 };
 
@@ -307,7 +346,6 @@ exports.handleChat = async (req, res) => {
     } catch (apiErr) {
       console.error("Groq API error, engaging direct fallback:", apiErr);
       
-      // If general policy or customization question, do NOT return product cards
       if (isGeneralOrPolicy && !isExplicitProduct) {
         return res.status(200).json({
           success: true,
@@ -323,6 +361,26 @@ exports.handleChat = async (req, res) => {
         success: true,
         message: "Here are matching options from our store:",
         products: fallbackCards
+      });
+    }
+
+    // Handle tool_use_failed intercept (Groq XML 400 error recovery)
+    if (response.isToolUseFailed) {
+      let finalContent = await parseAndCleanInlineToolCalls(response.failedGen, productTrackerMap);
+
+      let finalProducts = [];
+      if (!isGeneralOrPolicy || isExplicitProduct) {
+        finalProducts = Array.from(productTrackerMap.values());
+        if (finalProducts.length === 0 && isExplicitProduct) {
+          const directProducts = await searchProductsInDB(userQuery);
+          finalProducts = directProducts.map(formatProductCard);
+        }
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: finalContent || "Here are matching items from our store:",
+        products: finalProducts
       });
     }
 
@@ -362,6 +420,10 @@ exports.handleChat = async (req, res) => {
 
       try {
         response = await createGroqCompletion(groqMessages);
+        if (response.isToolUseFailed) {
+          await parseAndCleanInlineToolCalls(response.failedGen, productTrackerMap);
+          break;
+        }
         responseMessage = response.choices[0].message;
         toolCalls = responseMessage.tool_calls;
       } catch (loopErr) {
