@@ -344,6 +344,10 @@ const Customization = () => {
   };
 
   const seoData = getSeoData();
+  const selectedColorObj = colors.find(c => c.name === formData.color);
+  const selectedColorHex = selectedColorObj ? selectedColorObj.hex : '#f8fafc';
+  const isDarkApparel = ['Midnight Black', 'Navy Blue'].includes(formData.color) || 
+    ['#111827', '#1e3a8a', '#000000', '#111'].includes(selectedColorHex.toLowerCase());
 
   return (
     <div className="cust-container">
@@ -764,62 +768,53 @@ const Customization = () => {
         </div>
 
         {/* Right: Live Preview Widget */}
-        {(() => {
-          const selectedColorObj = colors.find(c => c.name === formData.color);
-          const selectedColorHex = selectedColorObj ? selectedColorObj.hex : '#f8fafc';
-          const isDarkApparel = ['Midnight Black', 'Navy Blue'].includes(formData.color) || 
-            ['#111827', '#1e3a8a', '#000000', '#111'].includes(selectedColorHex.toLowerCase());
-
-          return (
-            <div className="cust-preview-section">
-              <div className="cust-preview-card" style={{ backgroundColor: '#ffffff' }}>
-                {formData.productType ? (
-                  <div className="preview-product-shape">
-                    {/* Large shirt/hoodie silhouette filling the preview */}
-                    <svg className="shirt-silhouette" viewBox="0 0 300 360" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      {formData.productType.includes('hoodie') ? (
-                        /* Hoodie silhouette */
-                        <path 
-                          d="M150 30 C140 30 130 25 120 22 C110 19 95 18 85 22 L40 55 L15 120 L50 140 L60 105 L60 330 L240 330 L240 105 L250 140 L285 120 L260 55 L215 22 C205 18 190 19 180 22 C170 25 160 30 150 30 Z M130 30 C130 45 140 55 150 55 C160 55 170 45 170 30" 
-                          fill={selectedColorHex}
-                          stroke={isDarkApparel ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.15)'}
-                          strokeWidth="2.5"
-                          style={{ transition: 'fill 0.3s ease, stroke 0.3s ease' }}
-                        />
-                      ) : (
-                        /* T-shirt silhouette */
-                        <path 
-                          d="M110 25 L60 45 L15 100 L55 130 L80 80 L80 335 L220 335 L220 80 L245 130 L285 100 L240 45 L190 25 C185 40 170 55 150 55 C130 55 115 40 110 25 Z" 
-                          fill={selectedColorHex}
-                          stroke={isDarkApparel ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.15)'}
-                          strokeWidth="2.5"
-                          style={{ transition: 'fill 0.3s ease, stroke 0.3s ease' }}
-                        />
-                      )}
-                    </svg>
-                    
-                    {/* Overlay Graphic */}
-                    {formData.customDesignUrl && (
-                      <img src={formData.customDesignUrl} alt="Artwork" className={`overlay-art placement-${formData.printPlacement}`} />
-                    )}
-                    {formData.quoteText && (
-                      <div 
-                        className={`overlay-text placement-${formData.printPlacement}`}
-                        style={{ color: isDarkApparel ? '#ffffff' : '#111827' }}
-                      >
-                        {formData.quoteText}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="empty-preview">
-                    <ImageIcon size={48} opacity={0.3} />
-                    <p>Select a product to preview</p>
+        <div className="cust-preview-section">
+          <div className="cust-preview-card" style={{ backgroundColor: '#ffffff' }}>
+            {formData.productType ? (
+              <div className="preview-product-shape">
+                {/* Large shirt/hoodie silhouette filling the preview */}
+                <svg className="shirt-silhouette" viewBox="0 0 300 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  {formData.productType.includes('hoodie') ? (
+                    /* Hoodie silhouette */
+                    <path 
+                      d="M150 30 C140 30 130 25 120 22 C110 19 95 18 85 22 L40 55 L15 120 L50 140 L60 105 L60 330 L240 330 L240 105 L250 140 L285 120 L260 55 L215 22 C205 18 190 19 180 22 C170 25 160 30 150 30 Z M130 30 C130 45 140 55 150 55 C160 55 170 45 170 30" 
+                      fill={selectedColorHex}
+                      stroke={isDarkApparel ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.15)'}
+                      strokeWidth="2.5"
+                      style={{ transition: 'fill 0.3s ease, stroke 0.3s ease' }}
+                    />
+                  ) : (
+                    /* T-shirt silhouette */
+                    <path 
+                      d="M110 25 L60 45 L15 100 L55 130 L80 80 L80 335 L220 335 L220 80 L245 130 L285 100 L240 45 L190 25 C185 40 170 55 150 55 C130 55 115 40 110 25 Z" 
+                      fill={selectedColorHex}
+                      stroke={isDarkApparel ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.15)'}
+                      strokeWidth="2.5"
+                      style={{ transition: 'fill 0.3s ease, stroke 0.3s ease' }}
+                    />
+                  )}
+                </svg>
+                
+                {/* Overlay Graphic */}
+                {formData.customDesignUrl && (
+                  <img src={formData.customDesignUrl} alt="Artwork" className={`overlay-art placement-${formData.printPlacement}`} />
+                )}
+                {formData.quoteText && (
+                  <div 
+                    className={`overlay-text placement-${formData.printPlacement}`}
+                    style={{ color: isDarkApparel ? '#ffffff' : '#111827' }}
+                  >
+                    {formData.quoteText}
                   </div>
                 )}
               </div>
-          );
-        })()}
+            ) : (
+              <div className="empty-preview">
+                <ImageIcon size={48} opacity={0.3} />
+                <p>Select a product to preview</p>
+              </div>
+            )}
+          </div>
           
           <div className="cust-price-tally">
             <div className="tally-row"><span>Base</span> <span>₹{products.find(p=>p.id===formData.productType)?.price || 0}</span></div>
