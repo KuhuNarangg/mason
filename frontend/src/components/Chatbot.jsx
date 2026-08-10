@@ -158,10 +158,12 @@ const Chatbot = () => {
     }
   };
 
-  // Format markdown in response (bolding product names/prices)
+  // Format markdown in response (bolding product names/prices) & clean raw function tags
   const formatMessage = (text) => {
     if (!text) return '';
-    const parts = text.split(/(\*\*.*?\*\*)/g);
+    let cleanText = text.replace(/<function=.*?>.*?<\/function>/gs, '').trim();
+    cleanText = cleanText.replace(/<function=.*?>/gs, '').trim();
+    const parts = cleanText.split(/(\*\*.*?\*\*)/g);
     return parts.map((part, i) => {
       if (part.startsWith('**') && part.endsWith('**')) {
         return <strong key={i}>{part.slice(2, -2)}</strong>;
