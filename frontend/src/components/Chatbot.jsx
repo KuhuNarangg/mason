@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
-import { Bot, MessageSquare, X, Send, Minus, Loader, FileText, SendHorizontal } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Bot, MessageSquare, X, Send, Minus, Loader, FileText, SendHorizontal, ExternalLink } from 'lucide-react';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import './Chatbot.css';
 
 const Chatbot = () => {
+  const navigate = useNavigate();
   const { user, isAuth } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -93,7 +95,14 @@ const Chatbot = () => {
     try {
       const response = await api.post('/chat', { messages: newMessages });
       if (response.data.success) {
-        setMessages(prev => [...prev, { role: 'assistant', content: response.data.message }]);
+        setMessages(prev => [
+          ...prev, 
+          { 
+            role: 'assistant', 
+            content: response.data.message,
+            products: response.data.products || []
+          }
+        ]);
       } else {
         setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I am having trouble connecting right now. Please try again later.' }]);
       }
@@ -106,7 +115,6 @@ const Chatbot = () => {
   };
 
   const openQueryModal = (initialMessage = '') => {
-    // Determine last user message if no initialMessage passed
     let lastMsg = initialMessage;
     if (!lastMsg) {
       const userMsgs = messages.filter(m => m.role === 'user');
@@ -296,13 +304,55 @@ const Chatbot = () => {
 
                   return (
                     <div key={index} className={`mason-chat-message ${msg.role}`}>
-                      <div className="mason-chat-bubble">
-                        {formatMessage(msg.content)}
+                      <div className="mason-chat-bubble-container">
+                        <div className="mason-chat-bubble">
+                          {formatMessage(msg.content)}
 
-                        {offersQuery && (
-                          <button className="inline-query-btn" onClick={() => openQueryModal()}>
-                            📝 Leave a Query for Representative
-                          </button>
+                          {offersQuery && (
+                            <button className="inline-query-btn" onClick={() => openQueryModal()}>
+                              📝 Leave a Query for Representative
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Render Mini Product Catalogue Cards */}
+                        {isAssistant && msg.products && msg.products.length > 0 && (
+                          <div className="mason-chat-products-carousel">
+                            {msg.products.map((prod, pIdx) => (
+                              <div 
+                                key={prod._id || prod.slug || pIdx} 
+                                className="mason-chat-product-card"
+                                onClick={() => navigate(`/product/${prod.slug || prod._id}`)}
+                              >
+                                <div className="mason-chat-product-img">
+                                  <img 
+                                    src={prod.image || '/logofinalnobg.png'} 
+                                    alt={prod.name} 
+                                    onError={(e) => { e.target.src = '/logofinalnobg.png'; }}
+                                  />
+                                </div>
+                                <div className="mason-chat-product-details">
+                                  <span className="mason-chat-product-brand">{prod.brand || 'Mason'}</span>
+                                  <h4 className="mason-chat-product-name">{prod.name}</h4>
+                                  <div className="mason-chat-product-price-row">
+                                    <span className="mason-chat-product-price">₹{prod.price}</span>
+                                    {prod.originalPrice > prod.price && (
+                                      <span className="mason-chat-product-old-price">₹{prod.originalPrice}</span>
+                                    )}
+                                  </div>
+                                  <button 
+                                    className="mason-chat-product-view-btn"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      navigate(`/product/${prod.slug || prod._id}`);
+                                    }}
+                                  >
+                                    View Product <ExternalLink size={12} style={{ display: 'inline', marginLeft: 4 }} />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         )}
                       </div>
                     </div>
@@ -313,7 +363,7 @@ const Chatbot = () => {
                   <div className="mason-chat-message assistant">
                     <div className="mason-chat-bubble loading-bubble">
                       <Loader size={16} className="animate-spin" />
-                      <span>Styling...</span>
+                      <span>Styling & searching dresses...</span>
                     </div>
                   </div>
                 )}
@@ -328,6 +378,7 @@ const Chatbot = () => {
                 >
                   📝 Leave a Query
                 </button>
+                <button onClick={() => handleSuggestionClick("Show me dresses")}>Show me dresses 👗</button>
                 <button onClick={() => handleSuggestionClick("What can I pair with a white skirt?")}>What can I pair with a white skirt?</button>
                 <button onClick={() => handleSuggestionClick("Do you provide Cash on Delivery (COD)?")}>Do you provide Cash on Delivery (COD)?</button>
                 <button onClick={() => handleSuggestionClick("Show me your latest ethnic wear")}>Show me your latest ethnic wear</button>
@@ -339,7 +390,7 @@ const Chatbot = () => {
               <form className="mason-chat-input-area" onSubmit={handleSend}>
                 <input 
                   type="text" 
-                  placeholder="Ask about outfits, sizes, or customizations..." 
+                  placeholder="Ask about dresses, outfits, sizes..." 
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   disabled={isLoading}
