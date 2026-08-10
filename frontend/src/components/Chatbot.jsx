@@ -11,7 +11,7 @@ const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: 'Hello! I am Mason\'s AI Fashion Assistant. How can I help you style your outfit or find products today?' }
+    { role: 'assistant', content: 'Hello! I am OwlStitch AI, your fashion assistant. How can I help you style your outfit or find products today?' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -49,6 +49,12 @@ const Chatbot = () => {
     setIsOpen(false);
     setIsMinimized(false);
     setShowQueryForm(false);
+  };
+
+  // Auto-close chatbot on phone and desktop when navigating to product
+  const handleProductClick = (slugOrId) => {
+    closeChat();
+    navigate(`/product/${slugOrId}`);
   };
 
   const scrollToBottom = () => {
@@ -137,7 +143,7 @@ const Chatbot = () => {
         email: queryEmail.trim(),
         phone: queryPhone.trim(),
         query: queryMessage.trim(),
-        source: 'AI Chatbot'
+        source: 'OwlStitch AI Chatbot'
       };
 
       await api.post('/queries', payload);
@@ -185,7 +191,7 @@ const Chatbot = () => {
         <div className={`mason-chat-tooltip ${showTooltip ? 'visible' : ''}`}>
           Need help? 👋
         </div>
-        <button className="mason-chat-fab animated-bot" onClick={toggleChat} aria-label="Open AI Fashion Assistant">
+        <button className="mason-chat-fab animated-bot" onClick={toggleChat} aria-label="Open OwlStitch AI Assistant">
           <Bot size={28} className="bot-icon-wobble" />
         </button>
       </div>
@@ -198,11 +204,11 @@ const Chatbot = () => {
       <div className="mason-chat-header" onClick={() => setIsMinimized(!isMinimized)}>
         <div className="mason-chat-header-info">
           <div className="mason-chat-avatar">
-            <img src="/logofinalnobg.png" alt="Mason" />
+            <img src="/logofinalnobg.png" alt="OwlStitch AI" />
           </div>
           <div className="mason-chat-title">
-            <h3>Mason AI Stylist</h3>
-            <span className="mason-chat-status">Online</span>
+            <h3>OwlStitch AI</h3>
+            <span className="mason-chat-status">Online • AI Fashion Stylist</span>
           </div>
         </div>
         <div className="mason-chat-actions">
@@ -324,7 +330,7 @@ const Chatbot = () => {
                               <div 
                                 key={prod._id || prod.slug || pIdx} 
                                 className="mason-chat-product-card"
-                                onClick={() => navigate(`/product/${prod.slug || prod._id}`)}
+                                onClick={() => handleProductClick(prod.slug || prod._id)}
                               >
                                 <div className="mason-chat-product-img">
                                   <img 
@@ -346,7 +352,7 @@ const Chatbot = () => {
                                     className="mason-chat-product-view-btn"
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      navigate(`/product/${prod.slug || prod._id}`);
+                                      handleProductClick(prod.slug || prod._id);
                                     }}
                                   >
                                     View Product <ExternalLink size={12} style={{ display: 'inline', marginLeft: 4 }} />
@@ -365,7 +371,7 @@ const Chatbot = () => {
                   <div className="mason-chat-message assistant">
                     <div className="mason-chat-bubble loading-bubble">
                       <Loader size={16} className="animate-spin" />
-                      <span>Styling & searching dresses...</span>
+                      <span>OwlStitch AI is styling your outfits...</span>
                     </div>
                   </div>
                 )}
@@ -392,7 +398,7 @@ const Chatbot = () => {
               <form className="mason-chat-input-area" onSubmit={handleSend}>
                 <input 
                   type="text" 
-                  placeholder="Ask about dresses, outfits, sizes..." 
+                  placeholder="Ask OwlStitch AI about dresses, outfits, sizing..." 
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   disabled={isLoading}
