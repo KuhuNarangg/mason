@@ -19,7 +19,8 @@ const CODE_LOCK_MINUTES    = 2;
 /* ── helpers ──────────────────────────────────────── */
 const safeUser = (u) => ({
   _id: u._id, name: u.name, email: u.email,
-  role: u.role, avatar: u.avatar,
+  role: u.role, avatar: u.avatar, phone: u.phone,
+  weight: u.weight, height: u.height, preferredSize: u.preferredSize, fitPreference: u.fitPreference,
   wishlist: u.wishlist || [],
   vendorStatus: u.vendorStatus,
   vendorProfile: u.role === 'vendor' ? u.vendorProfile : undefined,
@@ -306,10 +307,14 @@ const getMe = asyncHandler(async (req, res) => {
 /* ── @PUT /api/v1/auth/profile ────────────────────── */
 const updateProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
-  const { name, phone, avatar } = req.body;
-  if (name)   user.name   = name;
-  if (phone)  user.phone  = phone;
-  if (avatar) user.avatar = avatar;
+  const { name, phone, avatar, weight, height, preferredSize, fitPreference } = req.body;
+  if (name !== undefined) user.name = name;
+  if (phone !== undefined) user.phone = phone;
+  if (avatar !== undefined) user.avatar = avatar;
+  if (weight !== undefined) user.weight = (weight === '' || weight === null) ? null : Number(weight);
+  if (height !== undefined) user.height = (height === '' || height === null) ? null : Number(height);
+  if (preferredSize !== undefined) user.preferredSize = preferredSize;
+  if (fitPreference !== undefined) user.fitPreference = fitPreference;
   if (req.body.password) user.password = req.body.password;
   const updated = await user.save();
   res.json({ success: true, user: safeUser(updated) });

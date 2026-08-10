@@ -49,6 +49,12 @@ const userSchema = new mongoose.Schema(
     addresses: [addressSchema],
     wishlist:  [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
 
+    /* ── Weight & Size Fit Profile ── */
+    weight:        { type: Number, default: null }, // Weight in kg
+    height:        { type: Number, default: null }, // Height in cm
+    preferredSize: { type: String, default: '' },   // Preferred apparel size (S, M, L, XL, XXL, 3XL)
+    fitPreference: { type: String, enum: ['Slim', 'Regular', 'Relaxed', ''], default: 'Regular' },
+
     /* ── Vendor-specific fields ── */
     vendorStatus: {
       type: String,

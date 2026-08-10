@@ -158,6 +158,46 @@
   font-weight: 600;
 }
 
+/* Recommended Size Badge */
+.p-rec-size-badge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #FAF8F5 0%, #F5F0EB 100%);
+  border: 1px solid var(--rose-gold, #C08A74);
+  border-radius: 8px;
+  font-size: 0.82rem;
+  color: var(--ink, #1A1A1A);
+}
+
+.p-rec-size-prompt {
+  background: var(--ivory, #FAF8F5);
+  border-color: var(--beige, #EAE5D9);
+}
+
+.p-rec-sparkle {
+  color: var(--rose-gold, #C08A74);
+  flex-shrink: 0;
+}
+
+.p-rec-edit-btn {
+  background: transparent;
+  border: none;
+  color: var(--rose-gold-dark, #A66B56);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  white-space: nowrap;
+  padding: 0;
+}
+
+.p-rec-edit-btn:hover {
+  color: var(--ink, #1A1A1A);
+}
+
 .size-options {
   display: flex;
   gap: var(--space-3);

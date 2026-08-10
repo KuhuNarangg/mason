@@ -23,6 +23,14 @@ const Profile = () => {
   const [profileData, setProfileData] = useState({ name: '', email: '' });
   const [passwords, setPasswords] = useState({ oldPassword: '', newPassword: '' });
 
+  // Weight & Fit Profile State
+  const [fitData, setFitData] = useState({
+    weight: user?.weight || '',
+    height: user?.height || '',
+    preferredSize: user?.preferredSize || '',
+    fitPreference: user?.fitPreference || 'Regular'
+  });
+
   // Orders State
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
@@ -32,6 +40,12 @@ const Profile = () => {
       navigate('/login');
     } else {
       setProfileData({ name: user.name, email: user.email });
+      setFitData({
+        weight: user.weight || '',
+        height: user.height || '',
+        preferredSize: user.preferredSize || '',
+        fitPreference: user.fitPreference || 'Regular'
+      });
       fetchAddresses();
     }
   }, [user, navigate]);
@@ -120,6 +134,25 @@ const Profile = () => {
     }
   };
 
+  const handleUpdateFitProfile = async (e) => {
+    e.preventDefault();
+    try {
+      const payload = {
+        weight: fitData.weight ? Number(fitData.weight) : null,
+        height: fitData.height ? Number(fitData.height) : null,
+        preferredSize: fitData.preferredSize,
+        fitPreference: fitData.fitPreference
+      };
+      const { data } = await api.put('/auth/profile', payload);
+      const updatedUser = { ...user, ...data.user };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      setAuthUser(token, updatedUser);
+      toast.success('Weight & Size Profile updated successfully!');
+    } catch (err) {
+      toast.error('Failed to update fit profile');
+    }
+  };
+
   if (!user) return null;
 
   return (
@@ -166,6 +199,15 @@ const Profile = () => {
             <div className="profile-card-info">
               <h3>Account Settings</h3>
               <p>Update personal details and password</p>
+            </div>
+            <ChevronRight className="profile-card-arrow" />
+          </button>
+
+          <button className="profile-card text-left w-100" onClick={() => setActiveTab('fitProfile')}>
+            <div className="profile-card-icon"><Ruler size={24} /></div>
+            <div className="profile-card-info">
+              <h3>Weight & Size Profile</h3>
+              <p>{user?.weight ? `Saved Weight: ${user.weight}kg · Size ${user.preferredSize || 'Calculated'}` : 'Set your weight & size recommendations'}</p>
             </div>
             <ChevronRight className="profile-card-arrow" />
           </button>
@@ -363,6 +405,88 @@ const Profile = () => {
               )}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Weight & Size Profile Tab */}
+      {activeTab === 'fitProfile' && (
+        <div className="profile-section fade-in">
+          <button className="btn-back mb-4" onClick={() => setActiveTab('overview')}>
+            <ArrowLeft size={18} /> Back to Profile
+          </button>
+          
+          <div className="settings-cards" style={{ maxWidth: '540px', margin: '0 auto' }}>
+            <div className="card p-4 mb-4">
+              <div className="d-flex align-center gap-2 mb-3 justify-center">
+                <Ruler size={24} style={{ color: 'var(--rose-gold, #C08A74)' }} />
+                <h3 className="m-0 text-center">My Weight & Size Profile</h3>
+              </div>
+              <p className="text-muted text-center mb-4" style={{ fontSize: '0.9rem' }}>
+                Save your body measurements so Mason can automatically recommend the best size for you on every product page.
+              </p>
+
+              <form onSubmit={handleUpdateFitProfile}>
+                <div className="form-group mb-3">
+                  <label>Weight (in kg) *</label>
+                  <input
+                    type="number"
+                    min="20"
+                    max="200"
+                    className="form-input mt-1"
+                    required
+                    placeholder="e.g. 68"
+                    value={fitData.weight}
+                    onChange={e => setFitData({...fitData, weight: e.target.value})}
+                  />
+                </div>
+
+                <div className="form-group mb-3">
+                  <label>Height (in cm) — Optional</label>
+                  <input
+                    type="number"
+                    min="100"
+                    max="230"
+                    className="form-input mt-1"
+                    placeholder="e.g. 172"
+                    value={fitData.height}
+                    onChange={e => setFitData({...fitData, height: e.target.value})}
+                  />
+                </div>
+
+                <div className="form-group mb-3">
+                  <label>Preferred Apparel Size</label>
+                  <select
+                    className="form-input mt-1"
+                    value={fitData.preferredSize}
+                    onChange={e => setFitData({...fitData, preferredSize: e.target.value})}
+                  >
+                    <option value="">Auto-Calculate Based on Weight</option>
+                    <option value="S">Size S (Small)</option>
+                    <option value="M">Size M (Medium)</option>
+                    <option value="L">Size L (Large)</option>
+                    <option value="XL">Size XL (Extra Large)</option>
+                    <option value="XXL">Size XXL (2XL)</option>
+                    <option value="3XL">Size 3XL (3XL)</option>
+                  </select>
+                </div>
+
+                <div className="form-group mb-4">
+                  <label>Fit Preference</label>
+                  <select
+                    className="form-input mt-1"
+                    value={fitData.fitPreference}
+                    onChange={e => setFitData({...fitData, fitPreference: e.target.value})}
+                  >
+                    <option value="Slim">Slim Fit (Snug)</option>
+                    <option value="Regular">Regular Fit (Standard)</option>
+                    <option value="Relaxed">Relaxed Fit (Loose/Oversized)</option>
+                  </select>
+                </div>
+
+                <button type="submit" className="btn btn-primary w-100 mt-2">Save Size Profile</button>
+              </form>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -10,6 +10,7 @@ import ProductCard from '../components/ProductCard';
 import Breadcrumbs from '../components/Breadcrumbs';
 import SEO from '../components/SEO';
 import VirtualTryOnModal from '../components/VirtualTryOnModal';
+import WeightFitModal, { calculateRecommendedSize } from '../components/WeightFitModal';
 import { generateProductSchema, generateBreadcrumbSchema, generateProductGroupSchema, generateImageObjectSchema } from '../utils/schema';
 import './ProductDetail.css';
 
@@ -110,6 +111,7 @@ const ProductDetail = () => {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
   const [isTryOnOpen, setIsTryOnOpen] = useState(false);
+  const [showWeightModal, setShowWeightModal] = useState(false);
   const [reviewPhotos, setReviewPhotos] = useState([]);
   const [submittingReview, setSubmittingReview] = useState(false);
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
@@ -350,6 +352,29 @@ const ProductDetail = () => {
                 <Ruler size={14} style={{ marginRight: '4px', display: 'inline' }} />Size Chart
               </button>
             </div>
+
+            {/* Recommended Size Banner */}
+            {user?.weight || user?.preferredSize ? (
+              <div className="p-rec-size-badge mb-3">
+                <Sparkles size={15} className="p-rec-sparkle" />
+                <span>
+                  Recommended for You: <strong>Size {user.preferredSize || calculateRecommendedSize(user.weight, user.fitPreference)}</strong>
+                  {user.weight ? ` (Based on ${user.weight}kg weight profile)` : ''}
+                </span>
+                <button type="button" className="p-rec-edit-btn" onClick={() => setShowWeightModal(true)}>
+                  Edit Profile
+                </button>
+              </div>
+            ) : (
+              <div className="p-rec-size-badge p-rec-size-prompt mb-3">
+                <Ruler size={15} className="p-rec-sparkle" />
+                <span>Find your perfect size based on weight</span>
+                <button type="button" className="p-rec-edit-btn" onClick={() => setShowWeightModal(true)}>
+                  Find My Size
+                </button>
+              </div>
+            )}
+
             <div className="size-options">
               {uniqueSizes.map(size => {
                 const hasStock = variants.some(v => v.size === size && v.stock > 0);
@@ -845,6 +870,18 @@ const ProductDetail = () => {
         <VirtualTryOnModal 
           product={product} 
           onClose={() => setIsTryOnOpen(false)} 
+        />
+      )}
+
+      {/* Weight & Fit Recommendation Calculator Modal */}
+      {showWeightModal && (
+        <WeightFitModal
+          onClose={() => setShowWeightModal(false)}
+          onSaveSuccess={(data) => {
+            if (data.recommendedSize && uniqueSizes.includes(data.recommendedSize)) {
+              setSelectedSize(data.recommendedSize);
+            }
+          }}
         />
       )}
     </div>
