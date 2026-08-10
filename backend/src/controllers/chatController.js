@@ -12,7 +12,7 @@ const tools = [
     type: 'function',
     function: {
       name: 'search_products',
-      description: 'Search for Mason products based on user queries like category, color, or style. Always use this to check product availability and inventory before recommending items.',
+      description: 'Search for Mason products based on user queries like category, color, or style. ONLY use this when the user explicitly asks to view, find, show, or recommend specific products or categories.',
       parameters: {
         type: 'object',
         properties: {
@@ -196,19 +196,18 @@ const executeGetProductDetails = async (args, productTrackerMap) => {
 const SYSTEM_PROMPT = `You are Mason's AI fashion assistant. 
 Your purpose is to help users with Mason products, clothing, outfits, customization, availability, sizing, colors, and Mason website information.
 
+CRITICAL RULES FOR PRODUCT DISPLAY:
+1. EXPLICIT PRODUCT REQUESTS ONLY: ONLY call search_products or get_product_details when the user explicitly asks to view, find, show, browse, or recommend specific clothing products or categories (e.g. "show me dresses", "what skirts do you have?", "recommend an outfit", "show ethnic wear").
+2. DO NOT SHOW PRODUCTS FOR GENERAL/POLICY QUESTIONS: For questions about customization capabilities ("Can you customize this?", "How does custom design work?"), store policies (COD, payment, return policy), or general help, answer the user's question clearly in text and DO NOT call search_products or display product cards.
+
 CRITICAL TRUTHFULNESS & ACCURACY RULES:
-1. CONFIRMED DATA: Answer confidently based ONLY on actual product data returned by your tools (search_products, get_product_details). NEVER invent or hallucinate prices, colors, sizes, stock, or products. ALL prices are in Indian Rupees (₹), DO NOT use Dollars ($).
-2. UNKNOWN / DATA NOT AVAILABLE: If the exact requested color, variant, or item is not found in your database tool results, mention any close matching products that ARE available (e.g. "We currently have the **Blue Flowing Skirt** available for ₹2800..."), and then politely state: "However, I couldn't confirm that from our current product information. You can leave a query with our team, and one of our representatives will get in touch with you."
-3. CONFIRMED UNAVAILABLE: Only say an item, size, or color is unavailable when reliable database tool data explicitly confirms that an existing product is out of stock or missing that specific size/color variant.
-4. PRODUCT CATALOG DISPLAY: When users ask to see dresses, outfits, skirts, shirts, ethnic wear, or any clothing items, ALWAYS use tool calls so matching products can be searched and displayed visually with product cards!
-5. NO PSEUDOCODE / XML TAGS IN TEXT: NEVER output raw function code or XML tags like <function=...> or {"query": ...} in your plain text output string.
+- CONFIRMED DATA: Answer confidently based ONLY on actual product data returned by your tools. NEVER invent or hallucinate prices, colors, sizes, stock, or products. ALL prices are in Indian Rupees (₹).
+- UNKNOWN / DATA NOT AVAILABLE: If the exact item is not found, state clearly and offer: "You can leave a query with our team, and one of our representatives will get in touch with you."
+- CUSTOMIZATION INQUIRIES: If asked about custom designs, guide them to our Customization page (/customisation).
 
 STORE POLICIES:
 - Payment & COD Policy: Cash on Delivery (COD) is available on all eligible orders across India. We also accept online payments (UPI, Credit/Debit Cards, Net Banking) via Razorpay.
 - Return Policy: Returns allowed within 7 days. Must be unused with original Security Seal Tag attached. Custom-made items and final sale items are non-returnable. Refunds take up to 10 business days after inspection. Contact customercare@owlstitch.com for support.
-
-STYLE & PAIRING ADVICE:
-- You are an expert fashion stylist. Suggest elegant fashion combinations and search_products for matching items.
 
 GENERAL:
 - Keep responses concise, friendly, customer-centric, and formatted with markdown bolding for product names.`;
@@ -242,7 +241,6 @@ const parseAndCleanInlineToolCalls = async (rawContent, productTrackerMap) => {
     return rawContent;
   }
 
-  // Regex matches <function=search_products>{"query": "..."}</function> or similar
   const funcMatches = [...rawContent.matchAll(/<function=([a-zA-Z0-9_]+)>?\s*(\{.*?\})\s*<\/function>/gs)];
 
   for (const match of funcMatches) {
@@ -259,11 +257,23 @@ const parseAndCleanInlineToolCalls = async (rawContent, productTrackerMap) => {
     }
   }
 
-  // Strip all function tags and cleanup empty lines
   let cleaned = rawContent.replace(/<function=.*?>.*?<\/function>/gs, '');
   cleaned = cleaned.replace(/<function=.*?>/gs, '');
   cleaned = cleaned.replace(/\n\s*\n\s*\n/g, '\n\n').trim();
   return cleaned;
+};
+
+// Intent checker to verify if user query is asking for policy/customization general help vs explicit product browsing
+const checkQueryIntent = (queryStr) => {
+  const q = (queryStr || '').toLowerCase();
+  
+  // Explicit product search intent keywords
+  const isExplicitProduct = /\b(show|view|find|recommend|buy|look for|catalog|catalogue|collection|dresses|skirt|skirt|top|shirt|lehenga|kurta|saree|ethnic|gowns|outfit|pants|trouser|jeans|hoodie|sweater|wear)\b/i.test(q);
+  
+  // General customization / policy / help query keywords
+  const isGeneralOrPolicy = /\b(customis|customiz|policy|return|cod|cash on delivery|delivery|shipping|payment|how to|contact|representative|help|pair|wear with|can you|do you|what is)\b/i.test(q);
+
+  return { isExplicitProduct, isGeneralOrPolicy };
 };
 
 // Main Chat Controller
@@ -280,6 +290,7 @@ exports.handleChat = async (req, res) => {
 
     const lastUserMsgObj = [...messages].reverse().find(m => m.role === 'user');
     const userQuery = lastUserMsgObj ? lastUserMsgObj.content : '';
+    const { isExplicitProduct, isGeneralOrPolicy } = checkQueryIntent(userQuery);
 
     // Prepare messages array for Groq
     groqMessages = [
@@ -294,21 +305,23 @@ exports.handleChat = async (req, res) => {
     try {
       response = await createGroqCompletion(groqMessages);
     } catch (apiErr) {
-      console.error("Groq API error, engaging database direct search fallback:", apiErr);
+      console.error("Groq API error, engaging direct fallback:", apiErr);
       
+      // If general policy or customization question, do NOT return product cards
+      if (isGeneralOrPolicy && !isExplicitProduct) {
+        return res.status(200).json({
+          success: true,
+          message: "Yes, we offer customization! You can design custom t-shirts, couple sets, hoodies, and dresses on our Customisation page (/customisation). If you have a specific custom request, leave a query and our team will contact you.",
+          products: []
+        });
+      }
+
       const fallbackRawProducts = await searchProductsInDB(userQuery);
       const fallbackCards = fallbackRawProducts.map(formatProductCard);
 
-      let fallbackText = "Here are matching options from our collection:";
-      if (fallbackCards.length === 0) {
-        fallbackText = "I am currently unable to fetch live AI recommendations, but you can explore our latest collection on our catalog page or leave a query with our team!";
-      } else if (userQuery.toLowerCase().includes('dress')) {
-        fallbackText = "Here are some of our beautiful dresses available in our Mason store:";
-      }
-
       return res.status(200).json({
         success: true,
-        message: fallbackText,
+        message: "Here are matching options from our store:",
         products: fallbackCards
       });
     }
@@ -362,32 +375,30 @@ exports.handleChat = async (req, res) => {
     // Clean inline hallucinated function tags if any exist in final content
     let finalContent = await parseAndCleanInlineToolCalls(responseMessage.content || '', productTrackerMap);
 
-    // Check if products were queried directly or implicitly
-    let finalProducts = Array.from(productTrackerMap.values());
-    if (finalProducts.length === 0 && (userQuery.toLowerCase().includes('dress') || userQuery.toLowerCase().includes('product') || userQuery.toLowerCase().includes('shirt') || userQuery.toLowerCase().includes('skirt') || userQuery.toLowerCase().includes('top') || userQuery.toLowerCase().includes('wear') || userQuery.toLowerCase().includes('ethnic'))) {
-      const directProducts = await searchProductsInDB(userQuery);
-      finalProducts = directProducts.map(formatProductCard);
+    // If query is a general customization, policy, or non-product query, filter OUT product cards!
+    let finalProducts = [];
+    if (!isGeneralOrPolicy || isExplicitProduct) {
+      finalProducts = Array.from(productTrackerMap.values());
+      
+      if (finalProducts.length === 0 && isExplicitProduct) {
+        const directProducts = await searchProductsInDB(userQuery);
+        finalProducts = directProducts.map(formatProductCard);
+      }
     }
 
     return res.status(200).json({
       success: true,
-      message: finalContent || "Here are some of our top picks for you:",
+      message: finalContent || "How else can I assist you today?",
       products: finalProducts
     });
 
   } catch (error) {
     console.error("Chatbot Error:", error);
     
-    // Safety Net Fallback
-    const lastUserMsgObj = req.body?.messages ? [...req.body.messages].reverse().find(m => m.role === 'user') : null;
-    const userQuery = lastUserMsgObj ? lastUserMsgObj.content : '';
-    const fallbackRawProducts = await searchProductsInDB(userQuery);
-    const fallbackCards = fallbackRawProducts.map(formatProductCard);
-
     return res.status(200).json({ 
       success: true, 
-      message: "Here are some items from our catalog that you might like:",
-      products: fallbackCards
+      message: "I am Mason's AI assistant. You can ask about our clothing, return policy, COD options, or visit our Customisation section to design your own apparel!",
+      products: []
     });
   }
 };
