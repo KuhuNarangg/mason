@@ -4,6 +4,7 @@ import { ArrowRight } from 'lucide-react';
 import api from '../utils/api';
 import ProductCard from '../components/ProductCard';
 import CustomizeSection from '../components/CustomizeSection';
+import ShopByCategoriesSection from '../components/ShopByCategoriesSection';
 import SEO from '../components/SEO';
 import { generateOrganizationSchema, generateWebSiteSchema } from '../utils/schema';
 import './Home.css';
@@ -152,248 +153,251 @@ const Home = () => {
       {/* --- DESKTOP ONLY SECTIONS --- */}
       <div className="desktop-only-sections">
         {/* 2. NEW ARRIVALS (Horizontal Scroll) */}
-      <section className="m-new-arrivals">
-        <div className="container m-new-arrivals__header reveal-up">
-          <div>
-            <span className="m-label">Just In</span>
-            <h2 className="m-section-title">New <em>Arrivals</em></h2>
-          </div>
-          <Link to="/category/all?sort=newest" className="m-nav-link-cta">
-            View All <ArrowRight size={14} strokeWidth={1.5} />
-          </Link>
-        </div>
-
-        <div className="m-new-arrivals__scroll">
-          <div className="m-new-arrivals__track">
-            {loading ? (
-              <div className="m-loading-state"><div className="spinner" /></div>
-            ) : newArrivals.length > 0 ? (
-              newArrivals.map((product, i) => (
-                <div key={product._id} className="m-new-arrivals__item reveal-up" style={{ transitionDelay: `${i * 0.05}s` }}>
-                  <ProductCard product={product} />
-                </div>
-              ))
-            ) : (
-              <div className="m-empty-state">New products coming soon.</div>
-            )}
-          </div>
-        </div>
-        <div className="m-new-arrivals__drag-hint">← Swipe to explore →</div>
-      </section>
-
-      {/* 3. CURATED COLLECTIONS (Editorial Asymmetry) */}
-      <section className="m-collections container">
-        <div className="m-collections__grid">
-          <div className="m-col-text reveal-up">
-            <h2 className="m-section-title">Custom <em>Tailoring</em> & Heritage Wear</h2>
-            <p className="m-col-text__desc">Discover our signature edits by Mason, designed to empower and inspire. From breathtaking evening wear to timeless heritage pieces, find the silhouette that speaks to your soul.</p>
-            <Link to="/category/all" className="btn-ghost">Explore All Collections</Link>
-          </div>
-
-          <Link to="/category/all?type=party-wear" className="m-col-card m-col-card--large reveal-up">
-            <img src="/home1.jpg" alt="Evening Glamour" className="m-col-card__img" loading="lazy" />
-            <div className="m-col-card__overlay">
-              <span className="m-col-card__label">The Evening Edit</span>
-              <h3 className="m-col-card__title">Midnight <em>Glamour</em></h3>
+        <section className="m-new-arrivals">
+          <div className="container m-new-arrivals__header reveal-up">
+            <div>
+              <span className="m-label">Just In</span>
+              <h2 className="m-section-title">New <em>Arrivals</em></h2>
             </div>
-          </Link>
-
-          <Link to="/category/all?type=ethnic" className="m-col-card m-col-card--small reveal-up" style={{ transitionDelay: '0.2s' }}>
-            <img src="/home2.jpg" alt="Heritage Romance" className="m-col-card__img" loading="lazy" />
-            <div className="m-col-card__overlay">
-              <span className="m-col-card__label">The Heritage Edit</span>
-              <h3 className="m-col-card__title">Modern <em>Romance</em></h3>
-            </div>
-          </Link>
-        </div>
-      </section>
-
-      {/* 4. EXPERIENCE LUXURY (Brand Story) */}
-      <section className="m-experience">
-        <div className="m-experience__grid">
-          <div className="m-experience__img-wrap reveal-up">
-            <img src="/home3.jpg" alt="Experience Luxury" className="m-experience__img" loading="lazy" />
+            <Link to="/category/all?sort=newest" className="m-nav-link-cta">
+              View All <ArrowRight size={14} strokeWidth={1.5} />
+            </Link>
           </div>
-          <div className="m-experience__content reveal-up" style={{ transitionDelay: '0.2s' }}>
-            <span className="m-label">The House of Mason</span>
-            <h2 className="m-section-title">Uncompromising <em>Quality</em></h2>
-            <p>We believe luxury is a feeling, not just a price tag. Every piece in our collection is meticulously crafted with premium fabrics, figure-flattering cuts, and an obsessive attention to detail.</p>
-            <p>Designed to make you feel like the most beautiful woman in the room.</p>
-            <Link to="/about" className="btn btn-outline" style={{ marginTop: '2rem' }}>Discover Our Story</Link>
-          </div>
-        </div>
-      </section>
 
-      {/* 4.5. THE MASON CINEMATIC EXPERIENCE */}
-      {(loading || cinematicMedia.length > 0) && (
-        <section className="m-cinematic" style={{ padding: '4rem 0', background: '#0a0a0a', color: '#fff', overflow: 'hidden' }}>
-          <div className="container">
-            <div className="reveal-up" style={{ textAlign: 'center', marginBottom: '2rem' }}>
-              <span className="m-label" style={{ color: '#C08A74', letterSpacing: '3px' }}>Visual Lookbook</span>
-              <h2 className="m-section-title" style={{ color: '#fff' }}>The Mason <em>Cinematic</em> Experience</h2>
-              <p style={{ maxWidth: '600px', margin: '1rem auto 0', color: '#a3a3a3' }}>
-                Immerse yourself in our world. Discover the movement, the texture, and the unparalleled grace of our latest collections in motion.
-              </p>
-            </div>
-
-            {loading ? (
-              <div className="m-loading-state"><div className="spinner" style={{ borderColor: '#fff', borderTopColor: 'transparent' }} /></div>
-            ) : (
-              <div className="m-cinematic__grid" style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 250px))', 
-                justifyContent: 'center',
-                gap: '2rem',
-                alignItems: 'center'
-              }}>
-                {cinematicMedia.map((media, i) => (
-                  <div key={media._id} className="reveal-up" style={{ 
-                    position: 'relative', 
-                    borderRadius: '16px', 
-                    overflow: 'hidden',
-                    aspectRatio: '9/16',
-                    boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
-                    transitionDelay: `${i * 0.1}s`,
-                    transform: i % 2 !== 0 ? 'translateY(2rem)' : 'none' // Staggered masonry effect
-                  }}>
-                    {media.type === 'video' ? (
-                      <video 
-                        src={media.url} 
-                        autoPlay 
-                        loop 
-                        muted 
-                        playsInline 
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
-                    ) : (
-                      <img 
-                        src={media.url} 
-                        alt={media.title}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        loading="lazy"
-                      />
-                    )}
-                    {media.title && (
-                      <div style={{ 
-                        position: 'absolute', 
-                        bottom: 0, 
-                        left: 0, 
-                        right: 0, 
-                        padding: '3rem 1.5rem 1.5rem', 
-                        background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)',
-                        color: 'white',
-                        fontWeight: '600',
-                        fontSize: '1.1rem',
-                        letterSpacing: '0.5px'
-                      }}>
-                        {media.title}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
-      )}
-
-      {/* 5. FEATURED PRODUCTS (Admin-curated editorial grid) */}
-      {(loading || featured.length > 0) && (
-        <section className="m-featured">
-          <div className="container">
-            <div className="m-featured__header reveal-up">
-              <div>
-                <span className="m-label">Editor's Picks</span>
-                <h2 className="m-section-title">Featured <em>Collection</em></h2>
-              </div>
-              <Link to="/category/all?featured=true" className="m-nav-link-cta">
-                Explore All <ArrowRight size={14} strokeWidth={1.5} />
-              </Link>
-            </div>
-
-            {loading ? (
-              <div className="m-loading-state"><div className="spinner" /></div>
-            ) : (
-              <div className="m-featured__grid">
-                {featured.map((product, i) => (
-                  <div key={product._id} className="m-featured__item reveal-up" style={{ transitionDelay: `${i * 0.07}s` }}>
+          <div className="m-new-arrivals__scroll">
+            <div className="m-new-arrivals__track">
+              {loading ? (
+                <div className="m-loading-state"><div className="spinner" /></div>
+              ) : newArrivals.length > 0 ? (
+                newArrivals.map((product, i) => (
+                  <div key={product._id} className="m-new-arrivals__item reveal-up" style={{ transitionDelay: `${i * 0.05}s` }}>
                     <ProductCard product={product} />
                   </div>
-                ))}
+                ))
+              ) : (
+                <div className="m-empty-state">New products coming soon.</div>
+              )}
+            </div>
+          </div>
+          <div className="m-new-arrivals__drag-hint">← Swipe to explore →</div>
+        </section>
+
+        {/* 3. CURATED COLLECTIONS (Custom Tailoring & Heritage Wear) */}
+        <section className="m-collections container">
+          <div className="m-collections__grid">
+            <div className="m-col-text reveal-up">
+              <h2 className="m-section-title">Custom <em>Tailoring</em> & Heritage Wear</h2>
+              <p className="m-col-text__desc">Discover our signature edits by Mason, designed to empower and inspire. From breathtaking evening wear to timeless heritage pieces, find the silhouette that speaks to your soul.</p>
+              <Link to="/category/all" className="btn-ghost">Explore All Collections</Link>
+            </div>
+
+            <Link to="/category/all?type=party-wear" className="m-col-card m-col-card--large reveal-up">
+              <img src="/home1.jpg" alt="Evening Glamour" className="m-col-card__img" loading="lazy" />
+              <div className="m-col-card__overlay">
+                <span className="m-col-card__label">The Evening Edit</span>
+                <h3 className="m-col-card__title">Midnight <em>Glamour</em></h3>
               </div>
-            )}
+            </Link>
+
+            <Link to="/category/all?type=ethnic" className="m-col-card m-col-card--small reveal-up" style={{ transitionDelay: '0.2s' }}>
+              <img src="/home2.jpg" alt="Heritage Romance" className="m-col-card__img" loading="lazy" />
+              <div className="m-col-card__overlay">
+                <span className="m-col-card__label">The Heritage Edit</span>
+                <h3 className="m-col-card__title">Modern <em>Romance</em></h3>
+              </div>
+            </Link>
           </div>
         </section>
-      )}
 
-      {/* 6. TRENDING NOW (Horizontal Scroll Slider) */}
-      <section className="m-trending">
-        <div className="container m-trending__header reveal-up">
-          <h2 className="m-section-title">Trending <em>Now</em></h2>
-          <div className="m-drag-hint">Swipe to explore</div>
-        </div>
+        {/* --- SHOP BY CATEGORIES SECTION (After Custom Tailoring & Before Discover Our Story) --- */}
+        <ShopByCategoriesSection />
 
-        <div className="m-trending__scroll">
-          <div className="m-trending__track">
-            {loading ? (
-              <div className="m-loading-state"><div className="spinner" /></div>
-            ) : (
-              trending.map((product, i) => (
-                <div key={product._id} className="m-trending__item reveal-up" style={{ transitionDelay: `${i * 0.05}s` }}>
-                  <ProductCard product={product} />
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* 7. EDITORIAL CAMPAIGN */}
-      <section className="m-campaign reveal-up">
-        <div className="m-campaign__bg" style={{ backgroundImage: `url('/home4.jpg')` }} />
-        <div className="m-campaign__overlay" />
-        <div className="m-campaign__content">
-          <h2 className="m-campaign__title"><em>Sensuality</em> in Every Stitch.</h2>
-          <Link to="/category/women" className="m-hero__cta">
-            Shop The Campaign
-          </Link>
-        </div>
-      </section>
-
-      <section className="m-reviews">
-        <div className="container">
-          <h2 className="m-section-title text-center reveal-up mb-12">The Mason <em>Muse</em></h2>
-          <div className="m-reviews__grid">
-            {reviews.map((r, i) => (
-              <article key={i} className="m-review-card reveal-up" style={{ transitionDelay: `${i * 0.1}s` }}>
-                <div className="m-review-card__stars">★★★★★</div>
-                <p className="m-review-card__text">"{r.text}"</p>
-                <div className="m-review-card__author">
-                  <strong>{r.name}</strong>
-                  <span>{r.label}</span>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 9. FABRIC & FIT FAQ (AI Visibility Quick Win) */}
-      <section className="m-faq py-5" style={{ background: '#fcfcfc', borderTop: '1px solid #eaeaea' }}>
-        <div className="container reveal-up">
-          <h2 className="m-section-title text-center mb-4">Fabric & <em>Fit</em> Guide</h2>
-          <div className="faq-grid" style={{ display: 'grid', gap: '1.5rem', maxWidth: '800px', margin: '0 auto' }}>
-            <div className="faq-item">
-              <h4 style={{ fontSize: '1.1rem', marginBottom: '0.5rem', color: '#111827' }}>What materials do you use for your premium ethnic wear?</h4>
-              <p style={{ color: '#4b5563', lineHeight: '1.6' }}>We exclusively use high-quality, breathable fabrics like Chanderi silk, premium pure cotton, and georgette. Our focus is on sourcing natural fibers that ensure long-lasting comfort and an elegant drape, perfect for India's varied climate.</p>
+        {/* 4. EXPERIENCE LUXURY (Discover Our Story) */}
+        <section className="m-experience">
+          <div className="m-experience__grid">
+            <div className="m-experience__img-wrap reveal-up">
+              <img src="/home3.jpg" alt="Experience Luxury" className="m-experience__img" loading="lazy" />
             </div>
-            <div className="faq-item">
-              <h4 style={{ fontSize: '1.1rem', marginBottom: '0.5rem', color: '#111827' }}>How do I know my correct size?</h4>
-              <p style={{ color: '#4b5563', lineHeight: '1.6' }}>Every product page features a detailed size chart with exact garment measurements. Since our silhouettes are designed to be flattering yet comfortable, we recommend choosing your standard size, or utilizing our custom tailoring service for a precise, made-to-measure fit.</p>
+            <div className="m-experience__content reveal-up" style={{ transitionDelay: '0.2s' }}>
+              <span className="m-label">The House of Mason</span>
+              <h2 className="m-section-title">Uncompromising <em>Quality</em></h2>
+              <p>We believe luxury is a feeling, not just a price tag. Every piece in our collection is meticulously crafted with premium fabrics, figure-flattering cuts, and an obsessive attention to detail.</p>
+              <p>Designed to make you feel like the most beautiful woman in the room.</p>
+              <Link to="/about" className="btn btn-outline" style={{ marginTop: '2rem' }}>Discover Our Story</Link>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+
+        {/* 4.5. THE MASON CINEMATIC EXPERIENCE */}
+        {(loading || cinematicMedia.length > 0) && (
+          <section className="m-cinematic" style={{ padding: '4rem 0', background: '#0a0a0a', color: '#fff', overflow: 'hidden' }}>
+            <div className="container">
+              <div className="reveal-up" style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                <span className="m-label" style={{ color: '#C08A74', letterSpacing: '3px' }}>Visual Lookbook</span>
+                <h2 className="m-section-title" style={{ color: '#fff' }}>The Mason <em>Cinematic</em> Experience</h2>
+                <p style={{ maxWidth: '600px', margin: '1rem auto 0', color: '#a3a3a3' }}>
+                  Immerse yourself in our world. Discover the movement, the texture, and the unparalleled grace of our latest collections in motion.
+                </p>
+              </div>
+
+              {loading ? (
+                <div className="m-loading-state"><div className="spinner" style={{ borderColor: '#fff', borderTopColor: 'transparent' }} /></div>
+              ) : (
+                <div className="m-cinematic__grid" style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 250px))', 
+                  justifyContent: 'center',
+                  gap: '2rem',
+                  alignItems: 'center'
+                }}>
+                  {cinematicMedia.map((media, i) => (
+                    <div key={media._id} className="reveal-up" style={{ 
+                      position: 'relative', 
+                      borderRadius: '16px', 
+                      overflow: 'hidden',
+                      aspectRatio: '9/16',
+                      boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
+                      transitionDelay: `${i * 0.1}s`,
+                      transform: i % 2 !== 0 ? 'translateY(2rem)' : 'none'
+                    }}>
+                      {media.type === 'video' ? (
+                        <video 
+                          src={media.url} 
+                          autoPlay 
+                          loop 
+                          muted 
+                          playsInline 
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      ) : (
+                        <img 
+                          src={media.url} 
+                          alt={media.title}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          loading="lazy"
+                        />
+                      )}
+                      {media.title && (
+                        <div style={{ 
+                          position: 'absolute', 
+                          bottom: 0, 
+                          left: 0, 
+                          right: 0, 
+                          padding: '3rem 1.5rem 1.5rem', 
+                          background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)',
+                          color: 'white',
+                          fontWeight: '600',
+                          fontSize: '1.1rem',
+                          letterSpacing: '0.5px'
+                        }}>
+                          {media.title}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* 5. FEATURED PRODUCTS */}
+        {(loading || featured.length > 0) && (
+          <section className="m-featured">
+            <div className="container">
+              <div className="m-featured__header reveal-up">
+                <div>
+                  <span className="m-label">Editor's Picks</span>
+                  <h2 className="m-section-title">Featured <em>Collection</em></h2>
+                </div>
+                <Link to="/category/all?featured=true" className="m-nav-link-cta">
+                  Explore All <ArrowRight size={14} strokeWidth={1.5} />
+                </Link>
+              </div>
+
+              {loading ? (
+                <div className="m-loading-state"><div className="spinner" /></div>
+              ) : (
+                <div className="m-featured__grid">
+                  {featured.map((product, i) => (
+                    <div key={product._id} className="m-featured__item reveal-up" style={{ transitionDelay: `${i * 0.07}s` }}>
+                      <ProductCard product={product} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* 6. TRENDING NOW */}
+        <section className="m-trending">
+          <div className="container m-trending__header reveal-up">
+            <h2 className="m-section-title">Trending <em>Now</em></h2>
+            <div className="m-drag-hint">Swipe to explore</div>
+          </div>
+
+          <div className="m-trending__scroll">
+            <div className="m-trending__track">
+              {loading ? (
+                <div className="m-loading-state"><div className="spinner" /></div>
+              ) : (
+                trending.map((product, i) => (
+                  <div key={product._id} className="m-trending__item reveal-up" style={{ transitionDelay: `${i * 0.05}s` }}>
+                    <ProductCard product={product} />
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* 7. EDITORIAL CAMPAIGN */}
+        <section className="m-campaign reveal-up">
+          <div className="m-campaign__bg" style={{ backgroundImage: `url('/home4.jpg')` }} />
+          <div className="m-campaign__overlay" />
+          <div className="m-campaign__content">
+            <h2 className="m-campaign__title"><em>Sensuality</em> in Every Stitch.</h2>
+            <Link to="/category/women" className="m-hero__cta">
+              Shop The Campaign
+            </Link>
+          </div>
+        </section>
+
+        <section className="m-reviews">
+          <div className="container">
+            <h2 className="m-section-title text-center reveal-up mb-12">The Mason <em>Muse</em></h2>
+            <div className="m-reviews__grid">
+              {reviews.map((r, i) => (
+                <article key={i} className="m-review-card reveal-up" style={{ transitionDelay: `${i * 0.1}s` }}>
+                  <div className="m-review-card__stars">★★★★★</div>
+                  <p className="m-review-card__text">"{r.text}"</p>
+                  <div className="m-review-card__author">
+                    <strong>{r.name}</strong>
+                    <span>{r.label}</span>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* 9. FABRIC & FIT FAQ */}
+        <section className="m-faq py-5" style={{ background: '#fcfcfc', borderTop: '1px solid #eaeaea' }}>
+          <div className="container reveal-up">
+            <h2 className="m-section-title text-center mb-4">Fabric & <em>Fit</em> Guide</h2>
+            <div className="faq-grid" style={{ display: 'grid', gap: '1.5rem', maxWidth: '800px', margin: '0 auto' }}>
+              <div className="faq-item">
+                <h4 style={{ fontSize: '1.1rem', marginBottom: '0.5rem', color: '#111827' }}>What materials do you use for your premium ethnic wear?</h4>
+                <p style={{ color: '#4b5563', lineHeight: '1.6' }}>We exclusively use high-quality, breathable fabrics like Chanderi silk, premium pure cotton, and georgette. Our focus is on sourcing natural fibers that ensure long-lasting comfort and an elegant drape, perfect for India's varied climate.</p>
+              </div>
+              <div className="faq-item">
+                <h4 style={{ fontSize: '1.1rem', marginBottom: '0.5rem', color: '#111827' }}>How do I know my correct size?</h4>
+                <p style={{ color: '#4b5563', lineHeight: '1.6' }}>Every product page features a detailed size chart with exact garment measurements. Since our silhouettes are designed to be flattering yet comfortable, we recommend choosing your standard size, or utilizing our custom tailoring service for a precise, made-to-measure fit.</p>
+              </div>
+            </div>
+          </div>
+        </section>
       </div> {/* End desktop-only-sections */}
 
       {/* --- MOBILE ONLY SECTIONS --- */}
@@ -454,21 +458,13 @@ const Home = () => {
         </section>
       </div>
 
+      {/* CUSTOM TAILORING SECTION */}
       <CustomizeSection />
 
-      {/* 9. NEWSLETTER (Ultra Premium) — commented out, not needed right now */}
-      {/* <section className="m-newsletter">
-        <div className="container m-newsletter__inner reveal-up">
-          <h2 className="m-newsletter__title">Join The <em>Inner Circle</em></h2>
-          <p className="m-newsletter__desc">Sign up for early access to new collections, exclusive events, and styling inspiration.</p>
-          <form className="m-newsletter__form" onSubmit={e => e.preventDefault()}>
-            <input type="email" placeholder="Enter your email address" required className="m-newsletter__input" />
-            <button type="submit" className="m-newsletter__submit">
-              <ArrowRight size={20} strokeWidth={1} />
-            </button>
-          </form>
-        </div>
-      </section> */}
+      {/* SHOP BY CATEGORIES SECTION (After Custom Tailoring) */}
+      <div className="mobile-only-sections">
+        <ShopByCategoriesSection />
+      </div>
 
     </div>
   );
