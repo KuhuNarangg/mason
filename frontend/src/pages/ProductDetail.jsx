@@ -10,7 +10,7 @@ import ProductCard from '../components/ProductCard';
 import Breadcrumbs from '../components/Breadcrumbs';
 import SEO from '../components/SEO';
 import VirtualTryOnModal from '../components/VirtualTryOnModal';
-import WeightFitModal, { calculateRecommendedSize } from '../components/WeightFitModal';
+import WeightFitModal, { calculateRecommendedSize, isBottomwearType } from '../components/WeightFitModal';
 import { generateProductSchema, generateBreadcrumbSchema, generateProductGroupSchema, generateImageObjectSchema } from '../utils/schema';
 import './ProductDetail.css';
 
@@ -358,7 +358,7 @@ const ProductDetail = () => {
               <div className="p-rec-size-badge mb-3">
                 <Sparkles size={15} className="p-rec-sparkle" />
                 <span>
-                  Recommended for You: <strong>Size {user.preferredSize || calculateRecommendedSize(user.weight, user.fitPreference)}</strong>
+                  Recommended {isBottomwearType(product) ? 'Lowerwear' : 'Top/Dress'} Size: <strong>Size {calculateRecommendedSize(user.weight, user.fitPreference, product) || user.preferredSize}</strong>
                   {user.weight ? ` (Based on ${user.weight}kg weight profile)` : ''}
                 </span>
                 <button type="button" className="p-rec-edit-btn" onClick={() => setShowWeightModal(true)}>
@@ -876,6 +876,7 @@ const ProductDetail = () => {
       {/* Weight & Fit Recommendation Calculator Modal */}
       {showWeightModal && (
         <WeightFitModal
+          currentProduct={product}
           onClose={() => setShowWeightModal(false)}
           onSaveSuccess={(data) => {
             if (data.recommendedSize && uniqueSizes.includes(data.recommendedSize)) {

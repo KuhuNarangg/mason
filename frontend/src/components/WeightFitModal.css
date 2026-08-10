@@ -146,16 +146,17 @@
   box-shadow: 0 2px 8px rgba(192, 138, 116, 0.3);
 }
 
-/* Recommendation Result Card */
-.wfit-recommendation-card {
+/* Dual Upperwear & Lowerwear Recommendation Card */
+.wfit-dual-card {
   display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  padding: 1rem 1.25rem;
+  align-items: center;
+  justify-content: space-around;
+  padding: 1rem;
   background: linear-gradient(135deg, #FAF8F5 0%, #F5F0EB 100%);
   border: 1.5px solid var(--rose-gold, #C08A74);
   border-radius: 14px;
   animation: wfitSlideUp 0.3s ease;
+  text-align: center;
 }
 
 @keyframes wfitSlideUp {
@@ -163,16 +164,21 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-.wfit-sparkle {
-  color: var(--rose-gold, #C08A74);
-  flex-shrink: 0;
-  margin-top: 2px;
+.wfit-card-section {
+  flex: 1;
+}
+
+.wfit-card-divider {
+  width: 1px;
+  height: 40px;
+  background: var(--beige, #EAE5D9);
+  margin: 0 10px;
 }
 
 .wfit-card-label {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   font-weight: 600;
   color: var(--rose-gold-dark, #A66B56);
   display: block;
