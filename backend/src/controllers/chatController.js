@@ -6,6 +6,20 @@ const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY
 });
 
+// Category Nouns & Color Dictionary for Smart Scoped Search
+const CATEGORY_NOUNS = [
+  'skirt', 'dresses', 'dress', 'shirts', 'shirt', 'tops', 'top', 
+  'lehenga', 'kurta', 'kurtis', 'kurti', 'saree', 'anarkali', 
+  'trousers', 'trouser', 'pants', 'pant', 'jeans', 'hoodies', 'hoodie', 
+  'gowns', 'gown', 'jackets', 'jacket', 'ethnic', 'co-ord', 'suit', 
+  'blouse', 'blouses', 'corset'
+];
+
+const COLOR_WORDS = [
+  'white', 'black', 'blue', 'red', 'green', 'yellow', 'pink', 'purple', 
+  'navy', 'beige', 'gold', 'silver', 'cream', 'ivory', 'champagne', 'emerald', 'maroon'
+];
+
 // Tool Definitions for Groq
 const tools = [
   {
@@ -18,7 +32,7 @@ const tools = [
         properties: {
           query: {
             type: 'string',
-            description: 'The search query (e.g. "black shirt", "customizable jeans", "dresses").'
+            description: 'The search query (e.g. "black shirt", "customizable jeans", "skirt", "dresses").'
           }
         },
         required: ['query']
@@ -62,28 +76,81 @@ const formatProductCard = (p) => {
   };
 };
 
-// Direct DB product search fallback logic
+// Strict Category & Color DB Product Search Logic
 const searchProductsInDB = async (rawQuery) => {
   try {
-    const stopWords = ['show', 'me', 'your', 'latest', 'the', 'a', 'an', 'products', 'collection', 'items', 'do', 'you', 'have', 'any', 'wear', 'look', 'for', 'want', 'i', 'need'];
-    const rawWords = (rawQuery || '').toLowerCase()
+    const queryLower = (rawQuery || '').toLowerCase();
+    const queryWords = queryLower
       .split(/\s+/)
       .map(w => w.replace(/[^a-z0-9]/gi, ''))
-      .filter(w => w.length > 2 && !stopWords.includes(w));
+      .filter(Boolean);
 
-    const keywords = [];
-    rawWords.forEach(w => {
-      keywords.push(w);
-      if (w.endsWith('es') && w.length > 4) {
-        keywords.push(w.slice(0, -2));
-      } else if (w.endsWith('s') && w.length > 3) {
-        keywords.push(w.slice(0, -1));
+    // Identify category noun and color word from user query
+    const foundCategory = CATEGORY_NOUNS.find(cat => queryWords.includes(cat) || queryLower.includes(cat));
+    const foundColor = COLOR_WORDS.find(c => queryWords.includes(c) || queryLower.includes(c));
+
+    // Normalize category keyword (e.g. "skirts" -> "skirt", "dresses" -> "dress")
+    let normalizedCategory = foundCategory;
+    if (foundCategory) {
+      if (foundCategory.endsWith('es') && foundCategory.length > 4) {
+        normalizedCategory = foundCategory.slice(0, -2);
+      } else if (foundCategory.endsWith('s') && foundCategory.length > 3) {
+        normalizedCategory = foundCategory.slice(0, -1);
       }
-    });
+    }
 
-    let searchConditions = [];
-    if (keywords.length > 0) {
-      searchConditions = keywords.map(kw => ({
+    // STEP 1: If category is explicitly requested (e.g. "skirt")
+    if (normalizedCategory) {
+      const categoryRegex = new RegExp(normalizedCategory, 'i');
+      
+      const categoryMatchCondition = {
+        $or: [
+          { name: categoryRegex },
+          { type: categoryRegex },
+          { description: categoryRegex },
+          { tags: categoryRegex }
+        ]
+      };
+
+      // 1A. Try Category + Color match
+      if (foundColor) {
+        const colorRegex = new RegExp(foundColor, 'i');
+        const colorMatchCondition = {
+          $or: [
+            { name: colorRegex },
+            { description: colorRegex },
+            { tags: colorRegex },
+            { 'variants.color': colorRegex }
+          ]
+        };
+
+        const categoryAndColorProducts = await Product.find({
+          isActive: true,
+          $and: [categoryMatchCondition, colorMatchCondition]
+        }).limit(6).lean();
+
+        if (categoryAndColorProducts.length > 0) {
+          return categoryAndColorProducts;
+        }
+      }
+
+      // 1B. Category match ONLY (Strictly restrict to requested category)
+      const categoryOnlyProducts = await Product.find({
+        isActive: true,
+        ...categoryMatchCondition
+      }).limit(6).lean();
+
+      if (categoryOnlyProducts.length > 0) {
+        return categoryOnlyProducts;
+      }
+    }
+
+    // STEP 2: General Keyword Search (when no specific category matched)
+    const stopWords = ['show', 'me', 'your', 'latest', 'the', 'a', 'an', 'products', 'collection', 'items', 'do', 'you', 'have', 'any', 'wear', 'look', 'for', 'want', 'i', 'need'];
+    const filteredKeywords = queryWords.filter(w => w.length > 2 && !stopWords.includes(w));
+
+    if (filteredKeywords.length > 0) {
+      const searchConditions = filteredKeywords.map(kw => ({
         $or: [
           { name: { $regex: kw, $options: 'i' } },
           { description: { $regex: kw, $options: 'i' } },
@@ -92,25 +159,19 @@ const searchProductsInDB = async (rawQuery) => {
           { brand: { $regex: kw, $options: 'i' } }
         ]
       }));
-    } else {
-      searchConditions = [{
-        $or: [
-          { name: { $regex: rawQuery, $options: 'i' } },
-          { description: { $regex: rawQuery, $options: 'i' } }
-        ]
-      }];
+
+      const keywordProducts = await Product.find({
+        isActive: true,
+        $or: searchConditions.flatMap(sc => sc.$or)
+      }).limit(6).lean();
+
+      if (keywordProducts.length > 0) {
+        return keywordProducts;
+      }
     }
 
-    let products = await Product.find({
-      isActive: true,
-      $or: searchConditions.flatMap(sc => sc.$or)
-    }).limit(6).lean();
-
-    if (products.length === 0) {
-      products = await Product.find({ isActive: true }).sort({ createdAt: -1 }).limit(6).lean();
-    }
-
-    return products;
+    // Fallback: Recent active products if no keywords matched
+    return await Product.find({ isActive: true }).sort({ createdAt: -1 }).limit(6).lean();
   } catch (err) {
     console.error("DB Search error:", err);
     return [];
@@ -196,14 +257,11 @@ const executeGetProductDetails = async (args, productTrackerMap) => {
 const SYSTEM_PROMPT = `You are Mason's AI fashion assistant. 
 Your purpose is to help users with Mason products, clothing, outfits, customization, availability, sizing, colors, and Mason website information.
 
-CRITICAL RULES FOR PRODUCT DISPLAY:
-1. EXPLICIT PRODUCT REQUESTS ONLY: ONLY call search_products or get_product_details when the user explicitly asks to view, find, show, browse, or recommend specific clothing products or categories (e.g. "show me dresses", "what skirts do you have?", "recommend an outfit", "show ethnic wear").
-2. DO NOT SHOW PRODUCTS FOR GENERAL/POLICY QUESTIONS: For questions about customization capabilities ("Can you customize this?", "How does custom design work?"), store policies (COD, payment, return policy), or general help, answer the user's question clearly in text and DO NOT call search_products or display product cards.
-
-CRITICAL TRUTHFULNESS & ACCURACY RULES:
-- CONFIRMED DATA: Answer confidently based ONLY on actual product data returned by your tools. NEVER invent or hallucinate prices, colors, sizes, stock, or products. ALL prices are in Indian Rupees (₹).
-- UNKNOWN / DATA NOT AVAILABLE: If the exact item is not found, state clearly and offer: "You can leave a query with our team, and one of our representatives will get in touch with you."
-- CUSTOMIZATION INQUIRIES: If asked about custom designs, guide them to our Customization page (/customisation).
+CRITICAL RULES FOR PRODUCT DISPLAY & CATEGORY ACCURACY:
+1. STRICT CATEGORY ACCURACY: When a user asks for a specific apparel category (e.g. "skirt", "dress", "shirt", "lehenga", "kurta"), ONLY recommend and display products matching that EXACT category. Never recommend dresses or blouses when asked for skirts!
+2. COLOR AVAILABILITY TRUTHFULNESS: If the user asks for a specific color variant (e.g. "white skirt") and we do NOT have that color in stock, state clearly: "We currently don't have a white version in stock, but here is our **[Product Name]** available in our collection:" and show ONLY items of that requested category (e.g., skirts). Also remind them: "You can also request a custom white skirt on our Customisation page!"
+3. EXPLICIT PRODUCT REQUESTS ONLY: ONLY call search_products or get_product_details when the user explicitly asks to view, find, show, browse, or recommend specific clothing products or categories.
+4. DO NOT SHOW PRODUCTS FOR GENERAL/POLICY QUESTIONS: For questions about customization capabilities ("Can you customize this?"), store policies (COD, payment, return policy), answer clearly in text and DO NOT display product cards.
 
 STORE POLICIES:
 - Payment & COD Policy: Cash on Delivery (COD) is available on all eligible orders across India. We also accept online payments (UPI, Credit/Debit Cards, Net Banking) via Razorpay.
@@ -259,7 +317,6 @@ const parseAndCleanInlineToolCalls = async (rawContent, productTrackerMap) => {
     return rawContent;
   }
 
-  // Extracts: <function=search_products={"query": "dresses"}</function> or <function=search_products={"query": "dresses"}> or similar
   const funcMatches = [...rawContent.matchAll(/<function=([a-zA-Z0-9_]+)=?\s*(\{.*?\})\s*(?:<\/function>)?/gs)];
 
   for (const match of funcMatches) {
@@ -272,7 +329,6 @@ const parseAndCleanInlineToolCalls = async (rawContent, productTrackerMap) => {
         await executeGetProductDetails(funcArgs, productTrackerMap);
       }
     } catch (err) {
-      // Direct query extract fallback if JSON parsing failed
       const qMatch = match[2].match(/"query"\s*:\s*"([^"]+)"/);
       if (qMatch) {
         await executeSearchProducts({ query: qMatch[1] }, productTrackerMap);
@@ -280,7 +336,6 @@ const parseAndCleanInlineToolCalls = async (rawContent, productTrackerMap) => {
     }
   }
 
-  // Fallback: if query extracted directly from raw string
   if (productTrackerMap.size === 0) {
     const qMatch = rawContent.match(/"query"\s*:\s*"([^"]+)"/);
     if (qMatch) {
@@ -288,13 +343,11 @@ const parseAndCleanInlineToolCalls = async (rawContent, productTrackerMap) => {
     }
   }
 
-  // Strip out function tags & JSON snippets
   let cleaned = rawContent.replace(/<function=.*?>.*?<\/function>/gs, '');
   cleaned = cleaned.replace(/<function=.*?>/gs, '');
   cleaned = cleaned.replace(/<function=.*?$/gs, '');
   cleaned = cleaned.replace(/\n\s*\n\s*\n/g, '\n\n').trim();
 
-  // If text became empty after stripping code tags, provide a friendly default string
   if (!cleaned) {
     cleaned = "Here are matching options from our collection:";
   }
@@ -306,10 +359,7 @@ const parseAndCleanInlineToolCalls = async (rawContent, productTrackerMap) => {
 const checkQueryIntent = (queryStr) => {
   const q = (queryStr || '').toLowerCase();
   
-  // Explicit product search intent keywords
-  const isExplicitProduct = /\b(show|view|find|recommend|buy|look for|catalog|catalogue|collection|dresses|skirt|skirt|top|shirt|lehenga|kurta|saree|ethnic|gowns|outfit|pants|trouser|jeans|hoodie|sweater|wear)\b/i.test(q);
-  
-  // General customization / policy / help query keywords
+  const isExplicitProduct = /\b(show|view|find|recommend|buy|look for|catalog|catalogue|collection|dresses|skirt|top|shirt|lehenga|kurta|saree|ethnic|gowns|outfit|pants|trouser|jeans|hoodie|sweater|wear)\b/i.test(q);
   const isGeneralOrPolicy = /\b(customis|customiz|policy|return|cod|cash on delivery|delivery|shipping|payment|how to|contact|representative|help|pair|wear with|can you|do you|what is)\b/i.test(q);
 
   return { isExplicitProduct, isGeneralOrPolicy };
@@ -437,12 +487,12 @@ exports.handleChat = async (req, res) => {
     // Clean inline hallucinated function tags if any exist in final content
     let finalContent = await parseAndCleanInlineToolCalls(responseMessage.content || '', productTrackerMap);
 
-    // If query is a general customization, policy, or non-product query, filter OUT product cards!
+    // Filter final products based on strict category scoping
     let finalProducts = [];
     if (!isGeneralOrPolicy || isExplicitProduct) {
       finalProducts = Array.from(productTrackerMap.values());
       
-      if (finalProducts.length === 0 && isExplicitProduct) {
+      if (isExplicitProduct) {
         const directProducts = await searchProductsInDB(userQuery);
         finalProducts = directProducts.map(formatProductCard);
       }
