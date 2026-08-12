@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { X, Upload, Link as LinkIcon, ArrowLeft } from 'lucide-react';
+import { X, Upload, Link as LinkIcon, ArrowLeft, Camera } from 'lucide-react';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
 import '../admin/admin-pages.css';
@@ -18,6 +18,7 @@ const defaultForm = {
   discount: '0',
   taxConfig: { isInclusive: true, cgstPercent: 6, sgstPercent: 6, additionalCharges: 0 },
   images: [],
+  tryOnImage: '',
   variants: [],
   tags: [],
   isFeatured: false,
@@ -119,6 +120,25 @@ const VendorProductForm = () => {
       }
     }
     setUploadingImage(false);
+  };
+
+  const handleTryOnImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingTryOn(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const { data } = await api.post('/upload/try-on', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      if (data.url) {
+        setForm((f) => ({ ...f, tryOnImage: data.url }));
+        toast.success('Try-on image uploaded successfully');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Try-on image upload failed');
+    } finally {
+      setUploadingTryOn(false);
+    }
   };
 
   const handleImageUrlAdd = () => {
@@ -351,6 +371,44 @@ const VendorProductForm = () => {
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* Virtual Try-On Image Field */}
+          <div className="form-group" style={{ marginTop: '1.5rem', padding: '1.25rem', background: '#f8fafc', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
+            <label style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Camera size={18} style={{ color: '#C08A74' }} /> Virtual Try-On Image (Front-Facing Overlay)
+            </label>
+            <p style={{ fontSize: '0.82rem', color: '#64748b', margin: '0.4rem 0 0.75rem 0', lineHeight: '1.4' }}>
+              Upload a straight-on, front-facing photo of this garment against a plain background. Center the item fully in frame, no folds or wrinkles, arms/sleeves laid flat if applicable.
+            </p>
+            {form.tryOnImage ? (
+              <div style={{ position: 'relative', width: '130px', height: '150px', borderRadius: '10px', overflow: 'hidden', border: '2px solid #C08A74', background: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <img src={form.tryOnImage} alt="Try On Preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                <button
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, tryOnImage: '' }))}
+                  style={{ position: 'absolute', top: 6, right: 6, background: 'rgba(239, 68, 68, 0.9)', color: 'white', border: 'none', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                  title="Remove Try-On Image"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.65rem 1.25rem', background: '#C08A74', color: 'white', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>
+                  <Upload size={16} /> {uploadingTryOn ? 'Uploading...' : 'Upload Try-On Photo'}
+                  <input type="file" accept="image/*" onChange={handleTryOnImageUpload} disabled={uploadingTryOn} style={{ display: 'none' }} />
+                </label>
+                <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>or paste URL:</span>
+                <input
+                  type="url"
+                  placeholder="https://..."
+                  value={form.tryOnImage || ''}
+                  onChange={(e) => setForm((f) => ({ ...f, tryOnImage: e.target.value }))}
+                  style={{ flex: 1, minWidth: '220px', padding: '0.6rem 0.85rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', outline: 'none' }}
+                />
+              </div>
+            )}
           </div>
 
           {/* Basic Info */}

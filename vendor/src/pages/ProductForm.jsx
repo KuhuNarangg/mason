@@ -14,6 +14,7 @@ const initialForm = {
   subGender: '',
   type: '',
   images: [],
+  tryOnImage: '',
   originalPrice: '',
   discount: 0,
   tags: '',
@@ -86,6 +87,25 @@ export default function ProductForm() {
       toast.error(err.response?.data?.message || 'Image upload failed');
     } finally {
       setUploading(false);
+    }
+  const [uploadingTryOn, setUploadingTryOn] = useState(false);
+
+  const handleTryOnUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingTryOn(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const { data } = await api.post('/upload/try-on', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      if (data.url) {
+        setForm((f) => ({ ...f, tryOnImage: data.url }));
+        toast.success('Try-on image uploaded');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Try-on upload failed');
+    } finally {
+      setUploadingTryOn(false);
     }
   };
 
@@ -212,6 +232,26 @@ export default function ProductForm() {
           <Upload size={14} /> {uploading ? 'Uploading…' : 'Upload Images'}
           <input type="file" accept="image/*" multiple hidden onChange={handleImageUpload} disabled={uploading} />
         </label>
+
+        <div className="form-section-title" style={{ marginTop: 20 }}>Virtual Try-On Image (Front-Facing Overlay)</div>
+        <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: 10, lineHeight: '1.4' }}>
+          Upload a straight-on, front-facing photo of this garment against a plain background. Center the item fully in frame, no folds or wrinkles, arms/sleeves laid flat if applicable.
+        </p>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginBottom: 15 }}>
+          {form.tryOnImage ? (
+            <div style={{ position: 'relative', width: 80, height: 100, borderRadius: 8, overflow: 'hidden', border: '2px solid var(--primary, #6366f1)' }}>
+              <img src={form.tryOnImage} alt="Try On" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              <button type="button" className="btn btn-sm btn-danger" style={{ position: 'absolute', top: 2, right: 2, padding: '2px 4px' }} onClick={() => setForm((f) => ({ ...f, tryOnImage: '' }))}>
+                <Trash2 size={10} />
+              </button>
+            </div>
+          ) : (
+            <label className="btn btn-sm" style={{ display: 'inline-flex', cursor: 'pointer' }}>
+              <Upload size={14} /> {uploadingTryOn ? 'Uploading…' : 'Upload Try-On Photo'}
+              <input type="file" accept="image/*" hidden onChange={handleTryOnUpload} disabled={uploadingTryOn} />
+            </label>
+          )}
+        </div>
 
         <div className="form-section-title">Variants (Size / Color / Stock)</div>
         {form.variants.map((v, idx) => (

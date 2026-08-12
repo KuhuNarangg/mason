@@ -47,6 +47,7 @@ const productSchema = new mongoose.Schema(
     },
 
     images: [{ type: String }],
+    tryOnImage: { type: String, default: '' },
     thumbnail: { type: String },
 
     originalPrice: { type: Number, required: true },

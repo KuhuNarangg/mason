@@ -52,5 +52,46 @@ const uploadImage = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { uploadImage };
+// @POST /api/v1/upload/try-on
+const uploadTryOnImage = asyncHandler(async (req, res) => {
+  if (!req.file) {
+    res.status(400);
+    throw new Error('No try-on image file provided');
+  }
+
+  const baseName = req.body.slug || req.body.name ? (req.body.slug || req.body.name).toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'tryon-image';
+  const timestamp = Date.now();
+  const publicId = `tryon-${baseName}-${timestamp}`;
+
+  try {
+    const result = await cloudinary.uploader.upload_stream(
+      {
+        folder: 'clothing-web/tryon',
+        resource_type: 'auto',
+        public_id: publicId,
+      },
+      (error, result) => {
+        if (error) {
+          return res.status(error.http_code || 500).json({ success: false, message: `Cloudinary error: ${error.message}` });
+        }
+        
+        let optimizedUrl = result.secure_url;
+        if (optimizedUrl.includes('/upload/')) {
+          optimizedUrl = optimizedUrl.replace('/upload/', '/upload/f_auto,q_auto/');
+        }
+
+        res.json({
+          success: true,
+          url: optimizedUrl,
+          publicId: result.public_id,
+        });
+      }
+    ).end(req.file.buffer);
+  } catch (err) {
+    res.status(500);
+    throw new Error(`Try-on upload failed: ${err.message}`);
+  }
+});
+
+module.exports = { uploadImage, uploadTryOnImage };
 

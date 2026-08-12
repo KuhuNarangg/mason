@@ -1,6 +1,6 @@
 const express = require('express');
 const multer = require('multer');
-const { uploadImage } = require('../controllers/uploadController');
+const { uploadImage, uploadTryOnImage } = require('../controllers/uploadController');
 const { protect, adminOnly } = require('../middleware/auth');
 
 const router = express.Router();
@@ -22,5 +22,6 @@ const upload = multer({
 
 // @POST /api/v1/upload (protected for users)
 router.post('/', protect, upload.single('file'), uploadImage);
+router.post('/try-on', protect, upload.single('file'), uploadTryOnImage);
 
 module.exports = router;
