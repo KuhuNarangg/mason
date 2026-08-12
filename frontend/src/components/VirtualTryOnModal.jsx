@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { useState, useRef, useCallback, useMemo } from 'react';
 import {
   Camera,
   Upload,
@@ -11,33 +11,22 @@ import {
   Sparkles,
   AlertCircle,
   Move,
-  CheckCircle2,
-  Sliders,
-  Maximize2,
 } from 'lucide-react';
 import useCameraStream from '../hooks/useCameraStream';
-import usePoseDetection from '../hooks/usePoseDetection';
 import './VirtualTryOnModal.css';
 
 const VirtualTryOnModal = ({ product, onClose }) => {
-  // Try-on mode state: 'autofit' (default) or 'manual'
-  const [tryOnMode, setTryOnMode] = useState('autofit'); // 'autofit' | 'manual'
   const [sourceMode, setSourceMode] = useState('camera'); // 'camera' | 'upload'
   const [uploadedUserImage, setUploadedUserImage] = useState(null);
 
-  // Manual transform state (Mode 1 & Nudge Offsets in Mode 2)
-  const [manualPos, setManualPos] = useState({ x: 0, y: -10 });
-  const [manualScale, setManualScale] = useState(1.0);
-  const [manualRotation, setManualRotation] = useState(0);
-
-  // Fine-tuning nudge offsets for Auto-Fit mode
-  const [autoNudge, setAutoNudge] = useState({ x: 0, y: 0, scale: 1.0 });
-
-  // Common overlay settings
+  // Garment overlay transform state
+  const [pos, setPos] = useState({ x: 0, y: -10 });
+  const [scale, setScale] = useState(1.0);
+  const [rotation, setRotation] = useState(0);
   const [opacity, setOpacity] = useState(0.9);
   const [blendMode, setBlendMode] = useState('normal');
 
-  // Dragging state for manual mode
+  // Dragging state
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
@@ -56,25 +45,7 @@ const VirtualTryOnModal = ({ product, onClose }) => {
     active: sourceMode === 'camera',
   });
 
-  // Pose Detection Custom Hook
-  const {
-    isLoaded: isPoseLoaded,
-    poseFound,
-    poseData,
-    error: poseError,
-  } = usePoseDetection({
-    videoRef,
-    active: sourceMode === 'camera' && tryOnMode === 'autofit',
-  });
-
-  // Automatic fallback to manual overlay if pose detection fails to load or error occurs
-  useEffect(() => {
-    if (poseError && tryOnMode === 'autofit') {
-      console.info('Switching to Basic Manual Overlay mode due to pose model status:', poseError);
-    }
-  }, [poseError, tryOnMode]);
-
-  // Determine garment image URL (prioritize tryOnImage -> first product image -> thumbnail/fallback)
+  // Garment image URL priority: product.tryOnImage -> product.images[0] -> thumbnail/fallback
   const garmentImgUrl = useMemo(() => {
     if (product?.tryOnImage) return product.tryOnImage;
     if (product?.images && product.images.length > 0) return product.images[0];
@@ -90,21 +61,20 @@ const VirtualTryOnModal = ({ product, onClose }) => {
     }
   };
 
-  // Pointer drag event handlers for Manual Mode
+  // Drag overlay pointer handlers
   const handlePointerDown = (e) => {
-    if (tryOnMode === 'autofit') return;
     e.preventDefault();
     setIsDragging(true);
     const clientX = e.clientX || e.touches?.[0]?.clientX || 0;
     const clientY = e.clientY || e.touches?.[0]?.clientY || 0;
-    setDragStart({ x: clientX - manualPos.x, y: clientY - manualPos.y });
+    setDragStart({ x: clientX - pos.x, y: clientY - pos.y });
   };
 
   const handlePointerMove = (e) => {
-    if (!isDragging || tryOnMode === 'autofit') return;
+    if (!isDragging) return;
     const clientX = e.clientX || e.touches?.[0]?.clientX || 0;
     const clientY = e.clientY || e.touches?.[0]?.clientY || 0;
-    setManualPos({
+    setPos({
       x: clientX - dragStart.x,
       y: clientY - dragStart.y,
     });
@@ -114,60 +84,16 @@ const VirtualTryOnModal = ({ product, onClose }) => {
     setIsDragging(false);
   };
 
-  // Reset transforms
+  // Reset transform
   const handleResetFit = () => {
-    setManualPos({ x: 0, y: -10 });
-    setManualScale(1.0);
-    setManualRotation(0);
-    setAutoNudge({ x: 0, y: 0, scale: 1.0 });
+    setPos({ x: 0, y: -10 });
+    setScale(1.0);
+    setRotation(0);
     setOpacity(0.9);
     setBlendMode('normal');
   };
 
-  // Calculate final style transform for overlay
-  const overlayStyle = useMemo(() => {
-    if (tryOnMode === 'autofit' && poseFound && poseData && containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
-      const containerW = rect.width || 580;
-      const containerH = rect.height || 380;
-
-      // Invert X when camera is mirrored in selfie user mode
-      const isMirrored = facingMode === 'user' && sourceMode === 'camera';
-      const normX = isMirrored ? 1 - poseData.x : poseData.x;
-
-      const posX = (normX - 0.5) * containerW + autoNudge.x;
-      const posY = (poseData.y - 0.5) * containerH - 10 + autoNudge.y;
-      const computedScale = poseData.scale * autoNudge.scale;
-      const computedRot = isMirrored ? -poseData.rotation : poseData.rotation;
-
-      return {
-        transform: `translate(${posX}px, ${posY}px) rotate(${computedRot}deg) scale(${computedScale})`,
-        opacity,
-        mixBlendMode: blendMode,
-      };
-    }
-
-    // Basic Manual Overlay Mode (or Pose fallback)
-    return {
-      transform: `translate(${manualPos.x}px, ${manualPos.y}px) rotate(${manualRotation}deg) scale(${manualScale})`,
-      opacity,
-      mixBlendMode: blendMode,
-    };
-  }, [
-    tryOnMode,
-    poseFound,
-    poseData,
-    facingMode,
-    sourceMode,
-    autoNudge,
-    manualPos,
-    manualRotation,
-    manualScale,
-    opacity,
-    blendMode,
-  ]);
-
-  // Capture & Download Snapshot Handler
+  // Capture Snapshot Handler
   const handleCaptureSnapshot = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -180,20 +106,16 @@ const VirtualTryOnModal = ({ product, onClose }) => {
 
     const drawSnapshot = (bgSource, isVideo = false) => {
       ctx.save();
-      // Handle camera mirroring on canvas if facingMode === 'user'
+      // Handle camera selfie mirroring on canvas if facingMode === 'user'
       if (sourceMode === 'camera' && facingMode === 'user') {
         ctx.translate(width, 0);
         ctx.scale(-1, 1);
       }
 
-      if (isVideo) {
-        ctx.drawImage(bgSource, 0, 0, width, height);
-      } else {
-        ctx.drawImage(bgSource, 0, 0, width, height);
-      }
+      ctx.drawImage(bgSource, 0, 0, width, height);
       ctx.restore();
 
-      // Load garment image and draw overlay
+      // Load garment image and composite overlay
       const gImg = new Image();
       gImg.crossOrigin = 'anonymous';
       gImg.onload = () => {
@@ -206,26 +128,12 @@ const VirtualTryOnModal = ({ product, onClose }) => {
             ? 'overlay'
             : 'source-over';
 
-        let targetX = width / 2;
-        let targetY = height / 2;
-        let targetScale = 1.0;
-        let targetRot = 0;
-
-        if (tryOnMode === 'autofit' && poseFound && poseData) {
-          targetX = poseData.x * width + autoNudge.x;
-          targetY = poseData.y * height - 20 + autoNudge.y;
-          targetScale = poseData.scale * autoNudge.scale;
-          targetRot = poseData.rotation;
-        } else {
-          targetX = width / 2 + manualPos.x * 1.2;
-          targetY = height / 2 + manualPos.y * 1.2;
-          targetScale = manualScale;
-          targetRot = manualRotation;
-        }
+        const targetX = width / 2 + pos.x * 1.2;
+        const targetY = height / 2 + pos.y * 1.2;
 
         ctx.translate(targetX, targetY);
-        ctx.rotate((targetRot * Math.PI) / 180);
-        ctx.scale(targetScale, targetScale);
+        ctx.rotate((rotation * Math.PI) / 180);
+        ctx.scale(scale, scale);
 
         const drawW = 320;
         const drawH = (320 * gImg.height) / gImg.width;
@@ -257,13 +165,9 @@ const VirtualTryOnModal = ({ product, onClose }) => {
     uploadedUserImage,
     opacity,
     blendMode,
-    tryOnMode,
-    poseFound,
-    poseData,
-    autoNudge,
-    manualPos,
-    manualScale,
-    manualRotation,
+    pos,
+    scale,
+    rotation,
     garmentImgUrl,
     product,
   ]);
@@ -278,7 +182,7 @@ const VirtualTryOnModal = ({ product, onClose }) => {
             <div>
               <h3>Virtual Fitting Room</h3>
               <span>
-                {product?.name ? `Try "${product.name}" live` : 'Real-time garment try-on preview'}
+                {product?.name ? `Try "${product.name}" live` : 'Garment try-on overlay'}
               </span>
             </div>
           </div>
@@ -287,42 +191,27 @@ const VirtualTryOnModal = ({ product, onClose }) => {
           </button>
         </div>
 
-        {/* Source Selector & Try-On Mode Switcher */}
+        {/* Source Selector Toolbar */}
         <div className="vto-mode-toolbar">
-          <div className="vto-sub-tabs">
-            <button
-              className={`vto-tab ${tryOnMode === 'autofit' ? 'active' : ''}`}
-              onClick={() => setTryOnMode('autofit')}
-              title="Pose-tracked automatic garment fitting"
-            >
-              <Sparkles size={15} /> Auto-Fit (Pose Tracked)
-            </button>
-            <button
-              className={`vto-tab ${tryOnMode === 'manual' ? 'active' : ''}`}
-              onClick={() => setTryOnMode('manual')}
-              title="Manual drag and scale overlay"
-            >
-              <Move size={15} /> Basic Overlay (Manual)
-            </button>
-          </div>
-
-          <div className="vto-source-toggle">
+          <div className="vto-source-toggle" style={{ width: '100%', justifyContent: 'center' }}>
             <button
               className={`vto-source-btn ${sourceMode === 'camera' ? 'active' : ''}`}
               onClick={() => setSourceMode('camera')}
+              style={{ flex: 1, justifyContent: 'center', padding: '8px 16px' }}
             >
-              <Camera size={14} /> Live Feed
+              <Camera size={16} /> Live Camera Feed
             </button>
             <button
               className={`vto-source-btn ${sourceMode === 'upload' ? 'active' : ''}`}
               onClick={() => setSourceMode('upload')}
+              style={{ flex: 1, justifyContent: 'center', padding: '8px 16px' }}
             >
-              <Upload size={14} /> Upload Photo
+              <Upload size={16} /> Upload Photo
             </button>
           </div>
         </div>
 
-        {/* Main Viewport Box */}
+        {/* Viewport Container */}
         <div
           className="vto-viewport"
           ref={containerRef}
@@ -366,42 +255,23 @@ const VirtualTryOnModal = ({ product, onClose }) => {
           {/* Garment Layer Overlay */}
           {(sourceMode === 'camera' || (sourceMode === 'upload' && uploadedUserImage)) && (
             <div
-              className={`vto-garment-overlay ${tryOnMode === 'manual' ? 'manual-draggable' : ''} ${
-                isDragging ? 'dragging' : ''
-              }`}
-              style={overlayStyle}
+              className={`vto-garment-overlay manual-draggable ${isDragging ? 'dragging' : ''}`}
+              style={{
+                transform: `translate(${pos.x}px, ${pos.y}px) rotate(${rotation}deg) scale(${scale})`,
+                opacity,
+                mixBlendMode: blendMode,
+              }}
               onMouseDown={handlePointerDown}
               onTouchStart={handlePointerDown}
             >
               <img src={garmentImgUrl} alt={product?.name || 'Garment Overlay'} draggable={false} />
-              {tryOnMode === 'manual' && (
-                <div className="vto-drag-handle" title="Drag to position garment">
-                  <Move size={14} />
-                </div>
-              )}
+              <div className="vto-drag-handle" title="Drag to position garment">
+                <Move size={14} />
+              </div>
             </div>
           )}
 
-          {/* Status Indicator Badges */}
-          {sourceMode === 'camera' && tryOnMode === 'autofit' && (
-            <div className="vto-pose-status">
-              {poseFound ? (
-                <span className="badge-locked">
-                  <CheckCircle2 size={14} /> Pose Tracked
-                </span>
-              ) : isPoseLoaded ? (
-                <span className="badge-searching">
-                  <Sparkles size={14} className="spinning-icon" /> Aligning front camera...
-                </span>
-              ) : (
-                <span className="badge-loading">
-                  <AlertCircle size={14} /> Loading pose tracking engine...
-                </span>
-              )}
-            </div>
-          )}
-
-          {/* Graceful Camera Error Banner */}
+          {/* Camera Error Banner */}
           {cameraError && sourceMode === 'camera' && (
             <div className="vto-error-banner">
               <AlertCircle size={18} />
@@ -414,120 +284,56 @@ const VirtualTryOnModal = ({ product, onClose }) => {
 
         {/* Controls Toolbar */}
         <div className="vto-controls">
-          {tryOnMode === 'autofit' ? (
-            <>
-              <div className="vto-control-group">
-                <label>
-                  <Eye size={14} /> Opacity ({Math.round(opacity * 100)}%)
-                </label>
-                <input
-                  type="range"
-                  min="0.2"
-                  max="1.0"
-                  step="0.05"
-                  value={opacity}
-                  onChange={(e) => setOpacity(parseFloat(e.target.value))}
-                />
-              </div>
+          <div className="vto-control-group">
+            <label>
+              <ZoomIn size={14} /> Size / Scale ({Math.round(scale * 100)}%)
+            </label>
+            <input
+              type="range"
+              min="0.4"
+              max="2.5"
+              step="0.05"
+              value={scale}
+              onChange={(e) => setScale(parseFloat(e.target.value))}
+            />
+          </div>
 
-              <div className="vto-control-group">
-                <label>
-                  <ZoomIn size={14} /> Auto-Fit Scale Fine-Tune ({Math.round(autoNudge.scale * 100)}%)
-                </label>
-                <input
-                  type="range"
-                  min="0.5"
-                  max="1.8"
-                  step="0.05"
-                  value={autoNudge.scale}
-                  onChange={(e) =>
-                    setAutoNudge((prev) => ({ ...prev, scale: parseFloat(e.target.value) }))
-                  }
-                />
-              </div>
+          <div className="vto-control-group">
+            <label>
+              <RotateCw size={14} /> Rotate ({rotation}°)
+            </label>
+            <input
+              type="range"
+              min="-180"
+              max="180"
+              step="2"
+              value={rotation}
+              onChange={(e) => setRotation(parseInt(e.target.value))}
+            />
+          </div>
 
-              <div className="vto-control-group">
-                <label>
-                  <Sliders size={14} /> Vertical Nudge Y ({autoNudge.y}px)
-                </label>
-                <input
-                  type="range"
-                  min="-100"
-                  max="100"
-                  step="2"
-                  value={autoNudge.y}
-                  onChange={(e) => setAutoNudge((prev) => ({ ...prev, y: parseInt(e.target.value) }))}
-                />
-              </div>
+          <div className="vto-control-group">
+            <label>
+              <Eye size={14} /> Opacity ({Math.round(opacity * 100)}%)
+            </label>
+            <input
+              type="range"
+              min="0.2"
+              max="1.0"
+              step="0.05"
+              value={opacity}
+              onChange={(e) => setOpacity(parseFloat(e.target.value))}
+            />
+          </div>
 
-              <div className="vto-control-group">
-                <label>
-                  <Sliders size={14} /> Horizontal Nudge X ({autoNudge.x}px)
-                </label>
-                <input
-                  type="range"
-                  min="-100"
-                  max="100"
-                  step="2"
-                  value={autoNudge.x}
-                  onChange={(e) => setAutoNudge((prev) => ({ ...prev, x: parseInt(e.target.value) }))}
-                />
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="vto-control-group">
-                <label>
-                  <ZoomIn size={14} /> Size / Scale ({Math.round(manualScale * 100)}%)
-                </label>
-                <input
-                  type="range"
-                  min="0.4"
-                  max="2.5"
-                  step="0.05"
-                  value={manualScale}
-                  onChange={(e) => setManualScale(parseFloat(e.target.value))}
-                />
-              </div>
-
-              <div className="vto-control-group">
-                <label>
-                  <RotateCw size={14} /> Rotate ({manualRotation}°)
-                </label>
-                <input
-                  type="range"
-                  min="-180"
-                  max="180"
-                  step="2"
-                  value={manualRotation}
-                  onChange={(e) => setManualRotation(parseInt(e.target.value))}
-                />
-              </div>
-
-              <div className="vto-control-group">
-                <label>
-                  <Eye size={14} /> Opacity ({Math.round(opacity * 100)}%)
-                </label>
-                <input
-                  type="range"
-                  min="0.2"
-                  max="1.0"
-                  step="0.05"
-                  value={opacity}
-                  onChange={(e) => setOpacity(parseFloat(e.target.value))}
-                />
-              </div>
-
-              <div className="vto-control-group">
-                <label>Blend Mode</label>
-                <select value={blendMode} onChange={(e) => setBlendMode(e.target.value)}>
-                  <option value="normal">Normal</option>
-                  <option value="multiply">Multiply (Shadow Blend)</option>
-                  <option value="overlay">Overlay</option>
-                </select>
-              </div>
-            </>
-          )}
+          <div className="vto-control-group">
+            <label>Blend Mode</label>
+            <select value={blendMode} onChange={(e) => setBlendMode(e.target.value)}>
+              <option value="normal">Normal</option>
+              <option value="multiply">Multiply (Shadow Blend)</option>
+              <option value="overlay">Overlay</option>
+            </select>
+          </div>
         </div>
 
         {/* Footer Actions */}
