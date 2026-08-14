@@ -110,18 +110,35 @@
 .m-reddress-feature__video-wrap {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 10;
+  height: 520px;
+  max-height: 70vh;
   border-radius: 20px;
   overflow: hidden;
   box-shadow: 0 25px 50px -12px rgba(44, 36, 33, 0.25);
-  background-color: var(--ink);
+  background-color: #0d0a09;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.m-reddress-feature__video {
+.m-reddress-feature__video-bg {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center top;
+  filter: blur(30px) brightness(0.45);
+  transform: scale(1.15);
+  pointer-events: none;
+}
+
+.m-reddress-feature__video-fg {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  object-fit: contain; /* UN-CROPPED: Entire whole portrait video displayed without cropping! */
   display: block;
 }
 
@@ -129,7 +146,8 @@
   position: absolute;
   top: 16px;
   left: 16px;
-  background: rgba(44, 36, 33, 0.75);
+  z-index: 3;
+  background: rgba(44, 36, 33, 0.85);
   backdrop-filter: blur(8px);
   color: var(--champagne);
   font-family: var(--font-body);

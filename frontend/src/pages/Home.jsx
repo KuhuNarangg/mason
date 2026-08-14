@@ -150,11 +150,11 @@ const Home = () => {
         </div>
       </section>
 
-      {/* 1.5 RED DRESS FEATURE SECTION (Video + Editorial Text Side-by-Side) */}
+      {/* 1.5 MAIN CHARACTER FEATURE SECTION (Video + Editorial Text Side-by-Side) */}
       <section className="m-reddress-feature">
         <div className="container">
           <div className="m-reddress-feature__grid">
-            {/* Video Side */}
+            {/* Video Side (Full Un-cropped Video) */}
             <div className="m-reddress-feature__video-wrap reveal-up">
               <video 
                 src="/reddress.mp4" 
@@ -162,44 +162,52 @@ const Home = () => {
                 loop 
                 muted 
                 playsInline 
-                className="m-reddress-feature__video"
+                className="m-reddress-feature__video-bg"
               />
-              <div className="m-reddress-feature__video-badge">Signature Edit</div>
+              <video 
+                src="/reddress.mp4" 
+                autoPlay 
+                loop 
+                muted 
+                playsInline 
+                className="m-reddress-feature__video-fg"
+              />
+              <div className="m-reddress-feature__video-badge">The Mason Experience</div>
             </div>
 
             {/* Editorial Text Side */}
             <div className="m-reddress-feature__content reveal-up" style={{ transitionDelay: '0.2s' }}>
-              <span className="m-label">Atelier Spotlight</span>
+              <span className="m-label">The Mason Experience</span>
               <h2 className="m-section-title">
-                The <em>Red Dress</em> Edit
+                Be The <em>Main Character</em>
               </h2>
               <p className="m-reddress-feature__desc">
-                Unapologetic glamour meets precision couture. Hand-draped silhouettes crafted from rich, fluid fabrics designed to command every room you enter.
+                At Mason, every design is created with one purpose — to make you feel like the main character of your story. Whether it’s your birthday celebration, engagement, anniversary, or a memorable night out, step into the room with effortless allure.
               </p>
 
               <div className="m-reddress-feature__highlights">
                 <div className="m-reddress-feature__highlight">
                   <span className="highlight-icon">✦</span>
                   <div>
-                    <strong>Sculpted Silhouette</strong>
-                    <p>Designed to flatter and define your natural posture with effortless grace.</p>
+                    <strong>Birthday & Event Spotlight</strong>
+                    <p>Head-turning statement outfits designed for your most unforgettable milestones.</p>
                   </div>
                 </div>
                 <div className="m-reddress-feature__highlight">
                   <span className="highlight-icon">✂</span>
                   <div>
-                    <strong>Made-to-Measure Available</strong>
-                    <p>Custom tailored to your exact measurements by our master artisans.</p>
+                    <strong>Custom Tailored To You</strong>
+                    <p>Bespoke sizing and made-to-measure tailoring crafted by our master artisans.</p>
                   </div>
                 </div>
               </div>
 
               <div className="m-reddress-feature__actions">
                 <Link to="/category/women" className="btn btn-primary">
-                  Explore Red Dresses
+                  Shop Main Character Edits
                 </Link>
                 <Link to="/custom-tailoring" className="btn btn-outline">
-                  Customize Fit
+                  Customize Your Outfit
                 </Link>
               </div>
             </div>
