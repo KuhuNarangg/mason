@@ -219,6 +219,14 @@
   font-size: clamp(1.8rem, 3.4vw, 3.2rem) !important;
 }
 
+.m-reddress-feature__mobile-header {
+  display: none;
+}
+
+.m-reddress-feature__desktop-header {
+  display: block;
+}
+
 .m-reddress-feature__short-desc {
   display: none;
 }
@@ -1005,9 +1013,19 @@
   }
 
   /* Main Character Video Feature Section Mobile Optimization */
+  .m-reddress-feature__mobile-header {
+    display: block !important;
+    text-align: center;
+    margin-bottom: 1rem !important;
+  }
+
+  .m-reddress-feature__desktop-header {
+    display: none !important;
+  }
+
   .m-reddress-feature__grid {
     grid-template-columns: 1fr;
-    gap: 1.25rem !important;
+    gap: 1rem !important;
   }
 
   .m-reddress-feature__video-wrap {
@@ -1056,10 +1074,12 @@
 
   .m-reddress-feature__short-desc {
     display: block !important;
-    font-size: 0.88rem;
-    color: var(--taupe-dark, #665b55);
-    margin: 0.2rem 0 0.6rem;
-    line-height: 1.45;
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: var(--taupe-dark, #544a45);
+    margin: 0.35rem 0 0.75rem;
+    line-height: 1.5;
+    text-align: center;
   }
 
   .m-reddress-feature__actions {

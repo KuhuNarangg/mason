@@ -231,8 +231,16 @@ const Home = () => {
       {/* 1.5 MAIN CHARACTER FEATURE SECTION (Video + Editorial Text Side-by-Side) */}
       <section className="m-reddress-feature" ref={featureSectionRef}>
         <div className="container">
+          {/* Mobile Header (Shown Above Video on Mobile Screens) */}
+          <div className="m-reddress-feature__mobile-header reveal-up">
+            <span className="m-label">The Mason Experience</span>
+            <h2 className="m-section-title m-reddress-title">
+              Be The <em>Main Character</em>
+            </h2>
+          </div>
+
           <div className="m-reddress-feature__grid">
-            {/* Video Side (Full Un-cropped Video - Guaranteed Autoplay + Sound & Play Controls) */}
+            {/* Video Side (Full Un-cropped Video - Guaranteed Autoplay + Sound Controls) */}
             <div className="m-reddress-feature__video-wrap reveal-up" onClick={togglePlay}>
               <video 
                 ref={(el) => {
@@ -289,15 +297,17 @@ const Home = () => {
 
             {/* Editorial Text Side */}
             <div className="m-reddress-feature__content reveal-up" style={{ transitionDelay: '0.2s' }}>
-              <span className="m-label">The Mason Experience</span>
-              <h2 className="m-section-title m-reddress-title">
-                Be The <em>Main Character</em>
-              </h2>
+              <div className="m-reddress-feature__desktop-header">
+                <span className="m-label">The Mason Experience</span>
+                <h2 className="m-section-title m-reddress-title">
+                  Be The <em>Main Character</em>
+                </h2>
+              </div>
               <p className="m-reddress-feature__desc">
                 At Mason, every design is created with one purpose — to make you feel like the main character of your story. Whether it’s your birthday celebration, engagement, anniversary, or a memorable night out, step into the room with effortless allure.
               </p>
               <p className="m-reddress-feature__short-desc">
-                Statement designs created to make you feel like the main character of your story.
+                Wanna feel like a main character on your birthday, graduation, farewell, or any other celebration of &quot;you&quot;?
               </p>
 
               <div className="m-reddress-feature__highlights">
