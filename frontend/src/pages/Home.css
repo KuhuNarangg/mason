@@ -180,7 +180,7 @@
 
 .m-reddress-feature__controls-row {
   position: absolute;
-  top: 16px;
+  bottom: 16px;
   right: 16px;
   z-index: 10;
   display: flex;
@@ -998,6 +998,53 @@
   }
   .m-cinematic__grid > div {
     transform: none !important;
+  }
+
+  /* Main Character Video Feature Section Mobile Optimization */
+  .m-reddress-feature__grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .m-reddress-feature__video-wrap {
+    height: 420px;
+    max-height: 55vh;
+    border-radius: 16px;
+  }
+
+  .m-reddress-feature__video-badge {
+    top: 12px;
+    left: 12px;
+    font-size: 0.65rem;
+    padding: 5px 10px;
+    letter-spacing: 0.15em;
+  }
+
+  .m-reddress-feature__controls-row {
+    bottom: 12px;
+    right: 12px;
+    gap: 6px;
+  }
+
+  .m-reddress-feature__control-btn {
+    font-size: 0.65rem;
+    padding: 5px 10px;
+    gap: 4px;
+  }
+
+  .m-reddress-title {
+    white-space: normal !important;
+    font-size: clamp(1.6rem, 6vw, 2.2rem) !important;
+  }
+
+  .m-reddress-feature__actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .m-reddress-feature__actions .btn {
+    width: 100%;
+    text-align: center;
   }
 }
 
