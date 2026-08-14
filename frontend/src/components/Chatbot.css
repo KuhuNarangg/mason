@@ -112,7 +112,7 @@
   justify-content: space-between;
   padding: 12px 16px;
   background-color: var(--ink);
-  color: var(--white);
+  color: var(--white) !important;
   cursor: pointer;
 }
 
@@ -143,17 +143,21 @@
 .mason-chat-title h3 {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 600;
   letter-spacing: 0.05em;
+  color: #ffffff !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
 .mason-chat-status {
-  font-size: 0.7rem;
-  color: var(--rose-gold);
+  font-size: 0.72rem;
+  color: var(--champagne) !important;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  font-weight: 500;
+  margin-top: 2px;
 }
 
 .mason-chat-status::before {
@@ -163,21 +167,26 @@
   height: 6px;
   background-color: #4CAF50;
   border-radius: 50%;
+  box-shadow: 0 0 6px rgba(76, 175, 80, 0.8);
 }
 
 .mason-chat-actions button {
   background: none;
   border: none;
-  color: var(--white);
+  color: #ffffff !important;
   cursor: pointer;
   padding: 4px;
   margin-left: 8px;
-  opacity: 0.8;
-  transition: opacity 0.2s;
+  opacity: 0.9;
+  transition: opacity 0.2s, transform 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .mason-chat-actions button:hover {
   opacity: 1;
+  transform: scale(1.1);
 }
 
 /* Messages Area */

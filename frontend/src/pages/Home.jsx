@@ -152,6 +152,9 @@ const Home = () => {
 
       {/* --- DESKTOP ONLY SECTIONS --- */}
       <div className="desktop-only-sections">
+        {/* SHOP BY CATEGORIES SECTION (Before New Arrivals) */}
+        <ShopByCategoriesSection />
+
         {/* 2. NEW ARRIVALS (Horizontal Scroll) */}
         <section className="m-new-arrivals">
           <div className="container m-new-arrivals__header reveal-up">
@@ -208,9 +211,6 @@ const Home = () => {
             </Link>
           </div>
         </section>
-
-        {/* --- SHOP BY CATEGORIES SECTION (After Custom Tailoring & Before Discover Our Story) --- */}
-        <ShopByCategoriesSection />
 
         {/* 4. EXPERIENCE LUXURY (Discover Our Story) */}
         <section className="m-experience">
@@ -427,6 +427,9 @@ const Home = () => {
           <img src="/home4.jpg" alt="Campaign" style={{ width: '100%', height: 'auto', display: 'block' }} loading="lazy" />
         </div>
 
+        {/* SHOP BY CATEGORIES SECTION (Before New Arrivals) */}
+        <ShopByCategoriesSection />
+
         {/* 3. New Arrivals Grid */}
         <section className="mobile-new-arrivals" style={{ paddingTop: '4rem', paddingBottom: '4rem' }}>
           <div className="container text-center mb-5">
@@ -460,11 +463,6 @@ const Home = () => {
 
       {/* CUSTOM TAILORING SECTION */}
       <CustomizeSection />
-
-      {/* SHOP BY CATEGORIES SECTION (After Custom Tailoring) */}
-      <div className="mobile-only-sections">
-        <ShopByCategoriesSection />
-      </div>
 
     </div>
   );

@@ -12,6 +12,7 @@ export const generateOrganizationSchema = () => {
       "email": "customercare@owlstitch.com"
     },
     "sameAs": [
+      "https://youtube.com/@owlstitchofficial?si=6hieNgp9ne52nsNz",
       "https://www.instagram.com/owlstitchofficial?igsh=ZjgyeHZ0ajdxN2tr&utm_source=qr",
       "https://www.facebook.com/share/1BiAuAZoDx/?mibextid=wwXIfr",
       "https://www.linkedin.com/company/owl-stitch/"
