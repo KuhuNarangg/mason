@@ -178,11 +178,17 @@
   border: 1px solid rgba(234, 216, 199, 0.3);
 }
 
-.m-reddress-feature__sound-btn {
+.m-reddress-feature__controls-row {
   position: absolute;
   top: 16px;
   right: 16px;
   z-index: 10;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.m-reddress-feature__control-btn {
   pointer-events: auto !important;
   background: rgba(44, 36, 33, 0.85);
   backdrop-filter: blur(8px);
@@ -202,7 +208,7 @@
   transition: all 0.3s ease;
 }
 
-.m-reddress-feature__sound-btn:hover {
+.m-reddress-feature__control-btn:hover {
   background: var(--rose-gold-dark);
   color: #ffffff;
   transform: scale(1.05);

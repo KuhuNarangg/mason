@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Volume2, VolumeX } from 'lucide-react';
+import { ArrowRight, Volume2, VolumeX, Play, Pause } from 'lucide-react';
 import api from '../utils/api';
 import ProductCard from '../components/ProductCard';
 import CustomizeSection from '../components/CustomizeSection';
@@ -17,17 +17,43 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [currentHero, setCurrentHero] = useState(0);
   const [isMuted, setIsMuted] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(true);
   const videoRef = useRef(null);
   const bgVideoRef = useRef(null);
   const featureSectionRef = useRef(null);
 
-  const toggleAudio = () => {
+  const toggleAudio = (e) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     if (videoRef.current) {
-      const nextMuted = !isMuted;
+      const nextMuted = !videoRef.current.muted;
       videoRef.current.muted = nextMuted;
       setIsMuted(nextMuted);
       if (!nextMuted) {
-        videoRef.current.play().catch(() => {});
+        videoRef.current.play().then(() => {
+          setIsPlaying(true);
+        }).catch(() => {});
+      }
+    }
+  };
+
+  const togglePlay = (e) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    if (videoRef.current) {
+      if (videoRef.current.paused) {
+        videoRef.current.play().then(() => {
+          setIsPlaying(true);
+        }).catch(() => {});
+        if (bgVideoRef.current) bgVideoRef.current.play().catch(() => {});
+      } else {
+        videoRef.current.pause();
+        if (bgVideoRef.current) bgVideoRef.current.pause();
+        setIsPlaying(false);
       }
     }
   };
@@ -36,13 +62,11 @@ const Home = () => {
   useEffect(() => {
     const playVideos = () => {
       if (videoRef.current) {
-        videoRef.current.muted = isMuted;
-        videoRef.current.defaultMuted = isMuted;
-        videoRef.current.play().catch(() => {});
+        videoRef.current.play().then(() => {
+          setIsPlaying(true);
+        }).catch(() => {});
       }
       if (bgVideoRef.current) {
-        bgVideoRef.current.muted = true;
-        bgVideoRef.current.defaultMuted = true;
         bgVideoRef.current.play().catch(() => {});
       }
     };
@@ -60,6 +84,7 @@ const Home = () => {
           } else {
             if (videoRef.current) videoRef.current.pause();
             if (bgVideoRef.current) bgVideoRef.current.pause();
+            setIsPlaying(false);
           }
         });
       },
@@ -68,7 +93,7 @@ const Home = () => {
 
     observer.observe(featureSectionRef.current);
     return () => observer.disconnect();
-  }, [isMuted]);
+  }, []);
 
   const heroImages = [
     '/hero1.jpg',
@@ -207,15 +232,14 @@ const Home = () => {
       <section className="m-reddress-feature" ref={featureSectionRef}>
         <div className="container">
           <div className="m-reddress-feature__grid">
-            {/* Video Side (Full Un-cropped Video - Guaranteed Autoplay + Sound Toggle) */}
-            <div className="m-reddress-feature__video-wrap reveal-up">
+            {/* Video Side (Full Un-cropped Video - Guaranteed Autoplay + Sound & Play Controls) */}
+            <div className="m-reddress-feature__video-wrap reveal-up" onClick={togglePlay}>
               <video 
                 ref={(el) => {
                   if (el) {
                     el.muted = true;
                     el.defaultMuted = true;
                     bgVideoRef.current = el;
-                    el.play().catch(() => {});
                   }
                 }}
                 src="/reddress.mp4" 
@@ -235,7 +259,6 @@ const Home = () => {
                     el.muted = isMuted;
                     el.defaultMuted = isMuted;
                     videoRef.current = el;
-                    el.play().catch(() => {});
                   }
                 }}
                 src="/reddress.mp4" 
@@ -251,15 +274,27 @@ const Home = () => {
               />
               <div className="m-reddress-feature__video-badge">The Mason Experience</div>
 
-              <button 
-                type="button" 
-                className="m-reddress-feature__sound-btn" 
-                onClick={toggleAudio}
-                aria-label={isMuted ? "Unmute Sound" : "Mute Sound"}
-              >
-                {isMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
-                <span>{isMuted ? 'Unmute' : 'Sound On'}</span>
-              </button>
+              <div className="m-reddress-feature__controls-row">
+                <button 
+                  type="button" 
+                  className="m-reddress-feature__control-btn" 
+                  onClick={togglePlay}
+                  aria-label={isPlaying ? "Pause Video" : "Play Video"}
+                >
+                  {isPlaying ? <Pause size={14} /> : <Play size={14} />}
+                  <span>{isPlaying ? 'Pause' : 'Play'}</span>
+                </button>
+
+                <button 
+                  type="button" 
+                  className="m-reddress-feature__control-btn" 
+                  onClick={toggleAudio}
+                  aria-label={isMuted ? "Unmute Sound" : "Mute Sound"}
+                >
+                  {isMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
+                  <span>{isMuted ? 'Unmute' : 'Sound On'}</span>
+                </button>
+              </div>
             </div>
 
             {/* Editorial Text Side */}
