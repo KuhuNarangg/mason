@@ -32,29 +32,38 @@ const Home = () => {
     }
   };
 
-  // Scroll-triggered Autoplay Observer for Main Character Video
+  // Scroll & Mount Autoplay Observer for Main Character Video
   useEffect(() => {
+    const playVideos = () => {
+      if (videoRef.current) {
+        videoRef.current.muted = isMuted;
+        videoRef.current.defaultMuted = isMuted;
+        videoRef.current.play().catch(() => {});
+      }
+      if (bgVideoRef.current) {
+        bgVideoRef.current.muted = true;
+        bgVideoRef.current.defaultMuted = true;
+        bgVideoRef.current.play().catch(() => {});
+      }
+    };
+
+    // Attempt immediate play on mount
+    playVideos();
+
     if (!featureSectionRef.current) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            if (videoRef.current) {
-              videoRef.current.muted = isMuted;
-              videoRef.current.play().catch(() => {});
-            }
-            if (bgVideoRef.current) {
-              bgVideoRef.current.muted = true;
-              bgVideoRef.current.play().catch(() => {});
-            }
+            playVideos();
           } else {
             if (videoRef.current) videoRef.current.pause();
             if (bgVideoRef.current) bgVideoRef.current.pause();
           }
         });
       },
-      { threshold: 0.15 }
+      { threshold: 0.05 }
     );
 
     observer.observe(featureSectionRef.current);
@@ -201,20 +210,34 @@ const Home = () => {
             {/* Video Side (Full Un-cropped Video with Sound Controls) */}
             <div className="m-reddress-feature__video-wrap reveal-up">
               <video 
-                ref={bgVideoRef}
+                ref={(el) => {
+                  if (el) {
+                    el.muted = true;
+                    el.defaultMuted = true;
+                    bgVideoRef.current = el;
+                  }
+                }}
                 src="/reddress.mp4" 
                 autoPlay 
                 loop 
                 muted
+                defaultMuted
                 playsInline 
                 className="m-reddress-feature__video-bg"
               />
               <video 
-                ref={videoRef}
+                ref={(el) => {
+                  if (el) {
+                    el.muted = isMuted;
+                    el.defaultMuted = isMuted;
+                    videoRef.current = el;
+                  }
+                }}
                 src="/reddress.mp4" 
                 autoPlay 
                 loop 
                 muted={isMuted}
+                defaultMuted={isMuted}
                 playsInline 
                 className="m-reddress-feature__video-fg"
               />
