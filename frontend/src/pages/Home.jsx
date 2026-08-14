@@ -17,19 +17,22 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [currentHero, setCurrentHero] = useState(0);
 
-  const heroImages = [
-    '/hero1.jpg',
-    '/hero2.jpg',
-    '/hero3.jpg',
-    '/hero4.jpg',
-    '/hero5.jpg'
+  const heroSlides = [
+    { type: 'image', src: '/hero1.jpg' },
+    { type: 'video', src: '/reddress.mp4' },
+    { type: 'image', src: '/hero2.jpg' },
+    { type: 'image', src: '/hero3.jpg' },
+    { type: 'image', src: '/hero4.jpg' },
+    { type: 'image', src: '/hero5.jpg' }
   ];
 
   // Preload Hero Images
   useEffect(() => {
-    heroImages.forEach((src) => {
-      const img = new Image();
-      img.src = src;
+    heroSlides.forEach((slide) => {
+      if (slide.type === 'image') {
+        const img = new Image();
+        img.src = slide.src;
+      }
     });
   }, []);
 
@@ -60,10 +63,10 @@ const Home = () => {
   // Hero Slider Interval
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentHero((prev) => (prev + 1) % heroImages.length);
+      setCurrentHero((prev) => (prev + 1) % heroSlides.length);
     }, 6000); // 6 second slow fade
     return () => clearInterval(timer);
-  }, [heroImages.length]);
+  }, [heroSlides.length]);
 
   // Intersection observer for scroll reveals
   useEffect(() => {
@@ -106,17 +109,42 @@ const Home = () => {
       
       {/* 1. CINEMATIC HERO SLIDER */}
       <section className="m-hero">
-        {heroImages.map((src, index) => {
-          const isPrev = index === (currentHero === 0 ? heroImages.length - 1 : currentHero - 1);
+        {heroSlides.map((slide, index) => {
+          const isPrev = index === (currentHero === 0 ? heroSlides.length - 1 : currentHero - 1);
           let className = "m-hero__slide";
           if (index === currentHero) className += " active";
           if (isPrev) className += " prev";
+
+          if (slide.type === 'video') {
+            return (
+              <div key={index} className={className}>
+                <video 
+                  src={slide.src} 
+                  autoPlay 
+                  loop 
+                  muted 
+                  playsInline 
+                  className="m-hero__video-bg"
+                />
+                <div className="m-hero__video-wrapper">
+                  <video 
+                    src={slide.src} 
+                    autoPlay 
+                    loop 
+                    muted 
+                    playsInline 
+                    className="m-hero__video-fg"
+                  />
+                </div>
+              </div>
+            );
+          }
 
           return (
             <div 
               key={index} 
               className={className}
-              style={{ backgroundImage: `url(${src})` }}
+              style={{ backgroundImage: `url(${slide.src})` }}
             />
           );
         })}
@@ -139,7 +167,7 @@ const Home = () => {
         </div>
 
         <div className="m-hero__indicators">
-          {heroImages.map((_, index) => (
+          {heroSlides.map((_, index) => (
             <button 
               key={index} 
               className={`m-hero__dot ${index === currentHero ? 'active' : ''}`}
