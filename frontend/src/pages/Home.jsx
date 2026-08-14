@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Volume2, VolumeX, Play, Pause } from 'lucide-react';
+import { ArrowRight, Volume2, VolumeX } from 'lucide-react';
 import api from '../utils/api';
 import ProductCard from '../components/ProductCard';
 import CustomizeSection from '../components/CustomizeSection';
@@ -275,16 +275,6 @@ const Home = () => {
               <div className="m-reddress-feature__video-badge">The Mason Experience</div>
 
               <div className="m-reddress-feature__controls-row">
-                <button 
-                  type="button" 
-                  className="m-reddress-feature__control-btn" 
-                  onClick={togglePlay}
-                  aria-label={isPlaying ? "Pause Video" : "Play Video"}
-                >
-                  {isPlaying ? <Pause size={14} /> : <Play size={14} />}
-                  <span>{isPlaying ? 'Pause' : 'Play'}</span>
-                </button>
-
                 <button 
                   type="button" 
                   className="m-reddress-feature__control-btn" 
