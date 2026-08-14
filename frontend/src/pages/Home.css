@@ -138,7 +138,9 @@
   width: 100%;
   height: 100%;
   max-height: 100%;
-  object-fit: contain; /* UN-CROPPED: Entire whole portrait video displayed without cropping! */
+  object-fit: contain;
+  transform: scale(1.12); /* Slightly larger video size inside box without enlarging container */
+  transition: transform 0.4s ease;
   display: block;
 }
 
@@ -157,6 +159,38 @@
   padding: 6px 14px;
   border-radius: 20px;
   border: 1px solid rgba(234, 216, 199, 0.3);
+}
+
+.m-reddress-feature__audio-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 4;
+  background: rgba(44, 36, 33, 0.85);
+  backdrop-filter: blur(8px);
+  color: var(--ivory);
+  border: 1px solid rgba(234, 216, 199, 0.3);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+}
+
+.m-reddress-feature__audio-btn:hover {
+  background: var(--rose-gold-dark);
+  color: var(--white);
+}
+
+.m-reddress-title {
+  white-space: nowrap;
+  font-size: clamp(1.8rem, 3.4vw, 3.2rem) !important;
 }
 
 .m-reddress-feature__content {

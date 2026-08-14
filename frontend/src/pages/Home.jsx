@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Volume2, VolumeX } from 'lucide-react';
 import api from '../utils/api';
 import ProductCard from '../components/ProductCard';
 import CustomizeSection from '../components/CustomizeSection';
@@ -16,6 +16,19 @@ const Home = () => {
   const [cinematicMedia, setCinematicMedia] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentHero, setCurrentHero] = useState(0);
+  const [isMuted, setIsMuted] = useState(false);
+  const videoRef = useRef(null);
+
+  const toggleAudio = () => {
+    if (videoRef.current) {
+      const nextMuted = !isMuted;
+      videoRef.current.muted = nextMuted;
+      setIsMuted(nextMuted);
+      if (!nextMuted) {
+        videoRef.current.play().catch(() => {});
+      }
+    }
+  };
 
   const heroImages = [
     '/hero1.jpg',
@@ -154,31 +167,41 @@ const Home = () => {
       <section className="m-reddress-feature">
         <div className="container">
           <div className="m-reddress-feature__grid">
-            {/* Video Side (Full Un-cropped Video) */}
+            {/* Video Side (Full Un-cropped Video with Sound Controls) */}
             <div className="m-reddress-feature__video-wrap reveal-up">
               <video 
                 src="/reddress.mp4" 
                 autoPlay 
                 loop 
-                muted 
+                muted
                 playsInline 
                 className="m-reddress-feature__video-bg"
               />
               <video 
+                ref={videoRef}
                 src="/reddress.mp4" 
                 autoPlay 
                 loop 
-                muted 
+                muted={isMuted}
                 playsInline 
                 className="m-reddress-feature__video-fg"
               />
               <div className="m-reddress-feature__video-badge">The Mason Experience</div>
+              <button 
+                type="button" 
+                className="m-reddress-feature__audio-btn" 
+                onClick={toggleAudio}
+                aria-label={isMuted ? "Unmute Sound" : "Mute Sound"}
+              >
+                {isMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
+                <span>{isMuted ? 'Unmute Sound' : 'Sound On'}</span>
+              </button>
             </div>
 
             {/* Editorial Text Side */}
             <div className="m-reddress-feature__content reveal-up" style={{ transitionDelay: '0.2s' }}>
               <span className="m-label">The Mason Experience</span>
-              <h2 className="m-section-title">
+              <h2 className="m-section-title m-reddress-title">
                 Be The <em>Main Character</em>
               </h2>
               <p className="m-reddress-feature__desc">
@@ -187,14 +210,12 @@ const Home = () => {
 
               <div className="m-reddress-feature__highlights">
                 <div className="m-reddress-feature__highlight">
-                  <span className="highlight-icon">✦</span>
                   <div>
                     <strong>Birthday & Event Spotlight</strong>
                     <p>Head-turning statement outfits designed for your most unforgettable milestones.</p>
                   </div>
                 </div>
                 <div className="m-reddress-feature__highlight">
-                  <span className="highlight-icon">✂</span>
                   <div>
                     <strong>Custom Tailored To You</strong>
                     <p>Bespoke sizing and made-to-measure tailoring crafted by our master artisans.</p>
