@@ -219,6 +219,10 @@
   font-size: clamp(1.8rem, 3.4vw, 3.2rem) !important;
 }
 
+.m-reddress-feature__short-desc {
+  display: none;
+}
+
 .m-reddress-feature__content {
   display: flex;
   flex-direction: column;
@@ -1003,12 +1007,12 @@
   /* Main Character Video Feature Section Mobile Optimization */
   .m-reddress-feature__grid {
     grid-template-columns: 1fr;
-    gap: 2rem;
+    gap: 1.25rem !important;
   }
 
   .m-reddress-feature__video-wrap {
-    height: 420px;
-    max-height: 55vh;
+    height: 380px;
+    max-height: 48vh;
     border-radius: 16px;
   }
 
@@ -1032,19 +1036,44 @@
     gap: 4px;
   }
 
+  .m-reddress-feature__content {
+    gap: 0.5rem !important;
+    text-align: center;
+    align-items: center;
+  }
+
   .m-reddress-title {
     white-space: normal !important;
-    font-size: clamp(1.6rem, 6vw, 2.2rem) !important;
+    font-size: clamp(1.5rem, 5.5vw, 2.1rem) !important;
+    margin-bottom: 0.25rem !important;
+  }
+
+  /* Hide verbose text blocks on mobile for video focus */
+  .m-reddress-feature__desc,
+  .m-reddress-feature__highlights {
+    display: none !important;
+  }
+
+  .m-reddress-feature__short-desc {
+    display: block !important;
+    font-size: 0.88rem;
+    color: var(--taupe-dark, #665b55);
+    margin: 0.2rem 0 0.6rem;
+    line-height: 1.45;
   }
 
   .m-reddress-feature__actions {
     flex-direction: column;
     width: 100%;
+    gap: 0.6rem !important;
+    margin-top: 0.25rem !important;
   }
 
   .m-reddress-feature__actions .btn {
     width: 100%;
     text-align: center;
+    padding: 12px 18px !important;
+    font-size: 0.8rem !important;
   }
 }
 

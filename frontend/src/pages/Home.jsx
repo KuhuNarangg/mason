@@ -296,6 +296,9 @@ const Home = () => {
               <p className="m-reddress-feature__desc">
                 At Mason, every design is created with one purpose — to make you feel like the main character of your story. Whether it’s your birthday celebration, engagement, anniversary, or a memorable night out, step into the room with effortless allure.
               </p>
+              <p className="m-reddress-feature__short-desc">
+                Statement designs created to make you feel like the main character of your story.
+              </p>
 
               <div className="m-reddress-feature__highlights">
                 <div className="m-reddress-feature__highlight">
