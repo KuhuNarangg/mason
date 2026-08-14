@@ -16,8 +16,10 @@ const Home = () => {
   const [cinematicMedia, setCinematicMedia] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentHero, setCurrentHero] = useState(0);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   const videoRef = useRef(null);
+  const bgVideoRef = useRef(null);
+  const featureSectionRef = useRef(null);
 
   const toggleAudio = () => {
     if (videoRef.current) {
@@ -29,6 +31,35 @@ const Home = () => {
       }
     }
   };
+
+  // Scroll-triggered Autoplay Observer for Main Character Video
+  useEffect(() => {
+    if (!featureSectionRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            if (videoRef.current) {
+              videoRef.current.muted = isMuted;
+              videoRef.current.play().catch(() => {});
+            }
+            if (bgVideoRef.current) {
+              bgVideoRef.current.muted = true;
+              bgVideoRef.current.play().catch(() => {});
+            }
+          } else {
+            if (videoRef.current) videoRef.current.pause();
+            if (bgVideoRef.current) bgVideoRef.current.pause();
+          }
+        });
+      },
+      { threshold: 0.15 }
+    );
+
+    observer.observe(featureSectionRef.current);
+    return () => observer.disconnect();
+  }, [isMuted]);
 
   const heroImages = [
     '/hero1.jpg',
@@ -164,12 +195,13 @@ const Home = () => {
       </section>
 
       {/* 1.5 MAIN CHARACTER FEATURE SECTION (Video + Editorial Text Side-by-Side) */}
-      <section className="m-reddress-feature">
+      <section className="m-reddress-feature" ref={featureSectionRef}>
         <div className="container">
           <div className="m-reddress-feature__grid">
             {/* Video Side (Full Un-cropped Video with Sound Controls) */}
             <div className="m-reddress-feature__video-wrap reveal-up">
               <video 
+                ref={bgVideoRef}
                 src="/reddress.mp4" 
                 autoPlay 
                 loop 
