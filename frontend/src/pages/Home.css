@@ -89,40 +89,119 @@
   z-index: 2;
 }
 
-.m-hero__video-bg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: blur(30px) brightness(0.5);
-  transform: scale(1.15);
-  pointer-events: none;
-}
-
-.m-hero__video-wrapper {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1;
+/* ============================================================
+   1.5 Red Dress Feature Section (Side-by-Side Video & Text)
+   ============================================================ */
+.m-reddress-feature {
+  padding: var(--space-24) 0;
+  background: var(--ivory);
+  border-top: 1px solid var(--champagne);
+  border-bottom: 1px solid var(--champagne);
   overflow: hidden;
 }
 
-.m-hero__video-fg {
-  height: 100%;
-  width: auto;
-  max-width: 100%;
-  object-fit: contain;
-  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5);
+.m-reddress-feature__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(2rem, 5vw, 5rem);
+  align-items: center;
 }
 
-@media (max-width: 768px) {
-  .m-hero__video-fg {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+.m-reddress-feature__video-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(44, 36, 33, 0.25);
+  background-color: var(--ink);
+}
+
+.m-reddress-feature__video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+}
+
+.m-reddress-feature__video-badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: rgba(44, 36, 33, 0.75);
+  backdrop-filter: blur(8px);
+  color: var(--champagne);
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(234, 216, 199, 0.3);
+}
+
+.m-reddress-feature__content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.m-reddress-feature__desc {
+  font-size: var(--text-md);
+  color: var(--ink-soft);
+  line-height: 1.7;
+  margin: var(--space-4) 0 var(--space-6);
+}
+
+.m-reddress-feature__highlights {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+}
+
+.m-reddress-feature__highlight {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.m-reddress-feature__highlight .highlight-icon {
+  font-size: 1.2rem;
+  color: var(--rose-gold);
+  line-height: 1;
+  margin-top: 2px;
+}
+
+.m-reddress-feature__highlight strong {
+  display: block;
+  font-size: var(--text-sm);
+  letter-spacing: 0.05em;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+
+.m-reddress-feature__highlight p {
+  font-size: 0.88rem;
+  color: var(--ink-muted);
+  margin: 0;
+}
+
+.m-reddress-feature__actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 992px) {
+  .m-reddress-feature__grid {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+
+  .m-reddress-feature__video-wrap {
+    aspect-ratio: 16 / 9;
   }
 }
 
