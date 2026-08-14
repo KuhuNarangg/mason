@@ -311,57 +311,7 @@
   border-color: var(--error);
 }
 
-/* Virtual Try-On AR Button */
-.btn-virtual-tryon {
-  flex: 1.5;
-  min-width: 220px;
-  height: 55px;
-  padding: 0 var(--space-5);
-  font-family: var(--font-body);
-  font-size: var(--font-size-xs, 0.78rem);
-  font-weight: 600;
-  letter-spacing: 1.5px;
-  border-radius: 4px;
-  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
-  color: var(--rose-gold-light, #E8C3B5);
-  border: 1px solid var(--rose-gold, #C08A74);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  cursor: pointer;
-  box-shadow: 0 4px 14px rgba(192, 138, 116, 0.2);
-  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.btn-virtual-tryon:hover {
-  background: var(--rose-gold, #C08A74);
-  color: #FFFFFF;
-  border-color: var(--rose-gold, #C08A74);
-  box-shadow: 0 6px 20px rgba(192, 138, 116, 0.4);
-  transform: translateY(-2px);
-}
-
-.tryon-camera-icon {
-  color: var(--rose-gold, #C08A74);
-  transition: color 0.3s ease;
-}
-
-.btn-virtual-tryon:hover .tryon-camera-icon {
-  color: #FFFFFF;
-}
-
-.tryon-sparkle-badge {
-  color: var(--rose-gold-light, #E8C3B5);
-  animation: sparklePulse 2s infinite ease-in-out;
-}
-
-@keyframes sparklePulse {
-  0%, 100% { opacity: 0.5; transform: scale(0.9); }
-  50% { opacity: 1; transform: scale(1.2); }
-}
+/* Wishlist Button Overrides */
 
 /* Quantity controls — shown after item added to bag */
 .qty-controls-wrap {

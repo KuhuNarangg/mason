@@ -178,6 +178,36 @@
   border: 1px solid rgba(234, 216, 199, 0.3);
 }
 
+.m-reddress-feature__sound-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+  pointer-events: auto !important;
+  background: rgba(44, 36, 33, 0.85);
+  backdrop-filter: blur(8px);
+  color: var(--ivory);
+  border: 1px solid rgba(234, 216, 199, 0.4);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.m-reddress-feature__sound-btn:hover {
+  background: var(--rose-gold-dark);
+  color: #ffffff;
+  transform: scale(1.05);
+}
+
 .m-reddress-title {
   white-space: nowrap;
   font-size: clamp(1.8rem, 3.4vw, 3.2rem) !important;
