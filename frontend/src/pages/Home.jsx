@@ -207,7 +207,7 @@ const Home = () => {
       <section className="m-reddress-feature" ref={featureSectionRef}>
         <div className="container">
           <div className="m-reddress-feature__grid">
-            {/* Video Side (Full Un-cropped Video with Sound Controls) */}
+            {/* Video Side (Full Un-cropped Video - Pure Autoplay No Buttons) */}
             <div className="m-reddress-feature__video-wrap reveal-up">
               <video 
                 ref={(el) => {
@@ -215,6 +215,7 @@ const Home = () => {
                     el.muted = true;
                     el.defaultMuted = true;
                     bgVideoRef.current = el;
+                    el.play().catch(() => {});
                   }
                 }}
                 src="/reddress.mp4" 
@@ -223,34 +224,32 @@ const Home = () => {
                 muted
                 defaultMuted
                 playsInline 
+                webkit-playsinline="true"
+                disablePictureInPicture
+                disableRemotePlayback
                 className="m-reddress-feature__video-bg"
               />
               <video 
                 ref={(el) => {
                   if (el) {
-                    el.muted = isMuted;
-                    el.defaultMuted = isMuted;
+                    el.muted = true;
+                    el.defaultMuted = true;
                     videoRef.current = el;
+                    el.play().catch(() => {});
                   }
                 }}
                 src="/reddress.mp4" 
                 autoPlay 
                 loop 
-                muted={isMuted}
-                defaultMuted={isMuted}
+                muted
+                defaultMuted
                 playsInline 
+                webkit-playsinline="true"
+                disablePictureInPicture
+                disableRemotePlayback
                 className="m-reddress-feature__video-fg"
               />
               <div className="m-reddress-feature__video-badge">The Mason Experience</div>
-              <button 
-                type="button" 
-                className="m-reddress-feature__audio-btn" 
-                onClick={toggleAudio}
-                aria-label={isMuted ? "Unmute Sound" : "Mute Sound"}
-              >
-                {isMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
-                <span>{isMuted ? 'Unmute Sound' : 'Sound On'}</span>
-              </button>
             </div>
 
             {/* Editorial Text Side */}

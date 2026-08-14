@@ -121,6 +121,13 @@
   justify-content: center;
 }
 
+.m-reddress-feature__video-bg,
+.m-reddress-feature__video-fg {
+  pointer-events: none !important;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 .m-reddress-feature__video-bg {
   position: absolute;
   inset: 0;
@@ -129,7 +136,6 @@
   object-fit: cover;
   filter: blur(30px) brightness(0.45);
   transform: scale(1.15);
-  pointer-events: none;
 }
 
 .m-reddress-feature__video-fg {
@@ -139,9 +145,20 @@
   height: 100%;
   max-height: 100%;
   object-fit: contain;
-  transform: scale(1.12); /* Slightly larger video size inside box without enlarging container */
+  transform: scale(1.12);
   transition: transform 0.4s ease;
   display: block;
+}
+
+/* Suppress all native browser video overlays and play/pause controls */
+.m-reddress-feature__video-wrap video::-webkit-media-controls,
+.m-reddress-feature__video-wrap video::-webkit-media-controls-start-playback-button,
+.m-reddress-feature__video-wrap video::-webkit-media-controls-play-button,
+.m-reddress-feature__video-wrap video::-webkit-media-controls-panel {
+  display: none !important;
+  -webkit-appearance: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 .m-reddress-feature__video-badge {
@@ -159,33 +176,6 @@
   padding: 6px 14px;
   border-radius: 20px;
   border: 1px solid rgba(234, 216, 199, 0.3);
-}
-
-.m-reddress-feature__audio-btn {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  z-index: 4;
-  background: rgba(44, 36, 33, 0.85);
-  backdrop-filter: blur(8px);
-  color: var(--ivory);
-  border: 1px solid rgba(234, 216, 199, 0.3);
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-family: var(--font-body);
-  font-size: var(--text-xs);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.3s ease;
-}
-
-.m-reddress-feature__audio-btn:hover {
-  background: var(--rose-gold-dark);
-  color: var(--white);
 }
 
 .m-reddress-title {
