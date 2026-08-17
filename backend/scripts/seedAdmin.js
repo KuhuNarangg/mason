@@ -29,7 +29,16 @@ const ADMIN_CODE     = '31082005';
     // bypass the pre-save hash hook since we already hashed
     await User.updateOne(
       { email: ADMIN_EMAIL },
-      { name: 'Admin', password: hashedPassword, role: 'admin', accessCode: hashedCode }
+      { 
+        name: 'Admin', 
+        password: hashedPassword, 
+        role: 'admin', 
+        accessCode: hashedCode,
+        adminCodeAttempts: 0,
+        adminCodeLockUntil: null,
+        loginAttempts: 0,
+        loginLockUntil: null
+      }
     );
     console.log('Admin user updated successfully.');
   } else {
@@ -38,6 +47,10 @@ const ADMIN_CODE     = '31082005';
       email:      ADMIN_EMAIL,
       password:   ADMIN_PASSWORD,   // pre-save hook hashes this
       role:       'admin',
+      adminCodeAttempts: 0,
+      adminCodeLockUntil: null,
+      loginAttempts: 0,
+      loginLockUntil: null
     });
     // set accessCode separately via updateOne to avoid double-hashing
     await User.updateOne({ email: ADMIN_EMAIL }, { accessCode: hashedCode });
